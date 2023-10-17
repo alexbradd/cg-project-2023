@@ -1,4 +1,4 @@
-# Froggo
+# Froggo 🐸
 
 Froggo is a simple frogger-like game where you are the car and are trying to
 avoid the pedestrians/animals. It is built upon the `seng` vulkan-based game
