@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
-file(STRINGS version.txt cg_project_VERSION)
-message(STATUS "Building project")
+message(STATUS "Building ${PROJECT_NAME}")
 
-project(cg_project LANGUAGES CXX VERSION ${cg_project_VERSION})
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(froggo LANGUAGES CXX VERSION 0.0.0)
 
-add_subdirectory(src)
+add_subdirectory(seng)
+add_subdirectory(froggo)
