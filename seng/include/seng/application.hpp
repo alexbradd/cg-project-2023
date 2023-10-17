@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <string>
+#include <vulkan/vulkan.hpp>
 namespace seng {
 
 /**
@@ -42,9 +43,15 @@ private:
   unsigned int width, height;
 
   GLFWwindow* w;
+  vk::Instance instance;
 
   void initWindow();
+
+  void pushGlfwExtensions(std::vector<const char*>& ext);
+  void pushMacStupidBullcrap(std::vector<const char *>& ext, vk::InstanceCreateFlags& new_flags);
+  vk::Instance createInstance();
   void initVulkan();
+
   void mainLoop();
   void cleanup();
 };
