@@ -9,6 +9,8 @@ course at Politecnico di Milano, a.y. 2022/2023
 
 ## Building
 
-Requirements:
+Requirements (for both application and engine):
 
 1. CMake and a C++ compiler supporting at least C++17
+2. GLFW 3.3 or newer
+3. Vulkan SDK
