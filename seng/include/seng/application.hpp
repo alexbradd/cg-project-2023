@@ -1,9 +1,8 @@
 #ifndef __SENG_APPLICATION_HPP__
 #define __SENG_APPLICATION_HPP__
 
-#include <GLFW/glfw3.h>
+#include <memory>
 #include <string>
-#include <vulkan/vulkan.hpp>
 namespace seng {
 
 /**
@@ -14,16 +13,11 @@ namespace seng {
  */
 class Application {
 public:
-  Application() : Application("Vulkan", 800, 600)
-  {}
-
+  Application();
   Application(std::string window_name,
               unsigned int width,
-              unsigned int height) :
-    w_name { window_name },
-    width { width },
-    height { height }
-  {}
+              unsigned int height);
+  ~Application();
 
   Application(const Application &) = delete;
   Application(const Application &&) = delete;
@@ -39,21 +33,8 @@ public:
   Application &operator=(const Application &&other) noexcept = delete;
 
 private:
-  std::string w_name;
-  unsigned int width, height;
-
-  GLFWwindow* w;
-  vk::Instance instance;
-
-  void initWindow();
-
-  void pushGlfwExtensions(std::vector<const char*>& ext);
-  void pushMacStupidBullcrap(std::vector<const char *>& ext, vk::InstanceCreateFlags& new_flags);
-  vk::Instance createInstance();
-  void initVulkan();
-
-  void mainLoop();
-  void cleanup();
+  class impl;
+  std::unique_ptr<impl> pimpl;
 };
 
 } // namespace seng
