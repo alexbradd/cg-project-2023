@@ -4,6 +4,7 @@ message(STATUS "Building ${PROJECT_NAME}")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
+find_package(fmt REQUIRED)
 
 add_library(${PROJECT_NAME} src/application.cpp)
 target_compile_options(${PROJECT_NAME}
@@ -28,4 +29,5 @@ target_link_libraries(${PROJECT_NAME}
     glfw
     Vulkan::Vulkan
     Vulkan::Headers
+    fmt::fmt
 )
