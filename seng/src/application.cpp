@@ -31,10 +31,7 @@ public:
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE,
                   GLFW_FALSE); // FIXME: make it resizeable when ready
-    this->w = glfwCreateWindow(this->width,
-                              this->height,
-                              this->w_name.c_str(),
-                              nullptr, nullptr);
+    w = glfwCreateWindow(width, height, w_name.c_str(), nullptr, nullptr);
   }
 
   void pushGlfwExtensions(std::vector<const char*>& ext) {
@@ -60,8 +57,8 @@ public:
 
     std::vector<const char *> extensions {};
     vk::InstanceCreateFlags portability;
-    this->pushGlfwExtensions(extensions);
-    this->pushMacStupidBullcrap(extensions, portability);
+    pushGlfwExtensions(extensions);
+    pushMacStupidBullcrap(extensions, portability);
 
     vk::InstanceCreateInfo ci;
     ci.pApplicationInfo = &ai;
@@ -74,7 +71,7 @@ public:
 
   void initVulkan() {
     try {
-      this->instance = this->createInstance();
+      instance = createInstance();
     } catch (std::exception const & e) {
       throw std::runtime_error("Failed to create instance!");
     }
