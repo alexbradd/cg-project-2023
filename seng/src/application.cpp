@@ -21,7 +21,7 @@ class Application::impl {
   string w_name;
   unsigned int width, height;
 
-  GLFWwindow *w;
+  GLFWwindow *window;
   Instance instance;
   PhysicalDevice physicalDevice;
   Device device;
@@ -42,7 +42,7 @@ class Application::impl {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE,
                    GLFW_FALSE);  // FIXME: make it resizeable when ready
-    w = glfwCreateWindow(width, height, w_name.c_str(), nullptr, nullptr);
+    window = glfwCreateWindow(width, height, w_name.c_str(), nullptr, nullptr);
   }
 
   void pushGlfwExtensions(vector<const char *> &ext) {
@@ -226,7 +226,7 @@ class Application::impl {
   }
 
   void mainLoop() {
-    while (!glfwWindowShouldClose(this->w)) {
+    while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
     }
   }
@@ -244,7 +244,7 @@ class Application::impl {
     device.destroy();
     instance.destroy();
 
-    glfwDestroyWindow(this->w);
+    glfwDestroyWindow(window);
     glfwTerminate();
   }
 };
