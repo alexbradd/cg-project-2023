@@ -39,23 +39,24 @@ void DestroyDebugUtilsMessengerEXT(vk::Instance instance,
     func((VkInstance)instance, (VkDebugUtilsMessengerEXT)debugMessenger,
          (const VkAllocationCallbacks *)pAllocator);
 }
+using namespace vk;
 
 class Application::impl {
  public:
-  std::string w_name;
+  string w_name;
   unsigned int width, height;
 
   GLFWwindow *w;
-  vk::Instance instance;
+  Instance instance;
 
 #ifndef NDEBUG
   static constexpr bool enableValidationLayers{true};
 #else
   static constexpr bool enableValidationLayers{false};
 #endif
-  vk::DebugUtilsMessengerEXT debugMessenger;
+  DebugUtilsMessengerEXT debugMessenger;
 
-  impl(std::string w_name, unsigned int w, unsigned int h)
+  impl(string w_name, unsigned int w, unsigned int h)
       : w_name{w_name}, width{w}, height{h} {}
 
   void initWindow() {
@@ -67,7 +68,7 @@ class Application::impl {
     w = glfwCreateWindow(width, height, w_name.c_str(), nullptr, nullptr);
   }
 
-  void pushGlfwExtensions(std::vector<const char *> &ext) {
+  void pushGlfwExtensions(vector<const char *> &ext) {
     uint32_t ext_count = 0;
     const char **glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
     for (uint32_t i = 0; i < ext_count; i++) {
@@ -75,65 +76,64 @@ class Application::impl {
     }
   }
 
-  void pushMacStupidBullcrap(std::vector<const char *> &ext,
-                             vk::InstanceCreateFlags &new_flags) {
+  void pushMacStupidBullcrap(vector<const char *> &ext,
+                             InstanceCreateFlags &new_flags) {
     ext.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-    new_flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
+    new_flags |= InstanceCreateFlagBits::eEnumeratePortabilityKHR;
   }
 
-  bool supportsAllLayers(const std::vector<const char *> &l) {
-    const std::vector<vk::LayerProperties> a =
-        vk::enumerateInstanceLayerProperties();
-    return std::all_of(l.begin(), l.end(), [&a](const char *name) {
-      return std::any_of(a.begin(), a.end(),
-                         [&name](const vk::LayerProperties &property) {
-                           return strcmp(property.layerName, name) == 0;
-                         });
+  bool supportsAllLayers(const vector<const char *> &l) {
+    const vector<LayerProperties> a = enumerateInstanceLayerProperties();
+    return all_of(l.begin(), l.end(), [&a](const char *name) {
+      return any_of(a.begin(), a.end(),
+                    [&name](const LayerProperties &property) {
+                      return strcmp(property.layerName, name) == 0;
+                    });
     });
   }
 
   void populateDebugUtilsMessengerCreateInfo(
-      vk::DebugUtilsMessengerCreateInfoEXT &ci) {
-    vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
-    vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
-        vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+      DebugUtilsMessengerCreateInfoEXT &ci) {
+    DebugUtilsMessageSeverityFlagsEXT severityFlags(
+        DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+        DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+        DebugUtilsMessageSeverityFlagBitsEXT::eError);
+    DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
+        DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+        DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+        DebugUtilsMessageTypeFlagBitsEXT::eValidation);
     ci.messageSeverity = severityFlags;
     ci.messageType = messageTypeFlags;
     ci.pfnUserCallback = debugCallback;
   }
 
-  vk::Instance createInstance() {
-    vk::ApplicationInfo ai{};
-    ai.pApplicationName = this->w_name.c_str();
+  Instance createInstance() {
+    ApplicationInfo ai{};
+    ai.pApplicationName = w_name.c_str();
     ai.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     ai.pEngineName = "seng";
     ai.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     ai.apiVersion = VK_API_VERSION_1_0;
 
-    std::vector<const char *> validationLayers;
+    vector<const char *> validationLayers;
     validationLayers.push_back("VK_LAYER_KHRONOS_validation");
     if (enableValidationLayers && !supportsAllLayers(validationLayers)) {
       throw std::runtime_error(
           "Validation layers requested, but not available");
     }
 
-    std::vector<const char *> extensions{};
-    vk::InstanceCreateFlags portability;
+    vector<const char *> extensions{};
+    InstanceCreateFlags portability;
     pushGlfwExtensions(extensions);
     pushMacStupidBullcrap(extensions, portability);
     if (enableValidationLayers)  // extension always present if validation
                                  // layers are present
       extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-    vk::InstanceCreateInfo ci;
+    InstanceCreateInfo ci;
     ci.pApplicationInfo = &ai;
     ci.flags |= portability;
-    ci.enabledExtensionCount = (uint32_t)extensions.size();
+    ci.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     ci.ppEnabledExtensionNames = extensions.data();
     if (enableValidationLayers) {
       ci.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -157,13 +157,13 @@ class Application::impl {
     switch (messageSeverity) {
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-        seng::log::info("Validation layer: {}", pCallbackData->pMessage);
+        log::info("Validation layer: {}", pCallbackData->pMessage);
         break;
       case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-        seng::log::warning("Validation layer: {}", pCallbackData->pMessage);
+        log::warning("Validation layer: {}", pCallbackData->pMessage);
         break;
       default:
-        seng::log::error("Validation layer: {}", pCallbackData->pMessage);
+        log::error("Validation layer: {}", pCallbackData->pMessage);
     }
     return VK_FALSE;
   }
@@ -171,7 +171,7 @@ class Application::impl {
   void setupDebugMessager() {
     if (!enableValidationLayers) return;
 
-    vk::DebugUtilsMessengerCreateInfoEXT ci{};
+    DebugUtilsMessengerCreateInfoEXT ci{};
     populateDebugUtilsMessengerCreateInfo(ci);
     if (CreateDebugUtilsMessengerEXT(instance, &ci, nullptr, &debugMessenger) !=
         VK_SUCCESS) {
@@ -183,8 +183,8 @@ class Application::impl {
     try {
       instance = createInstance();
       setupDebugMessager();
-    } catch (std::exception const &e) {
-      throw std::runtime_error("Failed to create instance!");
+    } catch (exception const &e) {
+      throw runtime_error("Failed to create instance!");
     }
   }
 
@@ -205,7 +205,7 @@ class Application::impl {
 };
 
 Application::Application() : Application("Vulkan", 800, 600) {}
-Application::Application(std::string window_name, unsigned int width,
+Application::Application(string window_name, unsigned int width,
                          unsigned int height)
     : pimpl{new impl{window_name, width, height}} {}
 Application::~Application() {}
