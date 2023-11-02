@@ -168,6 +168,8 @@ class Application::impl {
       instance = createInstance();
       setupDebugMessager();
     } catch (exception const &e) {
+      log::error(e.what());
+      log::error("Failed to create instance!");
       throw runtime_error("Failed to create instance!");
     }
   }
