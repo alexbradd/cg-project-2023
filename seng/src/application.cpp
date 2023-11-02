@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -23,6 +24,8 @@ class Application::impl {
 
   GLFWwindow *window;
   Instance instance;
+  SurfaceKHR surface;
+
   PhysicalDevice physicalDevice;
   Device device;
 
@@ -167,6 +170,15 @@ class Application::impl {
     createDebugUtilsMessengerEXT(ci);
   }
 
+  SurfaceKHR createSurface() {
+    VkSurfaceKHR surf{};
+    auto res = glfwCreateWindowSurface(static_cast<VkInstance>(instance),
+                                       window, nullptr, &surf);
+    if (res != VK_SUCCESS)
+      throw std::runtime_error("failed to create window surface!");
+    return SurfaceKHR(surf);
+  }
+
   optional<uint32_t> findQueueFamiles(const PhysicalDevice &dev) {
     vector<QueueFamilyProperties> queueFamilies =
         dev.getQueueFamilyProperties();
@@ -216,6 +228,7 @@ class Application::impl {
     try {
       instance = createInstance();
       setupDebugMessager();
+      surface = createSurface();
       physicalDevice = pickPhysicalDevice();
       device = createLogicalDevice();
     } catch (exception const &e) {
@@ -242,6 +255,7 @@ class Application::impl {
   void cleanup() {
     if (enableValidationLayers) destroyDebugUtilsMessengerEXT();
     device.destroy();
+    instance.destroySurfaceKHR(surface);
     instance.destroy();
 
     glfwDestroyWindow(window);
