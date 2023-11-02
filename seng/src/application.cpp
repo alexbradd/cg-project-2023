@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -28,6 +29,16 @@ class Application::impl {
 
   PhysicalDevice physicalDevice;
   Device device;
+  Queue presentQueue;
+
+  struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
+
+    bool isComplete() {
+      return graphicsFamily.has_value() && presentFamily.has_value();
+    }
+  };
 
 #ifndef NDEBUG
   static constexpr bool enableValidationLayers{true};
@@ -179,14 +190,17 @@ class Application::impl {
     return SurfaceKHR(surf);
   }
 
-  optional<uint32_t> findQueueFamiles(const PhysicalDevice &dev) {
+  QueueFamilyIndices findQueueFamiles(const PhysicalDevice &dev) {
     vector<QueueFamilyProperties> queueFamilies =
         dev.getQueueFamilyProperties();
-    optional<uint32_t> indices{};
+    QueueFamilyIndices indices{};
 
     int i = 0;
     for (const auto &familyProperties : queueFamilies) {
-      if (familyProperties.queueFlags & QueueFlagBits::eGraphics) indices = i;
+      if (familyProperties.queueFlags & QueueFlagBits::eGraphics)
+        indices.graphicsFamily = i;
+      if (dev.getSurfaceSupportKHR(i, surface)) indices.presentFamily = i;
+      if (indices.isComplete()) break;
       ++i;
     }
 
@@ -198,30 +212,39 @@ class Application::impl {
     if (devs.empty())
       throw runtime_error("Failed to find GPUs with Vulkan support!");
     auto dev = find_if(devs.begin(), devs.end(), [this](const auto &dev) {
-      return findQueueFamiles(dev).has_value();
+      return findQueueFamiles(dev).isComplete();
     });
     if (dev == devs.end())
       throw runtime_error("Failed to find a suitable GPU!");
     return *dev;
   }
 
-  Device createLogicalDevice() {
+  pair<Device, Queue> createLogicalDeviceAndQueue() {
     auto indices = findQueueFamiles(physicalDevice);
     float queuePrio = 1.0f;
 
-    DeviceQueueCreateInfo qci{};
-    qci.queueFamilyIndex = *indices;
-    qci.queueCount = 1;
-    qci.pQueuePriorities = &queuePrio;
+    vector<DeviceQueueCreateInfo> qcis;
+    set<uint32_t> uniqueQueueFamilies = {*(indices.graphicsFamily),
+                                         *(indices.presentFamily)};
+    for (auto queueFamily : uniqueQueueFamilies) {
+      DeviceQueueCreateInfo qci{};
+      qci.queueFamilyIndex = queueFamily;
+      qci.queueCount = 1;
+      qci.pQueuePriorities = &queuePrio;
+      qcis.push_back(qci);
+    }
 
     PhysicalDeviceFeatures features{};
 
     DeviceCreateInfo dci{};
-    dci.pQueueCreateInfos = &qci;
-    dci.queueCreateInfoCount = 1;
+    dci.pQueueCreateInfos = qcis.data();
+    dci.queueCreateInfoCount = static_cast<uint32_t>(qcis.size());
     dci.pEnabledFeatures = &features;
 
-    return physicalDevice.createDevice(dci);
+    Device d = physicalDevice.createDevice(dci);
+    Queue q = d.getQueue(*(indices.presentFamily), 0);
+
+    return pair{d, q};
   }
 
   void initVulkan() {
@@ -230,7 +253,7 @@ class Application::impl {
       setupDebugMessager();
       surface = createSurface();
       physicalDevice = pickPhysicalDevice();
-      device = createLogicalDevice();
+      tie(device, presentQueue) = createLogicalDeviceAndQueue();
     } catch (exception const &e) {
       log::error(e.what());
       log::error("Failed to create instance!");
