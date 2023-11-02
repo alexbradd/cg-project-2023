@@ -12,11 +12,9 @@ namespace seng {
  * It is non-copyable and non-moveable.
  */
 class Application {
-public:
+ public:
   Application();
-  Application(std::string window_name,
-              unsigned int width,
-              unsigned int height);
+  Application(std::string window_name, unsigned int width, unsigned int height);
   ~Application();
 
   Application(const Application &) = delete;
@@ -32,11 +30,11 @@ public:
   Application &operator=(const Application &other) = delete;
   Application &operator=(const Application &&other) noexcept = delete;
 
-private:
+ private:
   class impl;
   std::unique_ptr<impl> pimpl;
 };
 
-} // namespace seng
+}  // namespace seng
 
-#endif // __SENG_APPLICATION_HPP__
+#endif  // __SENG_APPLICATION_HPP__

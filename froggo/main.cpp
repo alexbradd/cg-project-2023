@@ -1,12 +1,11 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-
 #include <seng/application.hpp>
 #include <seng/log.hpp>
 
-int main (int argc, char *argv[]) {
-  seng::Application app {"Froggo", 800, 600};
+int main(int argc, char* argv[]) {
+  seng::Application app{"Froggo", 800, 600};
 
   try {
     seng::log::info("Starting application");
