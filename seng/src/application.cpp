@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <iostream>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -21,6 +22,7 @@ class Application::impl {
 
   GLFWwindow *w;
   Instance instance;
+  PhysicalDevice physicalDevice;
 
 #ifndef NDEBUG
   static constexpr bool enableValidationLayers{true};
@@ -163,10 +165,33 @@ class Application::impl {
     createDebugUtilsMessengerEXT(ci);
   }
 
+  PhysicalDevice pickPhysicalDevice() {
+    vector<PhysicalDevice> devs = instance.enumeratePhysicalDevices();
+    if (devs.empty())
+      throw runtime_error("Failed to find GPUs with Vulkan support!");
+    auto dev = find_if(devs.begin(), devs.end(), [](const auto &dev) {
+      vector<QueueFamilyProperties> queueFamilies =
+          dev.getQueueFamilyProperties();
+      optional<uint32_t> indices{};
+
+      int i = 0;
+      for (const auto &familyProperties : queueFamilies) {
+        if (familyProperties.queueFlags & QueueFlagBits::eGraphics) indices = i;
+        ++i;
+      }
+
+      return indices.has_value();
+    });
+    if (dev == devs.end())
+      throw runtime_error("Failed to find a suitable GPU!");
+    return *dev;
+  }
+
   void initVulkan() {
     try {
       instance = createInstance();
       setupDebugMessager();
+      physicalDevice = pickPhysicalDevice();
     } catch (exception const &e) {
       log::error(e.what());
       log::error("Failed to create instance!");
