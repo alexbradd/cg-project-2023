@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_structs.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -23,6 +24,7 @@ class Application::impl {
   GLFWwindow *w;
   Instance instance;
   PhysicalDevice physicalDevice;
+  Device device;
 
 #ifndef NDEBUG
   static constexpr bool enableValidationLayers{true};
@@ -165,26 +167,49 @@ class Application::impl {
     createDebugUtilsMessengerEXT(ci);
   }
 
+  optional<uint32_t> findQueueFamiles(const PhysicalDevice &dev) {
+    vector<QueueFamilyProperties> queueFamilies =
+        dev.getQueueFamilyProperties();
+    optional<uint32_t> indices{};
+
+    int i = 0;
+    for (const auto &familyProperties : queueFamilies) {
+      if (familyProperties.queueFlags & QueueFlagBits::eGraphics) indices = i;
+      ++i;
+    }
+
+    return indices;
+  }
+
   PhysicalDevice pickPhysicalDevice() {
     vector<PhysicalDevice> devs = instance.enumeratePhysicalDevices();
     if (devs.empty())
       throw runtime_error("Failed to find GPUs with Vulkan support!");
-    auto dev = find_if(devs.begin(), devs.end(), [](const auto &dev) {
-      vector<QueueFamilyProperties> queueFamilies =
-          dev.getQueueFamilyProperties();
-      optional<uint32_t> indices{};
-
-      int i = 0;
-      for (const auto &familyProperties : queueFamilies) {
-        if (familyProperties.queueFlags & QueueFlagBits::eGraphics) indices = i;
-        ++i;
-      }
-
-      return indices.has_value();
+    auto dev = find_if(devs.begin(), devs.end(), [this](const auto &dev) {
+      return findQueueFamiles(dev).has_value();
     });
     if (dev == devs.end())
       throw runtime_error("Failed to find a suitable GPU!");
     return *dev;
+  }
+
+  Device createLogicalDevice() {
+    auto indices = findQueueFamiles(physicalDevice);
+    float queuePrio = 1.0f;
+
+    DeviceQueueCreateInfo qci{};
+    qci.queueFamilyIndex = *indices;
+    qci.queueCount = 1;
+    qci.pQueuePriorities = &queuePrio;
+
+    PhysicalDeviceFeatures features{};
+
+    DeviceCreateInfo dci{};
+    dci.pQueueCreateInfos = &qci;
+    dci.queueCreateInfoCount = 1;
+    dci.pEnabledFeatures = &features;
+
+    return physicalDevice.createDevice(dci);
   }
 
   void initVulkan() {
@@ -192,6 +217,7 @@ class Application::impl {
       instance = createInstance();
       setupDebugMessager();
       physicalDevice = pickPhysicalDevice();
+      device = createLogicalDevice();
     } catch (exception const &e) {
       log::error(e.what());
       log::error("Failed to create instance!");
@@ -215,6 +241,7 @@ class Application::impl {
 
   void cleanup() {
     if (enableValidationLayers) destroyDebugUtilsMessengerEXT();
+    device.destroy();
     instance.destroy();
 
     glfwDestroyWindow(this->w);
