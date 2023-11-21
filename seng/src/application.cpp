@@ -32,8 +32,8 @@ class Application::impl {
   Queue presentQueue;
 
   struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
+    optional<uint32_t> graphicsFamily;
+    optional<uint32_t> presentFamily;
 
     bool isComplete() {
       return graphicsFamily.has_value() && presentFamily.has_value();
