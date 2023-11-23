@@ -25,9 +25,9 @@ target_compile_features(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/public
   PRIVATE
-    ${PROJECT_SOURCE_DIR}/private
+    ${PROJECT_SOURCE_DIR}/include/private
 )
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
