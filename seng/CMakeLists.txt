@@ -9,11 +9,16 @@ FetchContent_Declare(fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG 10.1.1
 )
-FetchContent_MakeAvailable(fmt)
+FetchContent_Declare(glm
+  GIT_REPOSITORY https://github.com/g-truc/glm
+  GIT_TAG 0.9.9.8
+)
+FetchContent_MakeAvailable(fmt glm)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 # find_package(fmt REQUIRED)
+# find_package(glm REQUIRED)
 
 add_library(${PROJECT_NAME}
   src/application.cpp
@@ -45,4 +50,5 @@ target_link_libraries(${PROJECT_NAME}
     glfw
     Vulkan::Vulkan
     Vulkan::Headers
+    glm::glm
 )
