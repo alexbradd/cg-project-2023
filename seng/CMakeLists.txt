@@ -1,10 +1,19 @@
 project(seng LANGUAGES CXX)
 
+include(FetchContent)
+
 message(STATUS "Building ${PROJECT_NAME}")
+
+message(STATUS "Fetching dependencies...")
+FetchContent_Declare(fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG 10.1.1
+)
+FetchContent_MakeAvailable(fmt)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
-find_package(fmt REQUIRED)
+# find_package(fmt REQUIRED)
 
 add_library(${PROJECT_NAME}
   src/application.cpp
@@ -30,9 +39,10 @@ target_include_directories(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/include/private
 )
 target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    fmt::fmt
   PRIVATE
     glfw
     Vulkan::Vulkan
     Vulkan::Headers
-    fmt::fmt
 )
