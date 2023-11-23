@@ -40,10 +40,8 @@ class Application::impl {
       : appName{appName},
         width{w},
         height{h},
-        window{GlfwWindowWrapper(appName.c_str(), w, h)},
-        vulkan{VulkanInternals(window.ptr, appName, w, h)} {}
-
-  void initWindow() {}
+        window{appName.c_str(), w, h},
+        vulkan{window.ptr, appName, w, h} {}
 
   void mainLoop() {
     while (!window.shouldClose()) {
