@@ -4,10 +4,9 @@
 #include <optional>
 #include <set>
 #include <stdexcept>
+#include <unordered_set>
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -30,6 +29,14 @@ class Application::impl {
   PhysicalDevice physicalDevice;
   Device device;
   Queue presentQueue;
+  SwapchainKHR swapchain;
+  Format swapchainFormat;
+  Extent2D swapchainExtent;
+  vector<Image> swapchainImages;
+  vector<ImageView> swapchainImageViews;
+
+  const vector<const char *> requiredDeviceExtensions{
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
   struct QueueFamilyIndices {
     optional<uint32_t> graphicsFamily;
@@ -38,6 +45,12 @@ class Application::impl {
     bool isComplete() {
       return graphicsFamily.has_value() && presentFamily.has_value();
     }
+  };
+
+  struct SwapchainSupportDetails {
+    SurfaceCapabilitiesKHR capabilities;
+    vector<SurfaceFormatKHR> formats;
+    vector<PresentModeKHR> presentModes;
   };
 
 #ifndef NDEBUG
@@ -190,7 +203,7 @@ class Application::impl {
     return SurfaceKHR(surf);
   }
 
-  QueueFamilyIndices findQueueFamiles(const PhysicalDevice &dev) {
+  QueueFamilyIndices findQueueFamilies(PhysicalDevice dev) {
     vector<QueueFamilyProperties> queueFamilies =
         dev.getQueueFamilyProperties();
     QueueFamilyIndices indices{};
@@ -207,20 +220,39 @@ class Application::impl {
     return indices;
   }
 
-  PhysicalDevice pickPhysicalDevice() {
+  bool checkDeviceExtensions(PhysicalDevice dev) {
+    vector<ExtensionProperties> available =
+        dev.enumerateDeviceExtensionProperties();
+    unordered_set<string> required(requiredDeviceExtensions.begin(),
+                                   requiredDeviceExtensions.end());
+    for (const auto &e : available) required.erase(e.extensionName);
+    return required.empty();
+  }
+
+  bool checkSwapchain(PhysicalDevice dev, SurfaceKHR surface) {
+    SwapchainSupportDetails details = querySwapchainDetails(dev, surface);
+    return !details.formats.empty() && !details.presentModes.empty();
+  }
+
+  PhysicalDevice pickPhysicalDevice(SurfaceKHR surface) {
     vector<PhysicalDevice> devs = instance.enumeratePhysicalDevices();
     if (devs.empty())
       throw runtime_error("Failed to find GPUs with Vulkan support!");
-    auto dev = find_if(devs.begin(), devs.end(), [this](const auto &dev) {
-      return findQueueFamiles(dev).isComplete();
-    });
+    auto dev =
+        find_if(devs.begin(), devs.end(), [this, surface](const auto &dev) {
+          auto queueFamilyComplete = findQueueFamilies(dev).isComplete();
+          auto extensionSupported = checkDeviceExtensions(dev);
+          auto swapchainAdequate =
+              extensionSupported ? checkSwapchain(dev, surface) : false;
+          return queueFamilyComplete && extensionSupported && swapchainAdequate;
+        });
     if (dev == devs.end())
       throw runtime_error("Failed to find a suitable GPU!");
     return *dev;
   }
 
   pair<Device, Queue> createLogicalDeviceAndQueue() {
-    auto indices = findQueueFamiles(physicalDevice);
+    auto indices = findQueueFamilies(physicalDevice);
     float queuePrio = 1.0f;
 
     vector<DeviceQueueCreateInfo> qcis;
@@ -239,6 +271,9 @@ class Application::impl {
     DeviceCreateInfo dci{};
     dci.pQueueCreateInfos = qcis.data();
     dci.queueCreateInfoCount = static_cast<uint32_t>(qcis.size());
+    dci.enabledExtensionCount =
+        static_cast<uint32_t>(requiredDeviceExtensions.size());
+    dci.ppEnabledExtensionNames = requiredDeviceExtensions.data();
     dci.pEnabledFeatures = &features;
 
     Device d = physicalDevice.createDevice(dci);
@@ -247,13 +282,119 @@ class Application::impl {
     return pair{d, q};
   }
 
+  SwapchainSupportDetails querySwapchainDetails(PhysicalDevice dev,
+                                                SurfaceKHR surface) {
+    SwapchainSupportDetails details;
+    details.capabilities = dev.getSurfaceCapabilitiesKHR(surface);
+    details.formats = dev.getSurfaceFormatsKHR(surface);
+    details.presentModes = dev.getSurfacePresentModesKHR(surface);
+    return details;
+  }
+
+  SurfaceFormatKHR chooseSwapchainFormat(
+      const vector<SurfaceFormatKHR> &available) {
+    for (const auto &f : available) {
+      if (f.format == Format::eB8G8R8A8Srgb &&
+          f.colorSpace == ColorSpaceKHR::eSrgbNonlinear)
+        return f;
+    }
+    return available[0];
+  }
+
+  Extent2D chooseSwapchainExtent(const SurfaceCapabilitiesKHR &caps) {
+    if (caps.currentExtent.width != numeric_limits<uint32_t>::max()) {
+      return caps.currentExtent;
+    } else {
+      int width, height;
+      glfwGetFramebufferSize(window, &width, &height);
+
+      Extent2D actual = {static_cast<uint32_t>(width),
+                         static_cast<uint32_t>(height)};
+      actual.width = clamp(actual.width, caps.minImageExtent.width,
+                           caps.maxImageExtent.width);
+      actual.height = clamp(actual.height, caps.minImageExtent.height,
+                            caps.maxImageExtent.height);
+      return actual;
+    }
+  }
+
+  SwapchainKHR createSwapchain(PhysicalDevice psysicalDev, Device dev,
+                               SurfaceKHR surface) {
+    SwapchainSupportDetails details =
+        querySwapchainDetails(psysicalDev, surface);
+
+    SurfaceFormatKHR format = chooseSwapchainFormat(details.formats);
+    swapchainFormat = format.format;
+    swapchainExtent = chooseSwapchainExtent(details.capabilities);
+    PresentModeKHR presentMode = PresentModeKHR::eFifo;
+    uint32_t imageCount = details.capabilities.minImageCount + 1;
+    if (details.capabilities.maxImageCount > 0 &&
+        imageCount > details.capabilities.maxImageCount)
+      imageCount = details.capabilities.maxImageCount;
+
+    SwapchainCreateInfoKHR sci{};
+    sci.surface = surface;
+    sci.minImageCount = imageCount;
+    sci.imageFormat = format.format;
+    sci.imageColorSpace = format.colorSpace;
+    sci.imageExtent = swapchainExtent;
+    sci.imageArrayLayers = 1;
+    sci.imageUsage = ImageUsageFlagBits::eColorAttachment;
+    sci.preTransform = details.capabilities.currentTransform;
+    sci.compositeAlpha = CompositeAlphaFlagBitsKHR::eOpaque;
+    sci.presentMode = presentMode;
+    sci.clipped = true;
+    sci.oldSwapchain = VK_NULL_HANDLE;
+
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+    if (indices.graphicsFamily != indices.presentFamily) {
+      uint32_t queueFamilyIndices[] = {*indices.graphicsFamily,
+                                       *indices.presentFamily};
+      sci.imageSharingMode = SharingMode::eConcurrent;
+      sci.queueFamilyIndexCount = 2;
+      sci.pQueueFamilyIndices = queueFamilyIndices;
+    } else {
+      sci.imageSharingMode = SharingMode::eExclusive;
+      sci.queueFamilyIndexCount = 0;
+      sci.pQueueFamilyIndices = nullptr;
+    }
+
+    return device.createSwapchainKHR(sci);
+  }
+
+  vector<ImageView> createImageViews(Device dev, const vector<Image> &images) {
+    vector<ImageView> views{};
+
+    for (const auto &i : images) {
+      ImageViewCreateInfo ci;
+      ci.image = i;
+      ci.viewType = ImageViewType::e2D;
+      ci.format = swapchainFormat;
+      ci.components.r = ComponentSwizzle::eIdentity;
+      ci.components.g = ComponentSwizzle::eIdentity;
+      ci.components.b = ComponentSwizzle::eIdentity;
+      ci.components.a = ComponentSwizzle::eIdentity;
+      ci.subresourceRange.aspectMask = ImageAspectFlagBits::eColor;
+      ci.subresourceRange.baseMipLevel = 0;
+      ci.subresourceRange.levelCount = 1;
+      ci.subresourceRange.baseArrayLayer = 0;
+      ci.subresourceRange.layerCount = 1;
+
+      views.push_back(dev.createImageView(ci));
+    }
+    return views;
+  }
+
   void initVulkan() {
     try {
       instance = createInstance();
       setupDebugMessager();
       surface = createSurface();
-      physicalDevice = pickPhysicalDevice();
+      physicalDevice = pickPhysicalDevice(surface);
       tie(device, presentQueue) = createLogicalDeviceAndQueue();
+      swapchain = createSwapchain(physicalDevice, device, surface);
+      swapchainImages = device.getSwapchainImagesKHR(swapchain);
+      swapchainImageViews = createImageViews(device, swapchainImages);
     } catch (exception const &e) {
       log::error(e.what());
       log::error("Failed to create instance!");
@@ -277,6 +418,8 @@ class Application::impl {
 
   void cleanup() {
     if (enableValidationLayers) destroyDebugUtilsMessengerEXT();
+    for (auto &view : swapchainImageViews) device.destroyImageView(view);
+    device.destroySwapchainKHR(swapchain);
     device.destroy();
     instance.destroySurfaceKHR(surface);
     instance.destroy();
