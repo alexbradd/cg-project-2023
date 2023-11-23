@@ -72,43 +72,21 @@ class Application::impl {
     window = glfwCreateWindow(width, height, w_name.c_str(), nullptr, nullptr);
   }
 
-  void pushGlfwExtensions(vector<const char *> &ext) {
-    uint32_t ext_count = 0;
-    const char **glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
-    for (uint32_t i = 0; i < ext_count; i++) {
-      ext.emplace_back(glfw_ext[i]);
+  void initVulkan() {
+    try {
+      instance = createInstance();
+      if (enableValidationLayers) setupDebugMessager();
+      surface = createSurface();
+      physicalDevice = pickPhysicalDevice();
+      tie(device, presentQueue) = createLogicalDeviceAndQueue();
+      swapchain = createSwapchain();
+      swapchainImages = device.getSwapchainImagesKHR(swapchain);
+      createImageViews();
+    } catch (exception const &e) {
+      log::error(e.what());
+      log::error("Failed to create instance!");
+      throw runtime_error("Failed to create instance!");
     }
-  }
-
-  void pushMacStupidBullcrap(vector<const char *> &ext,
-                             InstanceCreateFlags &new_flags) {
-    ext.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-    new_flags |= InstanceCreateFlagBits::eEnumeratePortabilityKHR;
-  }
-
-  bool supportsAllLayers(const vector<const char *> &l) {
-    const vector<LayerProperties> a = enumerateInstanceLayerProperties();
-    return all_of(l.begin(), l.end(), [&a](const char *name) {
-      return any_of(a.begin(), a.end(),
-                    [&name](const LayerProperties &property) {
-                      return strcmp(property.layerName, name) == 0;
-                    });
-    });
-  }
-
-  void populateDebugUtilsMessengerCreateInfo(
-      DebugUtilsMessengerCreateInfoEXT &ci) {
-    DebugUtilsMessageSeverityFlagsEXT severityFlags(
-        DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-        DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-        DebugUtilsMessageSeverityFlagBitsEXT::eError);
-    DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
-        DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-        DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-        DebugUtilsMessageTypeFlagBitsEXT::eValidation);
-    ci.messageSeverity = severityFlags;
-    ci.messageType = messageTypeFlags;
-    ci.pfnUserCallback = debugCallback;
   }
 
   Instance createInstance() {
@@ -119,8 +97,7 @@ class Application::impl {
     ai.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     ai.apiVersion = VK_API_VERSION_1_0;
 
-    vector<const char *> validationLayers;
-    validationLayers.push_back("VK_LAYER_KHRONOS_validation");
+    vector<const char *> validationLayers{"VK_LAYER_KHRONOS_validation"};
     if (enableValidationLayers && !supportsAllLayers(validationLayers)) {
       throw std::runtime_error(
           "Validation layers requested, but not available");
@@ -153,6 +130,65 @@ class Application::impl {
     return vk::createInstance(ci);
   }
 
+  bool supportsAllLayers(const vector<const char *> &l) {
+    const vector<LayerProperties> a = enumerateInstanceLayerProperties();
+    return all_of(l.begin(), l.end(), [&a](const char *name) {
+      return any_of(a.begin(), a.end(),
+                    [&name](const LayerProperties &property) {
+                      return strcmp(property.layerName, name) == 0;
+                    });
+    });
+  }
+
+  void pushGlfwExtensions(vector<const char *> &ext) {
+    uint32_t ext_count = 0;
+    const char **glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
+    for (uint32_t i = 0; i < ext_count; i++) {
+      ext.emplace_back(glfw_ext[i]);
+    }
+  }
+
+  void pushMacStupidBullcrap(vector<const char *> &ext,
+                             InstanceCreateFlags &new_flags) {
+    ext.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    new_flags |= InstanceCreateFlagBits::eEnumeratePortabilityKHR;
+  }
+
+  void populateDebugUtilsMessengerCreateInfo(
+      DebugUtilsMessengerCreateInfoEXT &ci) {
+    DebugUtilsMessageSeverityFlagsEXT severityFlags(
+        DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+        DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+        DebugUtilsMessageSeverityFlagBitsEXT::eError);
+    DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
+        DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+        DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+        DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+    ci.messageSeverity = severityFlags;
+    ci.messageType = messageTypeFlags;
+    ci.pfnUserCallback = debugCallback;
+  }
+
+  void setupDebugMessager() {
+    DebugUtilsMessengerCreateInfoEXT ci{};
+    populateDebugUtilsMessengerCreateInfo(ci);
+    createDebugUtilsMessengerEXT(ci);
+  }
+
+  void createDebugUtilsMessengerEXT(
+      const DebugUtilsMessengerCreateInfoEXT &ci) {
+    auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+    if (func != nullptr) {
+      func(static_cast<VkInstance>(instance),
+           reinterpret_cast<const VkDebugUtilsMessengerCreateInfoEXT *>(&ci),
+           nullptr,
+           reinterpret_cast<VkDebugUtilsMessengerEXT *>(&debugMessenger));
+    } else {
+      throw runtime_error("failed to set up debug messenger!");
+    }
+  }
+
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -172,28 +208,6 @@ class Application::impl {
     return VK_FALSE;
   }
 
-  void createDebugUtilsMessengerEXT(
-      const DebugUtilsMessengerCreateInfoEXT &ci) {
-    auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-        vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-    if (func != nullptr) {
-      func(static_cast<VkInstance>(instance),
-           reinterpret_cast<const VkDebugUtilsMessengerCreateInfoEXT *>(&ci),
-           nullptr,
-           reinterpret_cast<VkDebugUtilsMessengerEXT *>(&debugMessenger));
-    } else {
-      throw runtime_error("failed to set up debug messenger!");
-    }
-  }
-
-  void setupDebugMessager() {
-    if (!enableValidationLayers) return;
-
-    DebugUtilsMessengerCreateInfoEXT ci{};
-    populateDebugUtilsMessengerCreateInfo(ci);
-    createDebugUtilsMessengerEXT(ci);
-  }
-
   SurfaceKHR createSurface() {
     VkSurfaceKHR surf{};
     auto res = glfwCreateWindowSurface(static_cast<VkInstance>(instance),
@@ -201,6 +215,22 @@ class Application::impl {
     if (res != VK_SUCCESS)
       throw std::runtime_error("failed to create window surface!");
     return SurfaceKHR(surf);
+  }
+
+  PhysicalDevice pickPhysicalDevice() {
+    vector<PhysicalDevice> devs = instance.enumeratePhysicalDevices();
+    if (devs.empty())
+      throw runtime_error("Failed to find GPUs with Vulkan support!");
+    auto dev = find_if(devs.begin(), devs.end(), [this](const auto &dev) {
+      auto queueFamilyComplete = findQueueFamilies(dev).isComplete();
+      auto extensionSupported = checkDeviceExtensions(dev);
+      auto swapchainAdequate =
+          extensionSupported ? checkSwapchain(dev, surface) : false;
+      return queueFamilyComplete && extensionSupported && swapchainAdequate;
+    });
+    if (dev == devs.end())
+      throw runtime_error("Failed to find a suitable GPU!");
+    return *dev;
   }
 
   QueueFamilyIndices findQueueFamilies(PhysicalDevice dev) {
@@ -234,21 +264,13 @@ class Application::impl {
     return !details.formats.empty() && !details.presentModes.empty();
   }
 
-  PhysicalDevice pickPhysicalDevice(SurfaceKHR surface) {
-    vector<PhysicalDevice> devs = instance.enumeratePhysicalDevices();
-    if (devs.empty())
-      throw runtime_error("Failed to find GPUs with Vulkan support!");
-    auto dev =
-        find_if(devs.begin(), devs.end(), [this, surface](const auto &dev) {
-          auto queueFamilyComplete = findQueueFamilies(dev).isComplete();
-          auto extensionSupported = checkDeviceExtensions(dev);
-          auto swapchainAdequate =
-              extensionSupported ? checkSwapchain(dev, surface) : false;
-          return queueFamilyComplete && extensionSupported && swapchainAdequate;
-        });
-    if (dev == devs.end())
-      throw runtime_error("Failed to find a suitable GPU!");
-    return *dev;
+  SwapchainSupportDetails querySwapchainDetails(PhysicalDevice dev,
+                                                SurfaceKHR surface) {
+    SwapchainSupportDetails details;
+    details.capabilities = dev.getSurfaceCapabilitiesKHR(surface);
+    details.formats = dev.getSurfaceFormatsKHR(surface);
+    details.presentModes = dev.getSurfacePresentModesKHR(surface);
+    return details;
   }
 
   pair<Device, Queue> createLogicalDeviceAndQueue() {
@@ -282,46 +304,9 @@ class Application::impl {
     return pair{d, q};
   }
 
-  SwapchainSupportDetails querySwapchainDetails(PhysicalDevice dev,
-                                                SurfaceKHR surface) {
-    SwapchainSupportDetails details;
-    details.capabilities = dev.getSurfaceCapabilitiesKHR(surface);
-    details.formats = dev.getSurfaceFormatsKHR(surface);
-    details.presentModes = dev.getSurfacePresentModesKHR(surface);
-    return details;
-  }
-
-  SurfaceFormatKHR chooseSwapchainFormat(
-      const vector<SurfaceFormatKHR> &available) {
-    for (const auto &f : available) {
-      if (f.format == Format::eB8G8R8A8Srgb &&
-          f.colorSpace == ColorSpaceKHR::eSrgbNonlinear)
-        return f;
-    }
-    return available[0];
-  }
-
-  Extent2D chooseSwapchainExtent(const SurfaceCapabilitiesKHR &caps) {
-    if (caps.currentExtent.width != numeric_limits<uint32_t>::max()) {
-      return caps.currentExtent;
-    } else {
-      int width, height;
-      glfwGetFramebufferSize(window, &width, &height);
-
-      Extent2D actual = {static_cast<uint32_t>(width),
-                         static_cast<uint32_t>(height)};
-      actual.width = clamp(actual.width, caps.minImageExtent.width,
-                           caps.maxImageExtent.width);
-      actual.height = clamp(actual.height, caps.minImageExtent.height,
-                            caps.maxImageExtent.height);
-      return actual;
-    }
-  }
-
-  SwapchainKHR createSwapchain(PhysicalDevice psysicalDev, Device dev,
-                               SurfaceKHR surface) {
+  SwapchainKHR createSwapchain() {
     SwapchainSupportDetails details =
-        querySwapchainDetails(psysicalDev, surface);
+        querySwapchainDetails(physicalDevice, surface);
 
     SurfaceFormatKHR format = chooseSwapchainFormat(details.formats);
     swapchainFormat = format.format;
@@ -362,10 +347,36 @@ class Application::impl {
     return device.createSwapchainKHR(sci);
   }
 
-  vector<ImageView> createImageViews(Device dev, const vector<Image> &images) {
-    vector<ImageView> views{};
+  SurfaceFormatKHR chooseSwapchainFormat(
+      const vector<SurfaceFormatKHR> &available) {
+    for (const auto &f : available) {
+      if (f.format == Format::eB8G8R8A8Srgb &&
+          f.colorSpace == ColorSpaceKHR::eSrgbNonlinear)
+        return f;
+    }
+    return available[0];
+  }
 
-    for (const auto &i : images) {
+  Extent2D chooseSwapchainExtent(const SurfaceCapabilitiesKHR &caps) {
+    if (caps.currentExtent.width != numeric_limits<uint32_t>::max()) {
+      return caps.currentExtent;
+    } else {
+      int width, height;
+      glfwGetFramebufferSize(window, &width, &height);
+
+      Extent2D actual = {static_cast<uint32_t>(width),
+                         static_cast<uint32_t>(height)};
+      actual.width = clamp(actual.width, caps.minImageExtent.width,
+                           caps.maxImageExtent.width);
+      actual.height = clamp(actual.height, caps.minImageExtent.height,
+                            caps.maxImageExtent.height);
+      return actual;
+    }
+  }
+
+  void createImageViews() {
+    swapchainImageViews.resize(swapchainImages.size());
+    for (const auto &i : swapchainImages) {
       ImageViewCreateInfo ci;
       ci.image = i;
       ci.viewType = ImageViewType::e2D;
@@ -380,25 +391,7 @@ class Application::impl {
       ci.subresourceRange.baseArrayLayer = 0;
       ci.subresourceRange.layerCount = 1;
 
-      views.push_back(dev.createImageView(ci));
-    }
-    return views;
-  }
-
-  void initVulkan() {
-    try {
-      instance = createInstance();
-      setupDebugMessager();
-      surface = createSurface();
-      physicalDevice = pickPhysicalDevice(surface);
-      tie(device, presentQueue) = createLogicalDeviceAndQueue();
-      swapchain = createSwapchain(physicalDevice, device, surface);
-      swapchainImages = device.getSwapchainImagesKHR(swapchain);
-      swapchainImageViews = createImageViews(device, swapchainImages);
-    } catch (exception const &e) {
-      log::error(e.what());
-      log::error("Failed to create instance!");
-      throw runtime_error("Failed to create instance!");
+      swapchainImageViews.push_back(device.createImageView(ci));
     }
   }
 
@@ -406,14 +399,6 @@ class Application::impl {
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
     }
-  }
-
-  void destroyDebugUtilsMessengerEXT() {
-    auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
-        vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
-    if (func != nullptr)
-      func(static_cast<VkInstance>(instance),
-           static_cast<VkDebugUtilsMessengerEXT>(debugMessenger), nullptr);
   }
 
   void cleanup() {
@@ -426,6 +411,14 @@ class Application::impl {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+  }
+
+  void destroyDebugUtilsMessengerEXT() {
+    auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+    if (func != nullptr)
+      func(static_cast<VkInstance>(instance),
+           static_cast<VkDebugUtilsMessengerEXT>(debugMessenger), nullptr);
   }
 };
 
