@@ -14,7 +14,7 @@ namespace seng {
 class Application {
  public:
   Application();
-  Application(std::string window_name, unsigned int width, unsigned int height);
+  Application(std::string appName, unsigned int width, unsigned int height);
   ~Application();
 
   Application(const Application &) = delete;
@@ -31,8 +31,11 @@ class Application {
   Application &operator=(const Application &&other) noexcept = delete;
 
  private:
-  class impl;
-  std::unique_ptr<impl> pimpl;
+  std::string appName;
+  unsigned int initialWidth, initialHeight;
+
+  class Context;
+  std::unique_ptr<Context> ctx;
 };
 
 }  // namespace seng

@@ -1,3 +1,4 @@
+#include <memory>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -28,19 +29,13 @@ struct GlfwWindowWrapper {
   }
 };
 
-class Application::impl {
+class Application::Context {
  public:
-  string appName;
-  unsigned int width, height;
-
   GlfwWindowWrapper window;
   VulkanInternals vulkan;
 
-  impl(string appName, unsigned int w, unsigned int h)
-      : appName{appName},
-        width{w},
-        height{h},
-        window{appName.c_str(), w, h},
+  Context(string &appName, unsigned int w, unsigned int h)
+      : window{appName.c_str(), w, h},
         vulkan{window.ptr, appName, w, h} {}
 
   void mainLoop() {
@@ -51,9 +46,16 @@ class Application::impl {
 };
 
 Application::Application() : Application("Vulkan", 800, 600) {}
-Application::Application(string window_name, unsigned int width,
+Application::Application(string appName, unsigned int width,
                          unsigned int height)
-    : pimpl{new impl{window_name, width, height}} {}
+    : appName{appName},
+      initialWidth{width},
+      initialHeight{height},
+      ctx{nullptr} {}
 Application::~Application() {}
 
-void Application::run() { pimpl->mainLoop(); }
+void Application::run() {
+  ctx = unique_ptr<Context>(new Context(appName, initialWidth, initialHeight));
+  ctx->mainLoop();
+  ctx = unique_ptr<Context>(nullptr);
+}
