@@ -31,9 +31,6 @@ struct GlfwWindowWrapper {
 
 class Application::Context {
  public:
-  GlfwWindowWrapper window;
-  VulkanInternals vulkan;
-
   Context(string &appName, unsigned int w, unsigned int h)
       : window{appName.c_str(), w, h},
         vulkan{window.ptr, appName, w, h} {}
@@ -43,6 +40,10 @@ class Application::Context {
       glfwPollEvents();
     }
   }
+
+ private:
+  GlfwWindowWrapper window;
+  VulkanInternals vulkan;
 };
 
 Application::Application() : Application("Vulkan", 800, 600) {}
