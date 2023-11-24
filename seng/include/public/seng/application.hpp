@@ -32,6 +32,26 @@ class Application {
   void run();
 
   /**
+   * Get the lookup path for SPIR-V shaders
+   */
+  const std::string &getShaderPath();
+
+  /**
+   * Set the current lookup path for SPIR-V shaders
+   */
+  void setShaderPath(std::string s);
+
+  /**
+   * Get the lookup path for models
+   */
+  const std::string &getModelPath();
+
+  /**
+   * Set the current lookup path for models
+   */
+  void setModelPath(std::string s);
+
+  /**
    * Get the internal GLFWwindow wrapper
    */
   std::shared_ptr<internal::GlfwWindowWrapper> getWindow();
@@ -47,6 +67,9 @@ class Application {
  private:
   const std::string appName;
   const unsigned int initialWidth, initialHeight;
+
+  std::string shaderPath{"./shaders/"};
+  std::string modelPath{"./models/"};
 
   std::shared_ptr<internal::GlfwWindowWrapper> window;
   std::unique_ptr<internal::VulkanInternals> vulkan;

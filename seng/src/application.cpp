@@ -38,4 +38,10 @@ void Application::destroyWindow() {
 
 shared_ptr<GlfwWindowWrapper> Application::getWindow() { return window; }
 
+const string& Application::getShaderPath() { return shaderPath; }
+void Application::setShaderPath(string s) { shaderPath = s; }
+
+const string& Application::getModelPath() { return modelPath; }
+void Application::setModelPath(string s) { modelPath = s; }
+
 const string& Application::getAppName() { return appName; }
