@@ -3,31 +3,13 @@
 #include <GLFW/glfw3.h>
 
 #include <seng/application.hpp>
+#include <seng/glfwWindowWrapper.hpp>
 #include <seng/log.hpp>
 #include <seng/vulkan_internals.hpp>
 
 using namespace std;
 using namespace seng;
 using namespace seng::internal;
-
-struct GlfwWindowWrapper {
-  GLFWwindow *ptr;
-
-  GlfwWindowWrapper(string appName, unsigned int width, unsigned int height) {
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE,
-                   GLFW_FALSE);  // FIXME: make it resizeable when ready
-    ptr = glfwCreateWindow(width, height, appName.c_str(), nullptr, nullptr);
-  }
-
-  bool shouldClose() { return glfwWindowShouldClose(ptr); }
-
-  ~GlfwWindowWrapper() {
-    glfwDestroyWindow(ptr);
-    glfwTerminate();
-  }
-};
 
 class Application::Context {
  public:
