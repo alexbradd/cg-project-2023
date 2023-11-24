@@ -11,34 +11,31 @@ using namespace std;
 using namespace seng;
 using namespace seng::internal;
 
-class Application::Context {
- public:
-  Context(string &appName, unsigned int w, unsigned int h)
-      : window{appName.c_str(), w, h},
-        vulkan{window.ptr, appName, w, h} {}
-
-  void mainLoop() {
-    while (!window.shouldClose()) {
-      glfwPollEvents();
-    }
-  }
-
- private:
-  GlfwWindowWrapper window;
-  VulkanInternals vulkan;
-};
-
 Application::Application() : Application("Vulkan", 800, 600) {}
 Application::Application(string appName, unsigned int width,
                          unsigned int height)
-    : appName{appName},
-      initialWidth{width},
-      initialHeight{height},
-      ctx{nullptr} {}
+    : appName{appName}, initialWidth{width}, initialHeight{height} {}
 Application::~Application() {}
 
 void Application::run() {
-  ctx = unique_ptr<Context>(new Context(appName, initialWidth, initialHeight));
-  ctx->mainLoop();
-  ctx = unique_ptr<Context>(nullptr);
+  makeWindow();
+  while (!window->shouldClose()) {
+    glfwPollEvents();
+  }
+  destroyWindow();
 }
+
+void Application::makeWindow() {
+  window = shared_ptr<GlfwWindowWrapper>(
+      new GlfwWindowWrapper{appName, initialWidth, initialHeight});
+  vulkan = unique_ptr<VulkanInternals>(new VulkanInternals{*this});
+}
+
+void Application::destroyWindow() {
+  window = nullptr;
+  vulkan = nullptr;
+}
+
+shared_ptr<GlfwWindowWrapper> Application::getWindow() { return window; }
+
+const string& Application::getAppName() { return appName; }

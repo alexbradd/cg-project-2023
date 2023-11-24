@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <optional>
+#include <seng/application.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -54,8 +55,7 @@ struct SwapchainSupportDetails {
 
 class VulkanInternals {
  public:
-  VulkanInternals(GLFWwindow *window, std::string &appName, unsigned int width,
-                  unsigned height);
+  VulkanInternals(Application &app);
   ~VulkanInternals();
 
   VulkanInternals(const VulkanInternals &) = delete;
@@ -65,9 +65,7 @@ class VulkanInternals {
   VulkanInternals &operator=(const VulkanInternals &&other) noexcept = delete;
 
  private:
-  GLFWwindow *window;
-  std::string &appName;
-  unsigned int width, height;
+  Application &app;
 
   vk::Instance instance;
   vk::SurfaceKHR surface;

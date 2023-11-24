@@ -4,6 +4,10 @@
 #include <memory>
 #include <string>
 namespace seng {
+namespace internal {
+class GlfwWindowWrapper;
+class VulkanInternals;
+}  // namespace internal
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and
@@ -27,15 +31,28 @@ class Application {
    */
   void run();
 
+  /**
+   * Get the internal GLFWwindow wrapper
+   */
+  std::shared_ptr<internal::GlfwWindowWrapper> getWindow();
+
+  /**
+   * Get the current app name
+   */
+  const std::string &getAppName();
+
   Application &operator=(const Application &other) = delete;
   Application &operator=(const Application &&other) noexcept = delete;
 
  private:
-  std::string appName;
-  unsigned int initialWidth, initialHeight;
+  const std::string appName;
+  const unsigned int initialWidth, initialHeight;
 
-  class Context;
-  std::unique_ptr<Context> ctx;
+  std::shared_ptr<internal::GlfwWindowWrapper> window;
+  std::unique_ptr<internal::VulkanInternals> vulkan;
+
+  void makeWindow();
+  void destroyWindow();
 };
 
 }  // namespace seng

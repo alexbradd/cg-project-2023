@@ -5,6 +5,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <seng/glfwWindowWrapper.hpp>
 #include <seng/log.hpp>
 #include <seng/vulkan_internals.hpp>
 #include <unordered_set>
@@ -149,9 +150,7 @@ Extent2D SwapchainSupportDetails::chooseSwapchainExtent(GLFWwindow *window) {
   }
 }
 
-VulkanInternals::VulkanInternals(GLFWwindow *window, string &appName,
-                                 unsigned int width, unsigned int height)
-    : window{window}, appName{appName}, width{width}, height{height} {
+VulkanInternals::VulkanInternals(Application &app) : app{app} {
   try {
     instance = createInstance();
     if (enableValidationLayers) {
@@ -173,7 +172,7 @@ VulkanInternals::VulkanInternals(GLFWwindow *window, string &appName,
 
 Instance VulkanInternals::createInstance() {
   ApplicationInfo ai{};
-  ai.pApplicationName = appName.c_str();
+  ai.pApplicationName = app.getAppName().c_str();
   ai.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
   ai.pEngineName = "seng";
   ai.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -210,8 +209,9 @@ Instance VulkanInternals::createInstance() {
 
 SurfaceKHR VulkanInternals::createSurface() {
   VkSurfaceKHR surf{};
-  auto res = glfwCreateWindowSurface(static_cast<VkInstance>(instance), window,
-                                     nullptr, &surf);
+  auto res =
+      glfwCreateWindowSurface(static_cast<VkInstance>(instance),
+                              app.getWindow()->getPointer(), nullptr, &surf);
   if (res != VK_SUCCESS)
     throw std::runtime_error("failed to create window surface!");
   return SurfaceKHR(surf);
@@ -271,7 +271,8 @@ SwapchainKHR VulkanInternals::createSwapchain() {
 
   SurfaceFormatKHR format = details.chooseFormat();
   swapchainFormat = format.format;
-  swapchainExtent = details.chooseSwapchainExtent(window);
+  swapchainExtent =
+      details.chooseSwapchainExtent(app.getWindow()->getPointer());
   PresentModeKHR presentMode = PresentModeKHR::eFifo;
   uint32_t imageCount = details.capabilities.minImageCount + 1;
   if (details.capabilities.maxImageCount > 0 &&
