@@ -1,13 +1,7 @@
-#include <vulkan/vulkan.h>
-
-#include <set>
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <seng/glfwWindowWrapper.hpp>
 #include <seng/log.hpp>
 #include <seng/vulkan_internals.hpp>
+#include <set>
 #include <unordered_set>
 
 using namespace seng;

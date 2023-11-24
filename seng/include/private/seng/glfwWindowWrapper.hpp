@@ -1,9 +1,13 @@
 #ifndef __PRIVATE_SENG_GLFW_WINDOW_WRAPPER_HPP__
 #define __PRIVATE_SENG_GLFW_WINDOW_WRAPPER_HPP__
 
-#include <string>
-#define GLFW_INCLUDE_VULKAN
+// clang-format off
+#include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
+// clang-format on
+
+#include <string>
+
 namespace seng::internal {
 
 class GlfwWindowWrapper {

@@ -1,13 +1,14 @@
 #ifndef __PRIVATE_SENG_VULKAN_INTERNALS_HPP__
 #define __PRIVATE_SENG_VULKAN_INTERNALS_HPP__
 
+// clang-format off
+#include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
+// clang-format on
 
 #include <optional>
 #include <seng/application.hpp>
 #include <vector>
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 namespace seng::internal {
 
