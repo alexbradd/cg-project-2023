@@ -1,10 +1,8 @@
 project(seng LANGUAGES CXX)
-
-include(FetchContent)
-
 message(STATUS "Building ${PROJECT_NAME}")
 
 message(STATUS "Fetching dependencies...")
+include(FetchContent)
 FetchContent_Declare(fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG 10.1.1
@@ -20,9 +18,17 @@ find_package(glfw3 3.3 REQUIRED)
 # find_package(fmt REQUIRED)
 # find_package(glm REQUIRED)
 
-add_library(${PROJECT_NAME}
-  src/application.cpp
-  src/vulkan_internals.cpp
+add_library(${PROJECT_NAME})
+target_sources(${PROJECT_NAME}
+  PRIVATE
+    ./src/application.cpp
+    ./src/vulkan_internals.cpp
+)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/public
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/include/private
 )
 target_compile_options(${PROJECT_NAME}
   PRIVATE
@@ -36,12 +42,6 @@ target_compile_options(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME}
   PRIVATE
     cxx_std_17
-)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/public
-  PRIVATE
-    ${PROJECT_SOURCE_DIR}/include/private
 )
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
