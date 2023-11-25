@@ -8,6 +8,7 @@
 
 #include <optional>
 #include <seng/application.hpp>
+#include <unordered_map>
 #include <vector>
 
 namespace seng::internal {
@@ -65,6 +66,8 @@ class VulkanInternals {
   VulkanInternals &operator=(const VulkanInternals &other) = delete;
   VulkanInternals &operator=(const VulkanInternals &&other) noexcept = delete;
 
+  void loadShadersFromDisk();
+
  private:
   Application &app;
 
@@ -78,6 +81,12 @@ class VulkanInternals {
   vk::Extent2D swapchainExtent;
   std::vector<vk::Image> swapchainImages;
   std::vector<vk::ImageView> swapchainImageViews;
+
+  std::unordered_map<std::string, vk::ShaderModule> loadedShaders;
+
+  vk::PipelineLayout pipelineLayout;
+  vk::RenderPass renderPass;
+  vk::Pipeline pipeline;
 
   const std::vector<const char *> requiredDeviceExtensions{
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -97,6 +106,12 @@ class VulkanInternals {
   std::pair<vk::Device, vk::Queue> createLogicalDeviceAndQueue();
   vk::SwapchainKHR createSwapchain();
   void createImageViews();
+
+  vk::Pipeline createPipeline();
+  vk::ShaderModule createShaderModule(const std::vector<char> &code);
+  vk::RenderPass createRenderPass();
+
+  void destroyShaders();
 };
 
 }  // namespace seng::internal

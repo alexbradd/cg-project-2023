@@ -1,5 +1,7 @@
+#include <filesystem>
 #include <seng/glfwWindowWrapper.hpp>
 #include <seng/log.hpp>
+#include <seng/utils.hpp>
 #include <seng/vulkan_internals.hpp>
 #include <set>
 #include <unordered_set>
@@ -157,6 +159,10 @@ VulkanInternals::VulkanInternals(Application &app) : app{app} {
     swapchain = createSwapchain();
     swapchainImages = device.getSwapchainImagesKHR(swapchain);
     createImageViews();
+
+    renderPass = createRenderPass();
+    pipelineLayout = device.createPipelineLayout({});
+    pipeline = createPipeline();
   } catch (exception const &e) {
     log::error(e.what());
     log::error("Failed to create instance!");
@@ -324,9 +330,152 @@ void VulkanInternals::createImageViews() {
   }
 }
 
+RenderPass VulkanInternals::createRenderPass() {
+  AttachmentDescription colorAttachment{
+      {},
+      swapchainFormat,
+      SampleCountFlagBits::e1,
+      AttachmentLoadOp::eClear,
+      AttachmentStoreOp::eStore,
+      AttachmentLoadOp::eDontCare,
+      AttachmentStoreOp::eDontCare,
+      ImageLayout::eUndefined,
+      ImageLayout::ePresentSrcKHR,
+  };
+  AttachmentReference colorAttachmentRef{0,
+                                         ImageLayout::eColorAttachmentOptimal};
+  SubpassDescription subpass{};
+  subpass.colorAttachmentCount = 1;
+  subpass.pColorAttachments = &colorAttachmentRef;
+
+  return device.createRenderPass({{}, 1, &colorAttachment, 1, &subpass});
+}
+
+// FIXME:: everything is stubbed out to draw only a hardcoded triangle
+Pipeline VulkanInternals::createPipeline() {
+  loadShadersFromDisk();
+
+  ShaderModule vert = loadedShaders["shader.vert.spv"];
+  ShaderModule frag = loadedShaders["shader.frag.spv"];
+
+  PipelineShaderStageCreateInfo stages[] = {
+      {{}, ShaderStageFlagBits::eVertex, vert, "main"},
+      {{}, ShaderStageFlagBits::eFragment, frag, "main"}};
+
+  DynamicState dynamicStates[] = {DynamicState::eViewport,
+                                  DynamicState::eScissor};
+  PipelineDynamicStateCreateInfo dynamicState{};
+  dynamicState.dynamicStateCount = 2;
+  dynamicState.pDynamicStates = dynamicStates;
+
+  PipelineVertexInputStateCreateInfo vertexInputInfo{};
+  vertexInputInfo.vertexBindingDescriptionCount = 0;
+  vertexInputInfo.pVertexBindingDescriptions = nullptr;
+  vertexInputInfo.vertexAttributeDescriptionCount = 0;
+  vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+  PipelineInputAssemblyStateCreateInfo inputAssembly{};
+  inputAssembly.topology = PrimitiveTopology::eTriangleList;
+  inputAssembly.primitiveRestartEnable = false;
+
+  Viewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = (float)swapchainExtent.width;
+  viewport.height = (float)swapchainExtent.height;
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  Rect2D scissor{};
+  scissor.offset = Offset2D{0, 0};
+  scissor.extent = swapchainExtent;
+
+  PipelineViewportStateCreateInfo viewportState{};
+  viewportState.viewportCount = 1;
+  viewportState.scissorCount = 1;
+
+  PipelineRasterizationStateCreateInfo rasterizer{};
+  rasterizer.depthClampEnable = false;
+  rasterizer.rasterizerDiscardEnable = false;
+  rasterizer.polygonMode = PolygonMode::eFill;
+  rasterizer.lineWidth = 1.0f;
+  rasterizer.cullMode = CullModeFlagBits::eBack;
+  rasterizer.frontFace = FrontFace::eClockwise;
+  rasterizer.depthBiasEnable = false;
+
+  PipelineMultisampleStateCreateInfo multisampling{};
+  multisampling.sampleShadingEnable = false;
+  multisampling.rasterizationSamples = SampleCountFlagBits::e1;
+
+  PipelineColorBlendAttachmentState colorBlendAttachment{};
+  colorBlendAttachment.blendEnable = true;
+  colorBlendAttachment.srcColorBlendFactor = BlendFactor::eSrcAlpha;
+  colorBlendAttachment.dstColorBlendFactor = BlendFactor::eOneMinusSrcAlpha;
+  colorBlendAttachment.colorBlendOp = BlendOp::eAdd;
+  colorBlendAttachment.srcAlphaBlendFactor = BlendFactor::eOne;
+  colorBlendAttachment.dstAlphaBlendFactor = BlendFactor::eZero;
+  colorBlendAttachment.alphaBlendOp = BlendOp::eAdd;
+  colorBlendAttachment.colorWriteMask =
+      ColorComponentFlagBits::eR | ColorComponentFlagBits::eG |
+      ColorComponentFlagBits::eB | ColorComponentFlagBits::eA;
+
+  PipelineColorBlendStateCreateInfo colorBlending{};
+  colorBlending.logicOpEnable = false;
+  colorBlending.logicOp = LogicOp::eCopy;
+  colorBlending.attachmentCount = 1;
+  colorBlending.pAttachments = &colorBlendAttachment;
+  colorBlending.blendConstants[0] = 0.0f;
+  colorBlending.blendConstants[1] = 0.0f;
+  colorBlending.blendConstants[2] = 0.0f;
+  colorBlending.blendConstants[3] = 0.0f;
+
+  GraphicsPipelineCreateInfo pipelineInfo{};
+  pipelineInfo.stageCount = 2;
+  pipelineInfo.pStages = stages;
+  pipelineInfo.pVertexInputState = &vertexInputInfo;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
+  pipelineInfo.pViewportState = &viewportState;
+  pipelineInfo.pRasterizationState = &rasterizer;
+  pipelineInfo.pMultisampleState = &multisampling;
+  pipelineInfo.pDepthStencilState = nullptr;
+  pipelineInfo.pColorBlendState = &colorBlending;
+  pipelineInfo.pDynamicState = &dynamicState;
+  pipelineInfo.layout = pipelineLayout;
+  pipelineInfo.renderPass = renderPass;
+  pipelineInfo.subpass = 0;
+
+  return device.createGraphicsPipelines({nullptr}, pipelineInfo).value[0];
+}
+
+void VulkanInternals::loadShadersFromDisk() {
+  destroyShaders();
+  for (const auto &file : filesystem::directory_iterator(app.getShaderPath())) {
+    string name{file.path().filename()};
+    auto buf = readFile(file.path().string());
+    loadedShaders[name] = createShaderModule(buf);
+  }
+}
+
+void VulkanInternals::destroyShaders() {
+  if (loadedShaders.empty()) return;
+  for (auto &val : loadedShaders) device.destroyShaderModule(val.second);
+  loadedShaders.clear();
+}
+
+ShaderModule VulkanInternals::createShaderModule(const vector<char> &code) {
+  ShaderModuleCreateInfo ci{};
+  ci.codeSize = code.size();
+  ci.pCode = reinterpret_cast<const uint32_t *>(code.data());
+  return device.createShaderModule(ci);
+}
+
 VulkanInternals::~VulkanInternals() {
   if (enableValidationLayers) debugMessenger.destroy();
   for (auto &view : swapchainImageViews) device.destroyImageView(view);
+  device.destroyPipeline(pipeline);
+  device.destroyPipelineLayout(pipelineLayout);
+  device.destroyRenderPass(renderPass);
+  destroyShaders();
   device.destroySwapchainKHR(swapchain);
   device.destroy();
   instance.destroySurfaceKHR(surface);
