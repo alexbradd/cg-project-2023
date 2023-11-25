@@ -470,14 +470,16 @@ ShaderModule VulkanInternals::createShaderModule(const vector<char> &code) {
 }
 
 VulkanInternals::~VulkanInternals() {
-  if (enableValidationLayers) debugMessenger.destroy();
-  for (auto &view : swapchainImageViews) device.destroyImageView(view);
+  destroyShaders();
   device.destroyPipeline(pipeline);
   device.destroyPipelineLayout(pipelineLayout);
   device.destroyRenderPass(renderPass);
-  destroyShaders();
+  for (auto &view : swapchainImageViews) device.destroyImageView(view);
+
   device.destroySwapchainKHR(swapchain);
   device.destroy();
+
+  if (enableValidationLayers) debugMessenger.destroy();
   instance.destroySurfaceKHR(surface);
   instance.destroy();
 }
