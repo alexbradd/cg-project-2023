@@ -311,9 +311,9 @@ SwapchainKHR VulkanInternals::createSwapchain() {
 
 void VulkanInternals::createImageViews() {
   swapchainImageViews.resize(swapchainImages.size());
-  for (const auto &i : swapchainImages) {
+  for (size_t i = 0; i < swapchainImageViews.size(); i++) {
     ImageViewCreateInfo ci;
-    ci.image = i;
+    ci.image = swapchainImages[i];
     ci.viewType = ImageViewType::e2D;
     ci.format = swapchainFormat;
     ci.components.r = ComponentSwizzle::eIdentity;
@@ -326,7 +326,7 @@ void VulkanInternals::createImageViews() {
     ci.subresourceRange.baseArrayLayer = 0;
     ci.subresourceRange.layerCount = 1;
 
-    swapchainImageViews.push_back(device.createImageView(ci));
+    swapchainImageViews[i] = device.createImageView(ci);
   }
 }
 
