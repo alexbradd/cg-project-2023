@@ -1,9 +1,12 @@
+#include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <seng/glfwWindowWrapper.hpp>
 #include <seng/log.hpp>
 #include <seng/utils.hpp>
 #include <seng/vulkan_internals.hpp>
 #include <set>
+#include <stdexcept>
 #include <unordered_set>
 
 using namespace seng;
@@ -40,6 +43,10 @@ static bool checkDeviceExtensions(const vector<const char *> &req,
 static bool checkSwapchain(PhysicalDevice dev, SurfaceKHR surface) {
   SwapchainSupportDetails details(dev, surface);
   return !details.formats.empty() && !details.presentModes.empty();
+}
+
+static void successOrThrow(Result res, const char *msg) {
+  if (res != Result::eSuccess) throw runtime_error(msg);
 }
 
 DebugMessenger::DebugMessenger(Instance instance) : instance{instance} {}
@@ -155,7 +162,7 @@ VulkanInternals::VulkanInternals(Application &app) : app{app} {
     }
     surface = createSurface();
     physicalDevice = pickPhysicalDevice();
-    tie(device, presentQueue) = createLogicalDeviceAndQueue();
+    device = createLogicalDeviceAndQueues(presentQueue, graphicsQueue);
     swapchain = createSwapchain();
     swapchainImages = device.getSwapchainImagesKHR(swapchain);
     createImageViews();
@@ -163,6 +170,12 @@ VulkanInternals::VulkanInternals(Application &app) : app{app} {
     renderPass = createRenderPass();
     pipelineLayout = device.createPipelineLayout({});
     pipeline = createPipeline();
+    createFramebuffers();
+
+    commandPool = createCommandPool();
+    commandBuffer = createCommandBuffer();
+
+    createSyncObjects();
   } catch (exception const &e) {
     log::error(e.what());
     log::error("Failed to create instance!");
@@ -235,7 +248,8 @@ PhysicalDevice VulkanInternals::pickPhysicalDevice() {
   return *dev;
 }
 
-pair<Device, Queue> VulkanInternals::createLogicalDeviceAndQueue() {
+Device VulkanInternals::createLogicalDeviceAndQueues(Queue &presentQueue,
+                                                     Queue &graphicsQueue) {
   QueueFamilyIndices indices(physicalDevice, surface);
   float queuePrio = 1.0f;
 
@@ -261,9 +275,10 @@ pair<Device, Queue> VulkanInternals::createLogicalDeviceAndQueue() {
   dci.pEnabledFeatures = &features;
 
   Device d = physicalDevice.createDevice(dci);
-  Queue q = d.getQueue(*(indices.presentFamily), 0);
+  presentQueue = d.getQueue(*(indices.presentFamily), 0);
+  graphicsQueue = d.getQueue(*(indices.graphicsFamily), 0);
 
-  return pair{d, q};
+  return d;
 }
 
 SwapchainKHR VulkanInternals::createSwapchain() {
@@ -348,7 +363,14 @@ RenderPass VulkanInternals::createRenderPass() {
   subpass.colorAttachmentCount = 1;
   subpass.pColorAttachments = &colorAttachmentRef;
 
-  return device.createRenderPass({{}, 1, &colorAttachment, 1, &subpass});
+  SubpassDependency dep{VK_SUBPASS_EXTERNAL, 0};
+  dep.srcStageMask = PipelineStageFlagBits::eColorAttachmentOutput;
+  dep.srcAccessMask = AccessFlagBits::eNone;
+  dep.dstStageMask = PipelineStageFlagBits::eColorAttachmentOutput;
+  dep.dstAccessMask = AccessFlagBits::eColorAttachmentWrite;
+
+  return device.createRenderPass(
+      {{}, 1, &colorAttachment, 1, &subpass, 1, &dep});
 }
 
 // FIXME:: everything is stubbed out to draw only a hardcoded triangle
@@ -377,18 +399,6 @@ Pipeline VulkanInternals::createPipeline() {
   PipelineInputAssemblyStateCreateInfo inputAssembly{};
   inputAssembly.topology = PrimitiveTopology::eTriangleList;
   inputAssembly.primitiveRestartEnable = false;
-
-  Viewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = (float)swapchainExtent.width;
-  viewport.height = (float)swapchainExtent.height;
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-
-  Rect2D scissor{};
-  scissor.offset = Offset2D{0, 0};
-  scissor.extent = swapchainExtent;
 
   PipelineViewportStateCreateInfo viewportState{};
   viewportState.viewportCount = 1;
@@ -469,7 +479,132 @@ ShaderModule VulkanInternals::createShaderModule(const vector<char> &code) {
   return device.createShaderModule(ci);
 }
 
+void VulkanInternals::createFramebuffers() {
+  swapchainFramebuffers.resize(swapchainImageViews.size());
+  for (size_t i = 0; i < swapchainImageViews.size(); i++) {
+    ImageView attachments[] = {swapchainImageViews[i]};
+
+    FramebufferCreateInfo info{};
+    info.renderPass = renderPass;
+    info.attachmentCount = 1;
+    info.pAttachments = attachments;
+    info.width = swapchainExtent.width;
+    info.height = swapchainExtent.height;
+    info.layers = 1;
+
+    swapchainFramebuffers[i] = device.createFramebuffer(info);
+  }
+}
+
+CommandPool VulkanInternals::createCommandPool() {
+  QueueFamilyIndices queueFamilyIndices(physicalDevice, surface);
+  return device.createCommandPool(
+      {CommandPoolCreateFlagBits::eResetCommandBuffer,
+       queueFamilyIndices.graphicsFamily.value()});
+}
+
+CommandBuffer VulkanInternals::createCommandBuffer() {
+  CommandBufferAllocateInfo info{};
+  info.commandPool = commandPool;
+  info.level = CommandBufferLevel::ePrimary;
+  info.commandBufferCount = 1;
+
+  return device.allocateCommandBuffers(info)[0];
+}
+
+void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
+                                          uint32_t imageIndex) {
+  CommandBufferBeginInfo beginInfo{};
+  successOrThrow(commandBuffer.begin(&beginInfo),
+                 "Failed to start recording command buffer!");
+
+  ClearValue clearColor{ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f}};
+  RenderPassBeginInfo renderPassInfo{};
+  renderPassInfo.renderPass = renderPass;
+  renderPassInfo.framebuffer = swapchainFramebuffers[imageIndex];
+  renderPassInfo.renderArea.offset = Offset2D{0, 0};
+  renderPassInfo.renderArea.extent = swapchainExtent;
+  renderPassInfo.clearValueCount = 1;
+  renderPassInfo.pClearValues = &clearColor;
+  commandBuffer.beginRenderPass(renderPassInfo, SubpassContents::eInline);
+  commandBuffer.bindPipeline(PipelineBindPoint::eGraphics, pipeline);
+  Viewport viewport{0.0f,
+                    0.0f,
+                    static_cast<float>(swapchainExtent.width),
+                    static_cast<float>(swapchainExtent.height),
+                    0.0f,
+                    1.0f};
+  Rect2D scissor{{0, 0}, swapchainExtent};
+  commandBuffer.setViewport(0, viewport);
+  commandBuffer.setScissor(0, scissor);
+  commandBuffer.draw(3, 1, 0, 0);
+  commandBuffer.endRenderPass();
+
+  commandBuffer.end();
+}
+
+void VulkanInternals::createSyncObjects() {
+  imageAvailable = device.createSemaphore({});
+  renderFinished = device.createSemaphore({});
+  inFlight = device.createFence({FenceCreateFlagBits::eSignaled});
+}
+
+void VulkanInternals::drawFrame() {
+  successOrThrow(
+      device.waitForFences(1, &inFlight, true, numeric_limits<uint64_t>::max()),
+      "Could not wait for fences");
+  successOrThrow(device.resetFences(1, &inFlight), "Could not reset fences");
+
+  uint32_t imageIndex =
+      device
+          .acquireNextImageKHR(swapchain, numeric_limits<uint64_t>::max(),
+                               imageAvailable)
+          .value;
+
+  commandBuffer.reset();
+  recordCommandBuffer(commandBuffer, imageIndex);
+
+  Semaphore waitSems[] = {imageAvailable};
+  Semaphore signalSems[] = {renderFinished};
+  SwapchainKHR swapchains[] = {swapchain};
+
+  SubmitInfo submitInfo{};
+  PipelineStageFlags waitStages[] = {
+      PipelineStageFlagBits::eColorAttachmentOutput};
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = waitSems;
+  submitInfo.pWaitDstStageMask = waitStages;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = signalSems;
+  successOrThrow(
+    graphicsQueue.submit(1, &submitInfo, inFlight),
+    "Could not submit to graphics queue"
+  );
+
+  PresentInfoKHR presentInfo{1, signalSems};
+  presentInfo.swapchainCount = 1;
+  presentInfo.pSwapchains = swapchains;
+  presentInfo.pImageIndices = &imageIndex;
+  presentInfo.pResults = nullptr;
+  successOrThrow(
+    presentQueue.presentKHR(presentInfo),
+    "Could not submit to present queue"
+  );
+}
+
 VulkanInternals::~VulkanInternals() {
+  device.waitIdle();
+
+  device.destroySemaphore(imageAvailable);
+  device.destroySemaphore(renderFinished);
+  device.destroyFence(inFlight);
+
+  device.destroyCommandPool(commandPool);
+
+  for (auto &fb : swapchainFramebuffers) device.destroyFramebuffer(fb);
+
   destroyShaders();
   device.destroyPipeline(pipeline);
   device.destroyPipelineLayout(pipelineLayout);

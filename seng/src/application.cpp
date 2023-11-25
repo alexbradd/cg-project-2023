@@ -18,6 +18,7 @@ void Application::run() {
   makeWindow();
   while (!window->shouldClose()) {
     glfwPollEvents();
+    vulkan->drawFrame();
   }
   destroyWindow();
 }

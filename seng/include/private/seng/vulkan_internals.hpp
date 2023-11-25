@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <cstdint>
 #include <optional>
 #include <seng/application.hpp>
 #include <unordered_map>
@@ -67,6 +68,7 @@ class VulkanInternals {
   VulkanInternals &operator=(const VulkanInternals &&other) noexcept = delete;
 
   void loadShadersFromDisk();
+  void drawFrame();
 
  private:
   Application &app;
@@ -76,6 +78,7 @@ class VulkanInternals {
   vk::PhysicalDevice physicalDevice;
   vk::Device device;
   vk::Queue presentQueue;
+  vk::Queue graphicsQueue;
   vk::SwapchainKHR swapchain;
   vk::Format swapchainFormat;
   vk::Extent2D swapchainExtent;
@@ -87,6 +90,14 @@ class VulkanInternals {
   vk::PipelineLayout pipelineLayout;
   vk::RenderPass renderPass;
   vk::Pipeline pipeline;
+  std::vector<vk::Framebuffer> swapchainFramebuffers;
+
+  vk::CommandPool commandPool;
+  vk::CommandBuffer commandBuffer;
+
+  vk::Semaphore imageAvailable;
+  vk::Semaphore renderFinished;
+  vk::Fence inFlight;
 
   const std::vector<const char *> requiredDeviceExtensions{
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -103,13 +114,23 @@ class VulkanInternals {
   vk::Instance createInstance();
   vk::SurfaceKHR createSurface();
   vk::PhysicalDevice pickPhysicalDevice();
-  std::pair<vk::Device, vk::Queue> createLogicalDeviceAndQueue();
+
+  vk::Device createLogicalDeviceAndQueues(vk::Queue &presentQueue,
+                                          vk::Queue &graphicsQueue);
+
   vk::SwapchainKHR createSwapchain();
   void createImageViews();
 
   vk::Pipeline createPipeline();
   vk::ShaderModule createShaderModule(const std::vector<char> &code);
   vk::RenderPass createRenderPass();
+  void createFramebuffers();
+
+  vk::CommandPool createCommandPool();
+  vk::CommandBuffer createCommandBuffer();
+  void recordCommandBuffer(vk::CommandBuffer buf, uint32_t imageIndex);
+
+  void createSyncObjects();
 
   void destroyShaders();
 };
