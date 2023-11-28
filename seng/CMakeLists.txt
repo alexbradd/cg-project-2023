@@ -26,6 +26,7 @@ target_sources(${PROJECT_NAME}
     ./src/utils.cpp
     # ./src/vulkan_internals.cpp
     ./src/vulkan_swapchain_support_details.cpp
+    ./src/vulkan_queue_family_indices.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
