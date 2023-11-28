@@ -26,7 +26,10 @@ void Application::run() {
 void Application::makeWindow() {
   window = shared_ptr<GlfwWindowWrapper>(
       new GlfwWindowWrapper{appName, initialWidth, initialHeight});
-  vulkan = unique_ptr<VulkanInternals>(new VulkanInternals{*this});
+  vulkan = shared_ptr<VulkanInternals>(new VulkanInternals{*this});
+  window->setonResize([this](GLFWwindow* ptr, unsigned int w, unsigned int h) {
+    vulkan->signalResize();
+  });
 }
 
 void Application::destroyWindow() {

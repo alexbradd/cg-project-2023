@@ -69,6 +69,7 @@ class VulkanInternals {
 
   void loadShadersFromDisk();
   void drawFrame();
+  void signalResize();
 
  private:
   Application &app;
@@ -98,6 +99,8 @@ class VulkanInternals {
   std::vector<vk::Semaphore> imageAvailableSemaphores;
   std::vector<vk::Semaphore> renderFinishedSemaphores;
   std::vector<vk::Fence> inFlightFences;
+
+  bool framebufferResized = false;
 
   const std::vector<const char *> requiredDeviceExtensions{
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -137,6 +140,9 @@ class VulkanInternals {
   void createSyncObjects();
 
   void destroyShaders();
+
+  void recreateSwapchain();
+  void cleanupSwapchain();
 };
 
 }  // namespace seng::internal

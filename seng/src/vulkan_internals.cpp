@@ -562,14 +562,21 @@ void VulkanInternals::drawFrame() {
   successOrThrow(device.waitForFences(1, &inFlightFences[currentFrame], true,
                                       numeric_limits<uint64_t>::max()),
                  "Could not wait for fences");
+
+  ResultValue<uint32_t> acquireResult =
+      device.acquireNextImageKHR(swapchain, numeric_limits<uint64_t>::max(),
+                                 imageAvailableSemaphores[currentFrame]);
+  uint32_t imageIndex;
+  switch (acquireResult.result) {
+    case Result::eErrorOutOfDateKHR:
+      recreateSwapchain();
+      return;
+    default:
+      imageIndex = acquireResult.value;
+  }
+
   successOrThrow(device.resetFences(1, &inFlightFences[currentFrame]),
                  "Could not reset fences");
-
-  uint32_t imageIndex =
-      device
-          .acquireNextImageKHR(swapchain, numeric_limits<uint64_t>::max(),
-                               imageAvailableSemaphores[currentFrame])
-          .value;
 
   commandBuffers[currentFrame].reset();
   recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -588,18 +595,50 @@ void VulkanInternals::drawFrame() {
   submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSems;
-  successOrThrow(graphicsQueue.submit(1, &submitInfo, inFlightFences[currentFrame]),
-                 "Could not submit to graphics queue");
+  successOrThrow(
+      graphicsQueue.submit(1, &submitInfo, inFlightFences[currentFrame]),
+      "Could not submit to graphics queue");
 
   PresentInfoKHR presentInfo{1, signalSems};
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = swapchains;
   presentInfo.pImageIndices = &imageIndex;
   presentInfo.pResults = nullptr;
-  successOrThrow(presentQueue.presentKHR(presentInfo),
-                 "Could not submit to present queue");
+  auto presentResult = presentQueue.presentKHR(presentInfo);
+  if (presentResult == Result::eErrorOutOfDateKHR ||
+      presentResult == Result::eSuboptimalKHR || framebufferResized) {
+    framebufferResized = false;
+    recreateSwapchain();
+  }
 
   currentFrame = (currentFrame + 1) % VulkanInternals::MAX_FRAMES_IN_FLIGHT;
+}
+
+void VulkanInternals::recreateSwapchain() {
+  pair<int, int> fbSize = app.getWindow()->getFramebufferSize();
+  while (fbSize.first == 0 || fbSize.second == 0) {
+    fbSize = app.getWindow()->getFramebufferSize();
+    app.getWindow()->wait();
+  }
+
+  device.waitIdle();
+
+  cleanupSwapchain();
+
+  swapchain = createSwapchain();
+  swapchainImages = device.getSwapchainImagesKHR(swapchain);
+  createImageViews();
+  createFramebuffers();
+}
+
+void VulkanInternals::cleanupSwapchain() {
+  for (auto &fb : swapchainFramebuffers) device.destroyFramebuffer(fb);
+  for (auto &view : swapchainImageViews) device.destroyImageView(view);
+  device.destroySwapchainKHR(swapchain);
+}
+
+void VulkanInternals::signalResize() {
+  framebufferResized = true;
 }
 
 VulkanInternals::~VulkanInternals() {
@@ -613,15 +652,11 @@ VulkanInternals::~VulkanInternals() {
 
   device.destroyCommandPool(commandPool);
 
-  for (auto &fb : swapchainFramebuffers) device.destroyFramebuffer(fb);
-
   destroyShaders();
   device.destroyPipeline(pipeline);
   device.destroyPipelineLayout(pipelineLayout);
   device.destroyRenderPass(renderPass);
-  for (auto &view : swapchainImageViews) device.destroyImageView(view);
-
-  device.destroySwapchainKHR(swapchain);
+  cleanupSwapchain();
   device.destroy();
 
   if (enableValidationLayers) debugMessenger.destroy();

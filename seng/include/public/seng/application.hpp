@@ -72,7 +72,7 @@ class Application {
   std::string modelPath{"./models/"};
 
   std::shared_ptr<internal::GlfwWindowWrapper> window;
-  std::unique_ptr<internal::VulkanInternals> vulkan;
+  std::shared_ptr<internal::VulkanInternals> vulkan;
 
   void makeWindow();
   void destroyWindow();
