@@ -515,7 +515,7 @@ CommandBuffer VulkanInternals::createCommandBuffer() {
 void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
                                           uint32_t imageIndex) {
   CommandBufferBeginInfo beginInfo{};
-  successOrThrow(commandBuffer.begin(&beginInfo),
+  successOrThrow(buf.begin(&beginInfo),
                  "Failed to start recording command buffer!");
 
   ClearValue clearColor{ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -526,8 +526,8 @@ void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
   renderPassInfo.renderArea.extent = swapchainExtent;
   renderPassInfo.clearValueCount = 1;
   renderPassInfo.pClearValues = &clearColor;
-  commandBuffer.beginRenderPass(renderPassInfo, SubpassContents::eInline);
-  commandBuffer.bindPipeline(PipelineBindPoint::eGraphics, pipeline);
+  buf.beginRenderPass(renderPassInfo, SubpassContents::eInline);
+  buf.bindPipeline(PipelineBindPoint::eGraphics, pipeline);
   Viewport viewport{0.0f,
                     0.0f,
                     static_cast<float>(swapchainExtent.width),
@@ -535,12 +535,12 @@ void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
                     0.0f,
                     1.0f};
   Rect2D scissor{{0, 0}, swapchainExtent};
-  commandBuffer.setViewport(0, viewport);
-  commandBuffer.setScissor(0, scissor);
-  commandBuffer.draw(3, 1, 0, 0);
-  commandBuffer.endRenderPass();
+  buf.setViewport(0, viewport);
+  buf.setScissor(0, scissor);
+  buf.draw(3, 1, 0, 0);
+  buf.endRenderPass();
 
-  commandBuffer.end();
+  buf.end();
 }
 
 void VulkanInternals::createSyncObjects() {
