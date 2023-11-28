@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <limits>
@@ -173,7 +174,7 @@ VulkanInternals::VulkanInternals(Application &app) : app{app} {
     createFramebuffers();
 
     commandPool = createCommandPool();
-    commandBuffer = createCommandBuffer();
+    createCommandBuffers();
 
     createSyncObjects();
   } catch (exception const &e) {
@@ -503,13 +504,12 @@ CommandPool VulkanInternals::createCommandPool() {
        queueFamilyIndices.graphicsFamily.value()});
 }
 
-CommandBuffer VulkanInternals::createCommandBuffer() {
+void VulkanInternals::createCommandBuffers() {
   CommandBufferAllocateInfo info{};
   info.commandPool = commandPool;
   info.level = CommandBufferLevel::ePrimary;
-  info.commandBufferCount = 1;
-
-  return device.allocateCommandBuffers(info)[0];
+  info.commandBufferCount = VulkanInternals::MAX_FRAMES_IN_FLIGHT;
+  commandBuffers = device.allocateCommandBuffers(info);
 }
 
 void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
@@ -544,28 +544,38 @@ void VulkanInternals::recordCommandBuffer(CommandBuffer buf,
 }
 
 void VulkanInternals::createSyncObjects() {
-  imageAvailable = device.createSemaphore({});
-  renderFinished = device.createSemaphore({});
-  inFlight = device.createFence({FenceCreateFlagBits::eSignaled});
+  imageAvailableSemaphores.resize(VulkanInternals::MAX_FRAMES_IN_FLIGHT);
+  renderFinishedSemaphores.resize(VulkanInternals::MAX_FRAMES_IN_FLIGHT);
+  inFlightFences.resize(VulkanInternals::MAX_FRAMES_IN_FLIGHT);
+
+  SemaphoreCreateInfo semInfo{};
+  FenceCreateInfo fenceInfo{FenceCreateFlagBits::eSignaled};
+
+  for (size_t i = 0; i < VulkanInternals::MAX_FRAMES_IN_FLIGHT; i++) {
+    imageAvailableSemaphores[i] = device.createSemaphore(semInfo);
+    renderFinishedSemaphores[i] = device.createSemaphore(semInfo);
+    inFlightFences[i] = device.createFence(fenceInfo);
+  }
 }
 
 void VulkanInternals::drawFrame() {
-  successOrThrow(
-      device.waitForFences(1, &inFlight, true, numeric_limits<uint64_t>::max()),
-      "Could not wait for fences");
-  successOrThrow(device.resetFences(1, &inFlight), "Could not reset fences");
+  successOrThrow(device.waitForFences(1, &inFlightFences[currentFrame], true,
+                                      numeric_limits<uint64_t>::max()),
+                 "Could not wait for fences");
+  successOrThrow(device.resetFences(1, &inFlightFences[currentFrame]),
+                 "Could not reset fences");
 
   uint32_t imageIndex =
       device
           .acquireNextImageKHR(swapchain, numeric_limits<uint64_t>::max(),
-                               imageAvailable)
+                               imageAvailableSemaphores[currentFrame])
           .value;
 
-  commandBuffer.reset();
-  recordCommandBuffer(commandBuffer, imageIndex);
+  commandBuffers[currentFrame].reset();
+  recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
-  Semaphore waitSems[] = {imageAvailable};
-  Semaphore signalSems[] = {renderFinished};
+  Semaphore waitSems[] = {imageAvailableSemaphores[currentFrame]};
+  Semaphore signalSems[] = {renderFinishedSemaphores[currentFrame]};
   SwapchainKHR swapchains[] = {swapchain};
 
   SubmitInfo submitInfo{};
@@ -575,31 +585,31 @@ void VulkanInternals::drawFrame() {
   submitInfo.pWaitSemaphores = waitSems;
   submitInfo.pWaitDstStageMask = waitStages;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
+  submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSems;
-  successOrThrow(
-    graphicsQueue.submit(1, &submitInfo, inFlight),
-    "Could not submit to graphics queue"
-  );
+  successOrThrow(graphicsQueue.submit(1, &submitInfo, inFlightFences[currentFrame]),
+                 "Could not submit to graphics queue");
 
   PresentInfoKHR presentInfo{1, signalSems};
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = swapchains;
   presentInfo.pImageIndices = &imageIndex;
   presentInfo.pResults = nullptr;
-  successOrThrow(
-    presentQueue.presentKHR(presentInfo),
-    "Could not submit to present queue"
-  );
+  successOrThrow(presentQueue.presentKHR(presentInfo),
+                 "Could not submit to present queue");
+
+  currentFrame = (currentFrame + 1) % VulkanInternals::MAX_FRAMES_IN_FLIGHT;
 }
 
 VulkanInternals::~VulkanInternals() {
   device.waitIdle();
 
-  device.destroySemaphore(imageAvailable);
-  device.destroySemaphore(renderFinished);
-  device.destroyFence(inFlight);
+  for (size_t i = 0; i < VulkanInternals::MAX_FRAMES_IN_FLIGHT; i++) {
+    device.destroySemaphore(imageAvailableSemaphores[i]);
+    device.destroySemaphore(renderFinishedSemaphores[i]);
+    device.destroyFence(inFlightFences[i]);
+  }
 
   device.destroyCommandPool(commandPool);
 

@@ -93,16 +93,19 @@ class VulkanInternals {
   std::vector<vk::Framebuffer> swapchainFramebuffers;
 
   vk::CommandPool commandPool;
-  vk::CommandBuffer commandBuffer;
+  std::vector<vk::CommandBuffer> commandBuffers;
 
-  vk::Semaphore imageAvailable;
-  vk::Semaphore renderFinished;
-  vk::Fence inFlight;
+  std::vector<vk::Semaphore> imageAvailableSemaphores;
+  std::vector<vk::Semaphore> renderFinishedSemaphores;
+  std::vector<vk::Fence> inFlightFences;
 
   const std::vector<const char *> requiredDeviceExtensions{
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   const std::vector<const char *> validationLayers{
       "VK_LAYER_KHRONOS_validation"};
+  static const constexpr unsigned int MAX_FRAMES_IN_FLIGHT = 2;
+
+  uint32_t currentFrame = 0;
 
 #ifndef NDEBUG
   static constexpr bool enableValidationLayers{true};
@@ -127,7 +130,8 @@ class VulkanInternals {
   void createFramebuffers();
 
   vk::CommandPool createCommandPool();
-  vk::CommandBuffer createCommandBuffer();
+  void createCommandBuffers();
+
   void recordCommandBuffer(vk::CommandBuffer buf, uint32_t imageIndex);
 
   void createSyncObjects();
