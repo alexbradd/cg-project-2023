@@ -5,7 +5,7 @@
 #include <string>
 namespace seng {
 namespace internal {
-class GlfwWindowWrapper;
+class GlfwWindow;
 class VulkanInternals;
 }  // namespace internal
 
@@ -66,7 +66,7 @@ class Application {
   std::string shaderPath{"./shaders/"};
   std::string modelPath{"./models/"};
 
-  std::shared_ptr<internal::GlfwWindowWrapper> window;
+  std::shared_ptr<internal::GlfwWindow> window;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();

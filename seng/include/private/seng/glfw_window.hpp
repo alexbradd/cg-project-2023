@@ -12,9 +12,9 @@
 
 namespace seng::internal {
 
-class GlfwWindowWrapper {
+class GlfwWindow {
  public:
-  GlfwWindowWrapper(const std::string &appName, unsigned int width,
+  GlfwWindow(const std::string &appName, unsigned int width,
                     unsigned int height)
       : width{width}, height{height} {
     glfwInit();
@@ -24,7 +24,7 @@ class GlfwWindowWrapper {
     glfwSetWindowUserPointer(ptr, this);
     glfwSetFramebufferSizeCallback(ptr, resizeCallback);
   }
-  ~GlfwWindowWrapper() {
+  ~GlfwWindow() {
     glfwDestroyWindow(ptr);
     glfwTerminate();
   }
@@ -50,7 +50,7 @@ class GlfwWindowWrapper {
 
   static void resizeCallback(GLFWwindow *window, int w, int h) {
     auto wrapper =
-        reinterpret_cast<GlfwWindowWrapper *>(glfwGetWindowUserPointer(window));
+        reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
     wrapper->width = w;
     wrapper->height = h;
     if (w == 0 || h == 0) return;

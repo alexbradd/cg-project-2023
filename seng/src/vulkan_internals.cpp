@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <limits>
-#include <seng/glfwWindowWrapper.hpp>
+#include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
 #include <seng/utils.hpp>
 #include <seng/vulkan_internals.hpp>

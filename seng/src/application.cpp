@@ -1,6 +1,6 @@
 #include <memory>
 #include <seng/application.hpp>
-#include <seng/glfwWindowWrapper.hpp>
+#include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
 
 using namespace std;
@@ -20,8 +20,8 @@ void Application::run(unsigned int width, unsigned int height) {
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height) {
-  window = shared_ptr<GlfwWindowWrapper>(
-      new GlfwWindowWrapper{appName, width, height});
+  window = shared_ptr<GlfwWindow>(
+      new GlfwWindow{appName, width, height});
 }
 
 void Application::destroyWindow() {
