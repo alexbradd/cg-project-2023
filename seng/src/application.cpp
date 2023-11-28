@@ -8,14 +8,12 @@ using namespace std;
 using namespace seng;
 using namespace seng::internal;
 
-Application::Application() : Application("Vulkan", 800, 600) {}
-Application::Application(string appName, unsigned int width,
-                         unsigned int height)
-    : appName{appName}, initialWidth{width}, initialHeight{height} {}
+Application::Application() : Application("Vulkan") {}
+Application::Application(string appName) : appName{appName} {}
 Application::~Application() {}
 
-void Application::run() {
-  makeWindow();
+void Application::run(unsigned int width, unsigned int height) {
+  makeWindow(width, height);
   while (!window->shouldClose()) {
     glfwPollEvents();
     vulkan->drawFrame();
@@ -23,9 +21,9 @@ void Application::run() {
   destroyWindow();
 }
 
-void Application::makeWindow() {
+void Application::makeWindow(unsigned int width, unsigned int height) {
   window = shared_ptr<GlfwWindowWrapper>(
-      new GlfwWindowWrapper{appName, initialWidth, initialHeight});
+      new GlfwWindowWrapper{appName, width, height});
   vulkan = shared_ptr<VulkanInternals>(new VulkanInternals{*this});
   window->setonResize([this](GLFWwindow* ptr, unsigned int w, unsigned int h) {
     vulkan->signalResize();

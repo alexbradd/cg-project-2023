@@ -18,18 +18,19 @@ class VulkanInternals;
 class Application {
  public:
   Application();
-  Application(std::string appName, unsigned int width, unsigned int height);
+  Application(std::string appName);
   ~Application();
 
   Application(const Application &) = delete;
   Application(const Application &&) = delete;
 
   /**
-   * Starts execution of the engine. Blocks until application is closed.
+   * Starts execution of the engine in a window of the specified starting size.
+   * Blocks until application is closed.
    *
    * In case of a fatal error a std::runtime_error will be thrown
    */
-  void run();
+  void run(unsigned int width, unsigned int height);
 
   /**
    * Get the lookup path for SPIR-V shaders
@@ -66,7 +67,6 @@ class Application {
 
  private:
   const std::string appName;
-  const unsigned int initialWidth, initialHeight;
 
   std::string shaderPath{"./shaders/"};
   std::string modelPath{"./models/"};
@@ -74,7 +74,7 @@ class Application {
   std::shared_ptr<internal::GlfwWindowWrapper> window;
   std::shared_ptr<internal::VulkanInternals> vulkan;
 
-  void makeWindow();
+  void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();
 };
 

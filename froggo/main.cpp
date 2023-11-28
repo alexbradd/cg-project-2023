@@ -11,7 +11,7 @@ namespace fs = std::filesystem;
 int main(int argc, char* argv[]) {
   fs::path dir{fs::path{argv[0]}.parent_path()};
 
-  seng::Application app{"Froggo", 800, 600};
+  seng::Application app{"Froggo"};
 
   app.setModelPath((dir / "models").string());
   app.setShaderPath((dir / "shaders").string());
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
   try {
     seng::log::info("Starting application");
-    app.run();
+    app.run(800, 600);
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
