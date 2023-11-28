@@ -22,7 +22,7 @@ class Application {
   ~Application();
 
   Application(const Application &) = delete;
-  Application(const Application &&) = delete;
+  Application(Application &&) = delete;
 
   /**
    * Starts execution of the engine in a window of the specified starting size.
