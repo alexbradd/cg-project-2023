@@ -25,6 +25,7 @@ target_sources(${PROJECT_NAME}
     ./src/glfw_window.cpp
     ./src/utils.cpp
     # ./src/vulkan_internals.cpp
+    ./src/vulkan_swapchain_support_details.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
