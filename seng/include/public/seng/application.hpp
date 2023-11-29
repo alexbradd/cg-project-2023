@@ -53,11 +53,6 @@ class Application {
   void setModelPath(std::string s);
 
   /**
-   * Get the internal GLFWwindow wrapper
-   */
-  std::shared_ptr<internal::GlfwWindowWrapper> getWindow();
-
-  /**
    * Get the current app name
    */
   const std::string &getAppName();
@@ -72,7 +67,6 @@ class Application {
   std::string modelPath{"./models/"};
 
   std::shared_ptr<internal::GlfwWindowWrapper> window;
-  std::shared_ptr<internal::VulkanInternals> vulkan;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();
