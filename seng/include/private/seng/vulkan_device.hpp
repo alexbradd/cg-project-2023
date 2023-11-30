@@ -30,12 +30,12 @@ class VulkanDevice {
   SwapchainSupportDetails &swapchainSupportDetails() {
     return _swapchainDetails;
   }
-  /* vk::SurfaceFormatKHR depthFormat() { return _depthFormat; } */
+  vk::SurfaceFormatKHR depthFormat() { return _depthFormat; }
 
   uint32_t findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags);
 
   void requerySupport();
-  /* void requeryDepthFormat(); */
+  void requeryDepthFormat();
 
  private:
   std::reference_wrapper<vk::raii::SurfaceKHR> _surface;
@@ -45,7 +45,7 @@ class VulkanDevice {
   vk::raii::Device _logical;
   vk::raii::Queue _presentQueue;
   vk::raii::Queue _graphicsQueue;
-  /* vk::SurfaceFormatKHR _depthFormat; */
+  vk::SurfaceFormatKHR _depthFormat;
 };
 
 }  // namespace seng::rendering

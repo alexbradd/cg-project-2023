@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <seng/vulkan_image.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -36,6 +37,7 @@ class VulkanSwapchain {
   std::vector<vk::raii::ImageView> &images() { return _imageViews; }
   vk::SurfaceFormatKHR &format() { return _format; }
   vk::Extent2D &extent() { return _extent; }
+  VulkanImage &depthBuffer() { return _depthBufferImage; }
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;
@@ -44,8 +46,10 @@ class VulkanSwapchain {
   vk::raii::SwapchainKHR _swapchain;
   std::vector<vk::Image> _images;
   std::vector<vk::raii::ImageView> _imageViews;
+  VulkanImage _depthBufferImage;
 
-  // FIXME: add depth view
+  // FIXME: add acquire next image index
+  // FIXME: add present
 };
 
 }  // namespace seng::rendering

@@ -1,6 +1,7 @@
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_renderer.hpp>
 #include <set>
+#include <stdexcept>
 #include <unordered_set>
 
 using namespace std;
@@ -11,6 +12,7 @@ static PhysicalDevice pickPhysicalDevice(Instance &, SurfaceKHR &);
 static bool checkExtensions(const vector<const char *> &, PhysicalDevice &);
 static bool checkSwapchain(PhysicalDevice &, SurfaceKHR &);
 static Device createLogicalDevice(PhysicalDevice &, QueueFamilyIndices &);
+static vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &);
 
 VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface)
     : _surface(surface),
@@ -19,7 +21,8 @@ VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface)
       _swapchainDetails(_physical, surface),
       _logical(createLogicalDevice(_physical, _queueIndices)),
       _presentQueue(_logical, *_queueIndices.presentFamily(), 0),
-      _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0) {}
+      _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0),
+      _depthFormat(detectDepthFormat(_physical)) {}
 
 PhysicalDevice pickPhysicalDevice(Instance &i, SurfaceKHR &s) {
   PhysicalDevices devs(i);
@@ -75,6 +78,23 @@ Device createLogicalDevice(PhysicalDevice &phy, QueueFamilyIndices &indices) {
   return Device(phy, dci);
 }
 
+vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &phy) {
+  vector<vk::Format> candidates{vk::Format::eD32Sfloat,
+                                vk::Format::eD32SfloatS8Uint,
+                                vk::Format::eD24UnormS8Uint};
+  vk::FormatFeatureFlagBits f =
+      vk::FormatFeatureFlagBits::eDepthStencilAttachment;
+  for (auto format : candidates) {
+    vk::FormatProperties props = phy.getFormatProperties(format);
+    if ((props.linearTilingFeatures & f) == f) {
+      return format;
+    } else if ((props.optimalTilingFeatures & f) == f) {
+      return format;
+    }
+  }
+  throw runtime_error("Unable to find appropriate depth format!");
+}
+
 uint32_t VulkanDevice::findMemoryIndex(uint32_t filter,
                                        vk::MemoryPropertyFlags flags) {
   vk::PhysicalDeviceMemoryProperties props{_physical.getMemoryProperties()};
@@ -92,6 +112,6 @@ void VulkanDevice::requerySupport() {
   _swapchainDetails = SwapchainSupportDetails(_physical, _surface);
 }
 
-/* void VulkanDevice::requeryDepthFormat() { */
-/*   _depthFormat = detectDepthFormat(_physical); */
-/* } */
+void VulkanDevice::requeryDepthFormat() {
+  _depthFormat = detectDepthFormat(_physical);
+}

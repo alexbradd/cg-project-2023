@@ -12,6 +12,7 @@ static SwapchainKHR createSwapchain(VulkanDevice &,
 static vector<ImageView> createImageViews(VulkanDevice &,
                                           vk::SurfaceFormatKHR &,
                                           vector<vk::Image> &);
+static VulkanImage createDepth(VulkanDevice &dev, vk::Extent2D extent);
 
 VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
                                  SurfaceKHR &surface,
@@ -21,7 +22,8 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
       _extent(dev.swapchainSupportDetails().chooseSwapchainExtent(window)),
       _swapchain(createSwapchain(vkDevRef, _format, _extent, surface)),
       _images(_swapchain.getImages()),
-      _imageViews(createImageViews(vkDevRef, _format, _images)) {}
+      _imageViews(createImageViews(vkDevRef, _format, _images)),
+      _depthBufferImage(createDepth(dev, _extent)) {}
 
 SwapchainKHR createSwapchain(VulkanDevice &device,
                              vk::SurfaceFormatKHR &format,
@@ -86,6 +88,19 @@ vector<ImageView> createImageViews(VulkanDevice &dev,
     ret.emplace_back(dev.logical(), ci);
   }
   return ret;
+}
+
+VulkanImage createDepth(VulkanDevice &dev, vk::Extent2D extent) {
+  VulkanImage::CreateInfo ci{vk::ImageType::e2D,
+                             extent.width,
+                             extent.height,
+                             dev.depthFormat().format,
+                             vk::ImageTiling::eOptimal,
+                             vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                             vk::MemoryPropertyFlagBits::eDeviceLocal,
+                             vk::ImageAspectFlagBits::eDepth,
+                             true};
+  return VulkanImage(dev, ci);
 }
 
 void VulkanSwapchain::recreate(VulkanSwapchain &loc,
