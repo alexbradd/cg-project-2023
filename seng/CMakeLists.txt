@@ -34,6 +34,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME}
   PRIVATE
     -Wall
+    -Wextra
   PUBLIC
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:RelWithDebInfo>:-O2 -g>
