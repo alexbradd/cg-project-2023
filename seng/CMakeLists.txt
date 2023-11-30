@@ -33,6 +33,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_image.cpp
     ./src/vulkan_device.cpp
     ./src/vulkan_render_pass.cpp
+    ./src/vulkan_command_buffer.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC

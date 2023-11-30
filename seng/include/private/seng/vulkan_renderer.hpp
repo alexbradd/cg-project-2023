@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <seng/glfw_window.hpp>
+#include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_render_pass.hpp>
@@ -47,6 +48,8 @@ class VulkanRenderer {
   VulkanDevice device;
   VulkanSwapchain swapchain;
   VulkanRenderPass renderPass;
+  vk::raii::CommandPool cmdPool;
+  std::vector<VulkanCommandBuffer> graphicsCmdBufs;
 };
 
 }  // namespace seng::rendering

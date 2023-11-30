@@ -13,6 +13,7 @@ const std::vector<const char *> VulkanRenderer::validationLayers{
 // Intializer functions
 static Instance createInstance(Context &, GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
+static CommandPool createCommandPool(VulkanDevice &);
 
 VulkanRenderer::VulkanRenderer(GlfwWindow &window)
     : window(window),
@@ -22,7 +23,10 @@ VulkanRenderer::VulkanRenderer(GlfwWindow &window)
       _surface(window.createVulkanSurface(_instance)),
       device(_instance, _surface),
       swapchain(device, _surface, window),
-      renderPass(device, swapchain) {}
+      renderPass(device, swapchain),
+      cmdPool(createCommandPool(device)),
+      graphicsCmdBufs(VulkanCommandBuffer::createMultiple(
+          device, cmdPool, swapchain.images().size())) {}
 
 Instance createInstance(Context &context, GlfwWindow &window) {
   vk::ApplicationInfo ai{};
@@ -73,4 +77,10 @@ bool supportsAllLayers(const vector<const char *> &l) {
       return strcmp(property.layerName, name) == 0;
     });
   });
+}
+
+CommandPool createCommandPool(VulkanDevice &device) {
+  return CommandPool(device.logical(),
+                     {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                      device.queueFamiliyIndices().graphicsFamily().value()});
 }
