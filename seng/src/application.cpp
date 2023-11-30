@@ -2,6 +2,7 @@
 #include <seng/application.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
+#include <seng/vulkan_renderer.hpp>
 
 using namespace std;
 using namespace seng;
@@ -21,10 +22,12 @@ void Application::run(unsigned int width, unsigned int height) {
 
 void Application::makeWindow(unsigned int width, unsigned int height) {
   window = shared_ptr<GlfwWindow>(new GlfwWindow{appName, width, height});
+  vulkan = make_unique<VulkanRenderer>(*window);
 }
 
 void Application::destroyWindow() {
   window = nullptr;
+  vulkan = nullptr;
 }
 
 const string& Application::getShaderPath() { return shaderPath; }

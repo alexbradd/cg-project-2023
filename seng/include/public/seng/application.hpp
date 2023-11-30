@@ -7,7 +7,7 @@ namespace seng {
 
 namespace rendering {
 class GlfwWindow;
-class VulkanInstance;
+class VulkanRenderer;
 }  // namespace rendering
 
 /**
@@ -68,6 +68,7 @@ class Application {
   std::string modelPath{"./models/"};
 
   std::shared_ptr<rendering::GlfwWindow> window;
+  std::unique_ptr<rendering::VulkanRenderer> vulkan;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();
