@@ -35,6 +35,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_render_pass.cpp
     ./src/vulkan_command_buffer.cpp
     ./src/vulkan_framebuffer.cpp
+    ./src/vulkan_fence.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
