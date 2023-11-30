@@ -32,6 +32,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_debug_messenger.cpp
     ./src/vulkan_image.cpp
     ./src/vulkan_device.cpp
+    ./src/vulkan_render_pass.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
