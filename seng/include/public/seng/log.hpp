@@ -1,5 +1,4 @@
-#ifndef __SENG_LOG_HPP__
-#define __SENG_LOG_HPP__
+#pragma once
 
 #include <fmt/core.h>
 
@@ -49,5 +48,3 @@ void error(const std::string &fmt, Args &&...args) {
 }
 
 }  // namespace seng::log
-
-#endif  // !__SENG_LOG_HPP__

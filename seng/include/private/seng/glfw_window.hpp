@@ -1,63 +1,57 @@
-#ifndef __PRIVATE_SENG_GLFW_WINDOW_WRAPPER_HPP__
-#define __PRIVATE_SENG_GLFW_WINDOW_WRAPPER_HPP__
+#pragma once
 
 // clang-format off
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 #include <GLFW/glfw3.h>
 // clang-format on
 
 #include <functional>
 #include <optional>
+#include <seng/log.hpp>
 #include <string>
 
 namespace seng::internal {
 
+/**
+ * Wrapper arond the C API provided by glfw3.
+ *
+ * This class represents a GLFW window. Since we should have only 1 window, the
+ * class calls glfwInit() at creation and glfwTerminate at deallocation.
+ *
+ * It non copyable but movable.
+ */
 class GlfwWindow {
  public:
-  GlfwWindow(const std::string &appName, unsigned int width,
-                    unsigned int height)
-      : width{width}, height{height} {
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    ptr = glfwCreateWindow(width, height, appName.c_str(), nullptr, nullptr);
-    glfwSetWindowUserPointer(ptr, this);
-    glfwSetFramebufferSizeCallback(ptr, resizeCallback);
-  }
-  ~GlfwWindow() {
-    glfwDestroyWindow(ptr);
-    glfwTerminate();
-  }
+  GlfwWindow(std::string appName, unsigned int width, unsigned int height);
+  GlfwWindow(const GlfwWindow &) = delete;
+  GlfwWindow(GlfwWindow &&) noexcept;
+  ~GlfwWindow();
 
-  GLFWwindow *getPointer() { return ptr; }
-  bool shouldClose() { return glfwWindowShouldClose(ptr); }
-  void setonResize(std::function<void(GLFWwindow *, int, int)> callback) {
-    onResize = callback;
+  GlfwWindow &operator=(const GlfwWindow &) = delete;
+  GlfwWindow &operator=(GlfwWindow &&);
+
+  GLFWwindow *getPointer() const {
+    seng::log::warning("FIXME: remove access to internal pointer");
+    return ptr;
   }
-  unsigned int getWidth() { return width; }
-  unsigned int getHeight() { return height; }
-  std::pair<unsigned int, unsigned int> getFramebufferSize() {
-    int w, h;
-    glfwGetFramebufferSize(ptr, &w, &h);
-    return std::pair(w, h);
-  }
-  void wait() { glfwWaitEvents(); }
+  bool shouldClose() const;
+  void onResize(std::function<void(GLFWwindow *, int, int)> callback);
+  const std::string &appName() const;
+  unsigned int width() const;
+  unsigned int height() const;
+  std::vector<const char *> extensions() const;
+  std::pair<unsigned int, unsigned int> framebufferSize() const;
+  void wait() const;
+  vk::raii::SurfaceKHR createVulkanSurface(vk::raii::Instance &) const;
 
  private:
   GLFWwindow *ptr;
-  unsigned int width, height;
-  std::optional<std::function<void(GLFWwindow *, int, int)>> onResize;
+  std::string _appName;
+  unsigned int _width, _height;
+  std::optional<std::function<void(GLFWwindow *, int, int)>> _onResize;
 
-  static void resizeCallback(GLFWwindow *window, int w, int h) {
-    auto wrapper =
-        reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
-    wrapper->width = w;
-    wrapper->height = h;
-    if (w == 0 || h == 0) return;
-    if (wrapper->onResize.has_value())
-      (wrapper->onResize).value()(window, w, h);
-  }
+  static void resizeCallback(GLFWwindow *window, int w, int h);
 };
-}  // namespace seng::internal
 
-#endif  // __PRIVATE_SENG_GLFW_WINDOW_WRAPPER_HPP__
+}  // namespace seng::internal

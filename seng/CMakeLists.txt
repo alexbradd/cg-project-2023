@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
+    ./src/glfw_window.cpp
     ./src/utils.cpp
     # ./src/vulkan_internals.cpp
 )

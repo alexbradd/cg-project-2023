@@ -1,5 +1,4 @@
-#ifndef __SENG_APPLICATION_HPP__
-#define __SENG_APPLICATION_HPP__
+#pragma once
 
 #include <memory>
 #include <string>
@@ -73,5 +72,3 @@ class Application {
 };
 
 }  // namespace seng
-
-#endif  // __SENG_APPLICATION_HPP__
