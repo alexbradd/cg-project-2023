@@ -6,6 +6,8 @@ namespace seng::rendering {
 
 class VulkanDevice;
 class VulkanSwapchain;
+class VulkanCommandBuffer;
+class VulkanFramebuffer;
 
 /**
  * Wrapper around a RenderPass. It implements the RAII pattern so allocation
@@ -38,8 +40,8 @@ class VulkanRenderPass {
   void updateOffset(vk::Offset2D offset);
   void updateExtent(vk::Extent2D extent);
 
-  // FIXME: add begin
-  // FIXME: add end
+  void begin(VulkanCommandBuffer& buf, VulkanFramebuffer& fb);
+  void end(VulkanCommandBuffer& buf);
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;

@@ -1,4 +1,6 @@
+#include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
+#include <seng/vulkan_framebuffer.hpp>
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
 
@@ -98,6 +100,25 @@ RenderPass createRenderPass(VulkanDevice &device,
   info.dependencyCount = 1;
   info.pDependencies = &dep;
   return RenderPass(device.logical(), info);
+}
+
+void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb) {
+  vk::RenderPassBeginInfo renderPassInfo{};
+  renderPassInfo.renderPass = *_pass;
+  renderPassInfo.framebuffer = *fb.handle();
+  renderPassInfo.renderArea.offset = offset;
+  renderPassInfo.renderArea.extent = extent;
+
+  array<vk::ClearValue, 2> clearValues{clearColor, clearDepth};
+  renderPassInfo.setClearValues(clearValues);
+
+  buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+  buf.setInRenderPass();
+}
+
+void VulkanRenderPass::end(VulkanCommandBuffer &buf) {
+  buf.buffer().endRenderPass();
+  buf.setRecording();
 }
 
 vk::Viewport VulkanRenderPass::fullViewport() {
