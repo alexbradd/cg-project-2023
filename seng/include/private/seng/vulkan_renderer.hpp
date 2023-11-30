@@ -41,6 +41,12 @@ class VulkanRenderer {
   vk::raii::Instance &instance() { return _instance; }
   vk::raii::SurfaceKHR &surface() { return _surface; }
 
+  /**
+   * Signal that the window has been resized and the swapchain/frambuffers need
+   * to be regenerated
+   */
+  void signalResize();
+
  private:
   std::reference_wrapper<GlfwWindow> window;
   vk::raii::Context context;
@@ -57,6 +63,7 @@ class VulkanRenderer {
   std::vector<vk::raii::Semaphore> queueCompleteSems;
   std::vector<VulkanFence> inFlightFences;
   std::vector<VulkanFence *> imgsInFlight;
+  uint64_t fbGeneration = 0, lastFbGeneration = 0;
 };
 
 }  // namespace seng::rendering

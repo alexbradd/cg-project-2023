@@ -126,3 +126,6 @@ vector<VulkanFence> createFences(VulkanDevice &device, VulkanSwapchain &swap) {
     ret.emplace_back(device, true);
   return ret;
 }
+
+void VulkanRenderer::signalResize() { fbGeneration++; }
+

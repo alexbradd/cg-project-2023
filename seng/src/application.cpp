@@ -21,8 +21,11 @@ void Application::run(unsigned int width, unsigned int height) {
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height) {
-  window = shared_ptr<GlfwWindow>(new GlfwWindow{appName, width, height});
+  window = make_shared<GlfwWindow>(appName, width, height);
   vulkan = make_unique<VulkanRenderer>(*window);
+  window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
+    if (vulkan != nullptr) vulkan->signalResize();
+  });
 }
 
 void Application::destroyWindow() {
