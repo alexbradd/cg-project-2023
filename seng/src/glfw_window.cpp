@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 using namespace std;
-using namespace seng::internal;
+using namespace seng::rendering;
 
 GlfwWindow::GlfwWindow(string appName, unsigned int width, unsigned int height)
     : _appName(std::move(appName)), _width(width), _height(height) {

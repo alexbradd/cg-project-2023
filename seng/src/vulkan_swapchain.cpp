@@ -15,7 +15,7 @@ static vector<ImageView> createImageViews(VulkanDevice &,
 
 VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
                                  SurfaceKHR &surface,
-                                 internal::GlfwWindow &window)
+                                 GlfwWindow &window)
     : vkDevRef(dev),
       _format(dev.swapchainSupportDetails().chooseFormat()),
       _extent(dev.swapchainSupportDetails().chooseSwapchainExtent(window)),
@@ -91,7 +91,7 @@ vector<ImageView> createImageViews(VulkanDevice &dev,
 void VulkanSwapchain::recreate(VulkanSwapchain &loc,
                                VulkanDevice &dev,
                                SurfaceKHR &surface,
-                               internal::GlfwWindow &window) {
+                               GlfwWindow &window) {
   loc.~VulkanSwapchain();
   ::new (&loc) VulkanSwapchain(dev, surface, window);
 }

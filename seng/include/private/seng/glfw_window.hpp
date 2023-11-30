@@ -11,7 +11,7 @@
 #include <seng/log.hpp>
 #include <string>
 
-namespace seng::internal {
+namespace seng::rendering {
 
 /**
  * Wrapper arond the C API provided by glfw3.
@@ -54,4 +54,4 @@ class GlfwWindow {
   static void resizeCallback(GLFWwindow *window, int w, int h);
 };
 
-}  // namespace seng::internal
+}  // namespace seng::rendering

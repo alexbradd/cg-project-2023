@@ -2,11 +2,13 @@
 
 #include <memory>
 #include <string>
+
 namespace seng {
-namespace internal {
+
+namespace rendering {
 class GlfwWindow;
-class VulkanInternals;
-}  // namespace internal
+class VulkanInstance;
+}  // namespace rendering
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and
@@ -65,7 +67,7 @@ class Application {
   std::string shaderPath{"./shaders/"};
   std::string modelPath{"./models/"};
 
-  std::shared_ptr<internal::GlfwWindow> window;
+  std::shared_ptr<rendering::GlfwWindow> window;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();

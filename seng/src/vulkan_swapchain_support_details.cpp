@@ -1,7 +1,7 @@
 #include <seng/glfw_window.hpp>
 #include <seng/vulkan_swapchain_support_details.hpp>
+#include <seng/glfw_window.hpp>
 
-using namespace seng::internal;
 using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;

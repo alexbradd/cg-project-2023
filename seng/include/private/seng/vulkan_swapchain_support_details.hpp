@@ -1,9 +1,10 @@
 #pragma once
 
-#include <seng/glfw_window.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
+
+class GlfwWindow;
 
 class SwapchainSupportDetails {
  public:
@@ -11,7 +12,7 @@ class SwapchainSupportDetails {
                           vk::raii::SurfaceKHR &surface);
 
   vk::SurfaceFormatKHR chooseFormat();
-  vk::Extent2D chooseSwapchainExtent(internal::GlfwWindow &window);
+  vk::Extent2D chooseSwapchainExtent(GlfwWindow &window);
 
   vk::SurfaceCapabilitiesKHR &capabilities() { return _capabilities; }
   std::vector<vk::SurfaceFormatKHR> &formats() { return _formats; };

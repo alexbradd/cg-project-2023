@@ -5,7 +5,7 @@
 
 using namespace std;
 using namespace seng;
-using namespace seng::internal;
+using namespace seng::rendering;
 
 Application::Application() : Application("Vulkan") {}
 Application::Application(string appName) : appName{appName} {}
@@ -20,8 +20,7 @@ void Application::run(unsigned int width, unsigned int height) {
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height) {
-  window = shared_ptr<GlfwWindow>(
-      new GlfwWindow{appName, width, height});
+  window = shared_ptr<GlfwWindow>(new GlfwWindow{appName, width, height});
 }
 
 void Application::destroyWindow() {

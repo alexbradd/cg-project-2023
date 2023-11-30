@@ -2,7 +2,6 @@
 #include <seng/vulkan_renderer.hpp>
 
 using namespace seng::rendering;
-using namespace seng::internal;
 using namespace std;
 using namespace vk::raii;
 

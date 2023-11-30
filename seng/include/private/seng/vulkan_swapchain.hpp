@@ -1,12 +1,12 @@
 #pragma once
 
 #include <functional>
-#include <seng/glfw_window.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
 
 class VulkanDevice;
+class GlfwWindow;
 
 /**
  * Wrapper for the current swapchain. It uses the RAII pattern, meaning that
@@ -17,9 +17,7 @@ class VulkanDevice;
  */
 class VulkanSwapchain {
  public:
-  VulkanSwapchain(VulkanDevice &,
-                  vk::raii::SurfaceKHR &,
-                  internal::GlfwWindow &);
+  VulkanSwapchain(VulkanDevice &, vk::raii::SurfaceKHR &, GlfwWindow &);
   VulkanSwapchain(const VulkanSwapchain &) = delete;
   VulkanSwapchain(VulkanSwapchain &&) = default;
   ~VulkanSwapchain();
@@ -32,7 +30,7 @@ class VulkanSwapchain {
   static void recreate(VulkanSwapchain &loc,
                        VulkanDevice &dev,
                        vk::raii::SurfaceKHR &surface,
-                       internal::GlfwWindow &window);
+                       GlfwWindow &window);
 
   vk::raii::SwapchainKHR &swapchain() { return _swapchain; }
   std::vector<vk::raii::ImageView> &images() { return _imageViews; }

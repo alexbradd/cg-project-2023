@@ -18,7 +18,7 @@ namespace seng::rendering {
  */
 class VulkanRenderer {
  public:
-  VulkanRenderer(internal::GlfwWindow &window);  // FIXME: move to rendering
+  VulkanRenderer(GlfwWindow &window);
   VulkanRenderer(const VulkanRenderer &) = delete;
   VulkanRenderer(VulkanRenderer &&) = default;
 
@@ -38,7 +38,7 @@ class VulkanRenderer {
   vk::raii::SurfaceKHR &surface() { return _surface; }
 
  private:
-  std::reference_wrapper<internal::GlfwWindow> window;
+  std::reference_wrapper<GlfwWindow> window;
   vk::raii::Context context;
   vk::raii::Instance _instance;
   DebugMessenger debugMessenger;
