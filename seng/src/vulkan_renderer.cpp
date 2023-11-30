@@ -14,6 +14,9 @@ const std::vector<const char *> VulkanRenderer::validationLayers{
 static Instance createInstance(Context &, GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
 static CommandPool createCommandPool(VulkanDevice &);
+static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
+                                                    VulkanSwapchain &,
+                                                    VulkanRenderPass &);
 
 VulkanRenderer::VulkanRenderer(GlfwWindow &window)
     : window(window),
@@ -26,7 +29,8 @@ VulkanRenderer::VulkanRenderer(GlfwWindow &window)
       renderPass(device, swapchain),
       cmdPool(createCommandPool(device)),
       graphicsCmdBufs(VulkanCommandBuffer::createMultiple(
-          device, cmdPool, swapchain.images().size())) {}
+          device, cmdPool, swapchain.images().size())),
+      framebuffers(createFramebuffers(device, swapchain, renderPass)) {}
 
 Instance createInstance(Context &context, GlfwWindow &window) {
   vk::ApplicationInfo ai{};
@@ -83,4 +87,19 @@ CommandPool createCommandPool(VulkanDevice &device) {
   return CommandPool(device.logical(),
                      {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                       device.queueFamiliyIndices().graphicsFamily().value()});
+}
+
+vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &dev,
+                                             VulkanSwapchain &swap,
+                                             VulkanRenderPass &pass) {
+  vector<VulkanFramebuffer> fbs{};
+  fbs.reserve(swap.images().size());
+
+  for (auto &img : swap.images()) {
+    vector<vk::ImageView> attachments(2);  // TODO: make configurable
+    attachments[0] = *img;
+    attachments[1] = **swap.depthBuffer().imageView();
+    fbs.emplace_back(dev, pass, swap.extent(), std::move(attachments));
+  }
+  return fbs;
 }
