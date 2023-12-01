@@ -1,3 +1,4 @@
+#include <seng/log.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
 
@@ -17,7 +18,9 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice &dev,
           std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0])) {}
 
 VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b)
-    : buf(std::move(b)), state(VulkanCommandBuffer::State::eReady) {}
+    : buf(std::move(b)), state(VulkanCommandBuffer::State::eReady) {
+  log::dbg("Allocated command buffer");
+}
 
 CommandBuffers allocateBuffers(Device &device,
                                CommandPool &pool,
@@ -93,4 +96,10 @@ void VulkanCommandBuffer::setInRenderPass() {
 
 void VulkanCommandBuffer::setSubmitted() {
   state = VulkanCommandBuffer::State::eSubmitted;
+}
+
+VulkanCommandBuffer::~VulkanCommandBuffer() {
+  if (*buf != vk::CommandBuffer{}) {
+    log::dbg("Deallocating command buffer");
+  }
 }

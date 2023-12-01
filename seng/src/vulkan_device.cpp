@@ -22,7 +22,9 @@ VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface)
       _logical(createLogicalDevice(_physical, _queueIndices)),
       _presentQueue(_logical, *_queueIndices.presentFamily(), 0),
       _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0),
-      _depthFormat(detectDepthFormat(_physical)) {}
+      _depthFormat(detectDepthFormat(_physical)) {
+  log::dbg("Device has beeen created successfully");
+}
 
 PhysicalDevice pickPhysicalDevice(Instance &i, SurfaceKHR &s) {
   PhysicalDevices devs(i);
@@ -114,4 +116,10 @@ void VulkanDevice::requerySupport() {
 
 void VulkanDevice::requeryDepthFormat() {
   _depthFormat = detectDepthFormat(_physical);
+}
+
+VulkanDevice::~VulkanDevice() {
+  // Just checking if the device handle is valid is enough
+  // since all other handles depend on the existence of it
+  if (*_logical != vk::Device{}) log::dbg("Destroying device");
 }

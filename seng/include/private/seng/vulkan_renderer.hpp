@@ -25,6 +25,7 @@ class VulkanRenderer {
   VulkanRenderer(GlfwWindow &window);
   VulkanRenderer(const VulkanRenderer &) = delete;
   VulkanRenderer(VulkanRenderer &&) = default;
+  ~VulkanRenderer();
 
   VulkanRenderer &operator=(const VulkanRenderer &) = delete;
   VulkanRenderer &operator=(VulkanRenderer &&) = default;

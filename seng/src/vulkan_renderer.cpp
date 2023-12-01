@@ -36,7 +36,9 @@ VulkanRenderer::VulkanRenderer(GlfwWindow &window)
       imageAvailableSems(createSemahpores(device, swapchain)),
       queueCompleteSems(createSemahpores(device, swapchain)),
       inFlightFences(createFences(device, swapchain)),
-      imgsInFlight(swapchain.images().size()) {}
+      imgsInFlight(swapchain.images().size()) {
+  log::info("Vulkan context is up and running!");
+}
 
 Instance createInstance(Context &context, GlfwWindow &window) {
   vk::ApplicationInfo ai{};
@@ -129,3 +131,11 @@ vector<VulkanFence> createFences(VulkanDevice &device, VulkanSwapchain &swap) {
 
 void VulkanRenderer::signalResize() { fbGeneration++; }
 
+VulkanRenderer::~VulkanRenderer() {
+  // Just checking if the instance handle is valid is enough
+  // since all objects are valid or none are.
+  if (*_instance != vk::Instance{}) {
+    device.logical().waitIdle();
+    log::info("Destroying vulkan context");
+  }
+}

@@ -1,3 +1,4 @@
+#include <seng/log.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_framebuffer.hpp>
@@ -142,4 +143,8 @@ void VulkanRenderPass::updateOffset(vk::Offset2D offset) {
 
 void VulkanRenderPass::updateExtent(vk::Extent2D extent) {
   this->extent = extent;
+}
+
+VulkanRenderPass::~VulkanRenderPass() {
+  if (*_pass != vk::RenderPass{}) log::dbg("Destroying render pass");
 }

@@ -35,6 +35,7 @@ VkBool32 DebugMessenger::debugCallback(
     void *) {
   switch (messageSeverity) {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
       log::info("Validation layer: {}", pCallbackData->pMessage);
       break;

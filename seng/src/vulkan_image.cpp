@@ -1,3 +1,4 @@
+#include <seng/log.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_image.hpp>
 
@@ -20,7 +21,10 @@ VulkanImage::VulkanImage(VulkanDevice &dev, VulkanImage::CreateInfo &info)
       height(info.height),
       handle(createImage(vkDevRef, info)),
       memory(allocateImage(vkDevRef, info, handle)),
-      view(maybeCreateView(vkDevRef, info, handle)) {}
+      view(maybeCreateView(vkDevRef, info, handle)) {
+  log::dbg("Created new image {}",
+           info.createView ? "with view" : "without view");
+}
 
 Image createImage(VulkanDevice &device, VulkanImage::CreateInfo &info) {
   vk::ImageCreateInfo ci{};
@@ -82,4 +86,10 @@ void VulkanImage::createView() {
   ci.subresourceRange.baseArrayLayer = 0;
   ci.subresourceRange.layerCount = 1;
   view = ImageView(vkDevRef.get().logical(), ci);
+}
+
+VulkanImage::~VulkanImage() {
+  // Just checking if the device handle is valid is enough
+  // since all or none handles are valid
+  if (*handle != vk::Image{}) log::dbg("Destroying image");
 }

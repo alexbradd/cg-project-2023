@@ -21,6 +21,7 @@ class VulkanCommandBuffer {
                       bool primary = true);
   VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
   VulkanCommandBuffer(VulkanCommandBuffer&&) = default;
+  ~VulkanCommandBuffer();
 
   VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
   VulkanCommandBuffer& operator=(VulkanCommandBuffer&&) = default;

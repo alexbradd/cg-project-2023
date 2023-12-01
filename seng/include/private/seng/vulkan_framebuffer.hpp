@@ -16,6 +16,7 @@ class VulkanFramebuffer {
                     std::vector<vk::ImageView>& attachments);
   VulkanFramebuffer(const VulkanFramebuffer&) = delete;
   VulkanFramebuffer(VulkanFramebuffer&&) = default;
+  ~VulkanFramebuffer();
 
   VulkanFramebuffer& operator=(const VulkanFramebuffer&) = delete;
   VulkanFramebuffer& operator=(VulkanFramebuffer&&) = default;

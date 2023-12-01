@@ -28,6 +28,7 @@ class VulkanRenderPass {
                    vk::ClearDepthStencilValue clearDepth);
   VulkanRenderPass(const VulkanRenderPass&) = delete;
   VulkanRenderPass(VulkanRenderPass&&) = default;
+  ~VulkanRenderPass();
 
   VulkanRenderPass& operator=(const VulkanRenderPass&) = delete;
   VulkanRenderPass& operator=(VulkanRenderPass&&) = default;

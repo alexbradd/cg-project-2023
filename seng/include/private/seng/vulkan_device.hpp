@@ -18,6 +18,7 @@ class VulkanDevice {
   VulkanDevice(vk::raii::Instance &instance, vk::raii::SurfaceKHR &surf);
   VulkanDevice(const VulkanDevice &) = delete;
   VulkanDevice(VulkanDevice &&) = default;
+  ~VulkanDevice();
 
   VulkanDevice &operator=(const VulkanDevice &) = delete;
   VulkanDevice &operator=(VulkanDevice &&) = default;

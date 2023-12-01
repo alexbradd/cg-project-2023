@@ -28,6 +28,7 @@ class VulkanImage {
   VulkanImage(VulkanDevice &dev, CreateInfo &info);
   VulkanImage(const VulkanImage &) = delete;
   VulkanImage(VulkanImage &&) = default;
+  ~VulkanImage();
 
   VulkanImage &operator=(const VulkanImage &) = delete;
   VulkanImage &operator=(VulkanImage &&) = default;

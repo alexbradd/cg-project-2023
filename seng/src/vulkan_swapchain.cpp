@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <seng/log.hpp>
 #include <seng/vulkan_debug.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_fence.hpp>
@@ -29,7 +30,10 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
       _swapchain(createSwapchain(vkDevRef, _format, _extent, surface)),
       _images(_swapchain.getImages()),
       _imageViews(createImageViews(vkDevRef, _format, _images)),
-      _depthBufferImage(createDepth(dev, _extent)) {}
+      _depthBufferImage(createDepth(dev, _extent)) {
+  log::dbg("Swapchain created with extent {}x{}", _extent.width,
+           _extent.height);
+}
 
 SwapchainKHR createSwapchain(VulkanDevice &device,
                              vk::SurfaceFormatKHR &format,
@@ -167,4 +171,9 @@ void VulkanSwapchain::recreate(VulkanSwapchain &loc,
   ::new (&loc) VulkanSwapchain(dev, surface, window);
 }
 
-VulkanSwapchain::~VulkanSwapchain() { vkDevRef.get().logical().waitIdle(); }
+VulkanSwapchain::~VulkanSwapchain() {
+  if (*_swapchain != vk::SwapchainKHR{}) {
+    vkDevRef.get().logical().waitIdle();
+    log::dbg("Destroying swapchain");
+  }
+}
