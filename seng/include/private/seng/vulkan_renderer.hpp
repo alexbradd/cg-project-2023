@@ -5,6 +5,7 @@
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
 #include <seng/vulkan_device.hpp>
+#include <seng/vulkan_fence.hpp>
 #include <seng/vulkan_framebuffer.hpp>
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
@@ -52,6 +53,10 @@ class VulkanRenderer {
   vk::raii::CommandPool cmdPool;
   std::vector<VulkanCommandBuffer> graphicsCmdBufs;
   std::vector<VulkanFramebuffer> framebuffers;
+  std::vector<vk::raii::Semaphore> imageAvailableSems;
+  std::vector<vk::raii::Semaphore> queueCompleteSems;
+  std::vector<VulkanFence> inFlightFences;
+  std::vector<VulkanFence *> imgsInFlight;
 };
 
 }  // namespace seng::rendering

@@ -17,6 +17,8 @@ static CommandPool createCommandPool(VulkanDevice &);
 static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
                                                     VulkanSwapchain &,
                                                     VulkanRenderPass &);
+static vector<Semaphore> createSemahpores(VulkanDevice &, VulkanSwapchain &);
+static vector<VulkanFence> createFences(VulkanDevice &, VulkanSwapchain &);
 
 VulkanRenderer::VulkanRenderer(GlfwWindow &window)
     : window(window),
@@ -30,7 +32,11 @@ VulkanRenderer::VulkanRenderer(GlfwWindow &window)
       cmdPool(createCommandPool(device)),
       graphicsCmdBufs(VulkanCommandBuffer::createMultiple(
           device, cmdPool, swapchain.images().size())),
-      framebuffers(createFramebuffers(device, swapchain, renderPass)) {}
+      framebuffers(createFramebuffers(device, swapchain, renderPass)),
+      imageAvailableSems(createSemahpores(device, swapchain)),
+      queueCompleteSems(createSemahpores(device, swapchain)),
+      inFlightFences(createFences(device, swapchain)),
+      imgsInFlight(swapchain.images().size()) {}
 
 Instance createInstance(Context &context, GlfwWindow &window) {
   vk::ApplicationInfo ai{};
@@ -102,4 +108,21 @@ vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &dev,
     fbs.emplace_back(dev, pass, swap.extent(), std::move(attachments));
   }
   return fbs;
+}
+
+vector<Semaphore> createSemahpores(VulkanDevice &device,
+                                   VulkanSwapchain &swap) {
+  vector<Semaphore> ret;
+  ret.reserve(swap.images().size());
+  for (uint32_t i = 0; i < swap.images().size(); i++)
+    ret.emplace_back(device.logical(), vk::SemaphoreCreateInfo{});
+  return ret;
+}
+
+vector<VulkanFence> createFences(VulkanDevice &device, VulkanSwapchain &swap) {
+  vector<VulkanFence> ret;
+  ret.reserve(swap.images().size());
+  for (uint32_t i = 0; i < swap.images().size(); i++)
+    ret.emplace_back(device, true);
+  return ret;
 }
