@@ -1,5 +1,11 @@
+#include <cstdint>
+#include <functional>
+#include <optional>
+#include <seng/vulkan_debug.hpp>
 #include <seng/vulkan_device.hpp>
+#include <seng/vulkan_fence.hpp>
 #include <seng/vulkan_swapchain.hpp>
+#include <stdexcept>
 
 using namespace std;
 using namespace seng::rendering;
@@ -101,6 +107,56 @@ VulkanImage createDepth(VulkanDevice &dev, vk::Extent2D extent) {
                              vk::ImageAspectFlagBits::eDepth,
                              true};
   return VulkanImage(dev, ci);
+}
+
+uint32_t VulkanSwapchain::nextImageIndex(
+    Semaphore &imgAvailable,
+    optional<reference_wrapper<VulkanFence>> fence,
+    uint64_t timeout) {
+  optional<pair<vk::Result, uint32_t>> res;
+  if (fence.has_value()) {
+    res = _swapchain.acquireNextImage(timeout, *imgAvailable,
+                                      *fence.value().get().handle());
+  } else {
+    res = _swapchain.acquireNextImage(timeout, *imgAvailable);
+  }
+  switch (res->first) {
+    case vk::Result::eSuccess:
+    case vk::Result::eSuboptimalKHR:
+      return res->second;
+    case vk::Result::eErrorOutOfDateKHR:
+      throw InadequateSwapchainException("Out of date swapchain", res->first);
+    default:
+      string s = string("Failed to present swapchain image! Error: ") +
+                 resultToString(res->first);
+      throw runtime_error(s);
+  }
+}
+
+void VulkanSwapchain::present(Queue &presentQueue,
+                              Queue &,
+                              Semaphore &renderComplete,
+                              uint32_t imageIndex) {
+  vk::PresentInfoKHR info{};
+  info.waitSemaphoreCount = 1;
+  info.pWaitSemaphores = &(*renderComplete);
+  info.swapchainCount = 1;
+  info.pSwapchains = &(*_swapchain);
+  info.pImageIndices = &imageIndex;
+  info.pResults = nullptr;
+
+  auto res = presentQueue.presentKHR(info);
+  switch (res) {
+    case vk::Result::eSuccess:
+      break;
+    case vk::Result::eErrorOutOfDateKHR:
+    case vk::Result::eSuboptimalKHR:
+      throw InadequateSwapchainException("Out of date swapchain", res);
+    default:
+      string s = string("Failed to present swapchain image! Error: ") +
+                 resultToString(res);
+      throw runtime_error(s);
+  }
 }
 
 void VulkanSwapchain::recreate(VulkanSwapchain &loc,

@@ -1,13 +1,34 @@
 #pragma once
 
+#include <cstdint>
+#include <exception>
 #include <functional>
+#include <limits>
 #include <seng/vulkan_image.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
 
 class VulkanDevice;
+class VulkanFence;
 class GlfwWindow;
+
+/**
+ * Exception singaling an outof date or suboptimal swapchain. Users of the class
+ * should recreate the swapchain and relative framebuffers if they catch this
+ */
+class InadequateSwapchainException : public std::exception {
+ public:
+  InadequateSwapchainException(std::string_view error, vk::Result res)
+      : err{error}, r{res} {}
+
+  const char *what() const noexcept override { return err.c_str(); }
+  vk::Result result() const noexcept { return r; }
+
+ private:
+  std::string err{};
+  vk::Result r;
+};
 
 /**
  * Wrapper for the current swapchain. It uses the RAII pattern, meaning that
@@ -28,6 +49,26 @@ class VulkanSwapchain {
 
   static const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
+  /**
+   * Acquires the next image index in the swapchain using
+   * `vkAcquireNextImageIndexKHR`. If the swapchain is out of date or
+   * suboptimal, `InadequateSwapchainException` is thrown.
+   */
+  uint32_t nextImageIndex(
+      vk::raii::Semaphore &imgAvailable,
+      std::optional<std::reference_wrapper<VulkanFence>> fence = std::nullopt,
+      uint64_t timeout = std::numeric_limits<uint64_t>::max());
+
+  /**
+   * Presents the frame with index `imageIndex` on the present Queue. If the
+   * current swapchain is inadequate/out of date `InadequateSwapchainException`
+   * is thrown.
+   */
+  void present(vk::raii::Queue &presentQueue,
+               vk::raii::Queue &graphicsQueue,
+               vk::raii::Semaphore &renderComplete,
+               uint32_t imageIndex);
+
   static void recreate(VulkanSwapchain &loc,
                        VulkanDevice &dev,
                        vk::raii::SurfaceKHR &surface,
@@ -47,9 +88,6 @@ class VulkanSwapchain {
   std::vector<vk::Image> _images;
   std::vector<vk::raii::ImageView> _imageViews;
   VulkanImage _depthBufferImage;
-
-  // FIXME: add acquire next image index
-  // FIXME: add present
 };
 
 }  // namespace seng::rendering
