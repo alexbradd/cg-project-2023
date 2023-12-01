@@ -28,12 +28,15 @@ class BeginFrameException : public std::exception {
 /**
  * Class containing the entirety of the vulkan rendering context. Instantiating
  * creates the vulkan context and allocates all the necessary resoruces, while
- * destruction destroy the vulkan context.
+ * destruction deallocates it.
  *
- * It is non-copyable and non-movable.
+ * It is movable, but non-copyable.
  */
 class VulkanRenderer {
  public:
+  /**
+   * Boot up the vulkan renderer and draw into the given window.
+   */
   VulkanRenderer(GlfwWindow &window);
   VulkanRenderer(const VulkanRenderer &) = delete;
   VulkanRenderer(VulkanRenderer &&) = default;
@@ -51,12 +54,13 @@ class VulkanRenderer {
   static constexpr bool useValidationLayers{false};
 #endif  // !NDEBUG
 
+  // Accessors
   vk::raii::Instance &instance() { return _instance; }
   vk::raii::SurfaceKHR &surface() { return _surface; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
-   * to be regenerated
+   * to be regenerated.
    */
   void signalResize();
 

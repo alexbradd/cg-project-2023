@@ -8,13 +8,22 @@
 namespace seng::rendering {
 
 /**
- * Wrapper object that contains everything related to the rendering device we
- * are going to use: physical device handle, logical device handle and queues.
+ * The rendering device we are going to use. It holds references to the physical
+ * device and corresponding logical one, as well as the supported details
+ * (queues and formats) and the graphics and presentation queues.
+ *
+ * It implements the RAII pattern, meaning that instatiation is allocation,
+ * while destruction is deallocation of all underlying structures.
  *
  * It can only be moved, not copied.
  */
 class VulkanDevice {
  public:
+  /**
+   * Pick a suitable physical device, instatiate the relative logical one and
+   * create the queues. If no suitable device can be found/costructed throw a
+   * runtime_error().
+   */
   VulkanDevice(vk::raii::Instance &instance, vk::raii::SurfaceKHR &surf);
   VulkanDevice(const VulkanDevice &) = delete;
   VulkanDevice(VulkanDevice &&) = default;
@@ -23,20 +32,34 @@ class VulkanDevice {
   VulkanDevice &operator=(const VulkanDevice &) = delete;
   VulkanDevice &operator=(VulkanDevice &&) = default;
 
+  // Accessors to the underlying handles
   vk::raii::PhysicalDevice &physical() { return _physical; }
   vk::raii::Device &logical() { return _logical; }
   vk::raii::Queue &presentQueue() { return _presentQueue; }
   vk::raii::Queue &graphicsQueue() { return _graphicsQueue; }
+  vk::SurfaceFormatKHR depthFormat() { return _depthFormat; }
+
+  // Accessors to the support details
   QueueFamilyIndices &queueFamiliyIndices() { return _queueIndices; }
   SwapchainSupportDetails &swapchainSupportDetails() {
     return _swapchainDetails;
   }
-  vk::SurfaceFormatKHR depthFormat() { return _depthFormat; }
 
-  uint32_t findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags);
-
+  /**
+   * Requery the swapchain support details.
+   */
   void requerySupport();
+
+  /**
+   * Requery the depth format.
+   */
   void requeryDepthFormat();
+
+  /**
+   * Query the underlying physical device for the memory index. Thorw an error
+   * is the suitable memory type cannot be found.
+   */
+  uint32_t findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags);
 
  private:
   std::reference_wrapper<vk::raii::SurfaceKHR> _surface;

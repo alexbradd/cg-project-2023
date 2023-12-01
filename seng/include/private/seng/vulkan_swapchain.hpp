@@ -14,8 +14,9 @@ class VulkanFence;
 class GlfwWindow;
 
 /**
- * Exception singaling an outof date or suboptimal swapchain. Users of the class
- * should recreate the swapchain and relative framebuffers if they catch this
+ * Exception singaling an out of date or suboptimal swapchain. Users of the
+ * class should recreate the swapchain and relative framebuffers if they catch
+ * it.
  */
 class InadequateSwapchainException : public std::exception {
  public:
@@ -31,11 +32,10 @@ class InadequateSwapchainException : public std::exception {
 };
 
 /**
- * Wrapper for the current swapchain. It uses the RAII pattern, meaning that
- * creating allocates all resources, while destroying frees them. This allows us
- * to reallocate the swapchain by simply re-instantiating the class.
+ * Wrapper for a vulkan swapchain. It implements the RAII pattern, meaning that
+ * creation allocates resources, while destruction deallocates them.
  *
- * Like all resources, it non-copyable but movable.
+ * It non-copyable but movable.
  */
 class VulkanSwapchain {
  public:
@@ -50,9 +50,11 @@ class VulkanSwapchain {
   static const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
   /**
-   * Acquires the next image index in the swapchain using
-   * `vkAcquireNextImageIndexKHR`. If the swapchain is out of date or
-   * suboptimal, `InadequateSwapchainException` is thrown.
+   * Acquire the next image index in the swapchain. The given semaphore and
+   * fence (if given) will be signaled when done.
+   *
+   * If the swapchain is out of date or suboptimal,
+   * `InadequateSwapchainException` is thrown.
    */
   uint32_t nextImageIndex(
       vk::raii::Semaphore &imgAvailable,
@@ -69,11 +71,17 @@ class VulkanSwapchain {
                vk::raii::Semaphore &renderComplete,
                uint32_t imageIndex);
 
+  /**
+   * Recreate in-place the swapchain.
+   *
+   * @param loc refernce for where the swapchain will be recreated
+   */
   static void recreate(VulkanSwapchain &loc,
                        VulkanDevice &dev,
                        vk::raii::SurfaceKHR &surface,
                        GlfwWindow &window);
 
+  // Accessors
   vk::raii::SwapchainKHR &swapchain() { return _swapchain; }
   std::vector<vk::raii::ImageView> &images() { return _imageViews; }
   vk::SurfaceFormatKHR &format() { return _format; }

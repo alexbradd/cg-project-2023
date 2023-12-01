@@ -8,8 +8,18 @@ namespace seng::rendering {
 class VulkanDevice;
 class VulkanRenderPass;
 
+/**
+ * Wrapper for a Vulkan framebuffer. It implements the RAII pattern, meaning
+ * that instantiating the class allocates, all resources, while destruction of
+ * the class deallocate them.
+ *
+ * It is movable, not copyable
+ */
 class VulkanFramebuffer {
  public:
+  /**
+   * Create and allocate a new framebuffer.
+   */
   VulkanFramebuffer(VulkanDevice& dev,
                     VulkanRenderPass& pass,
                     vk::Extent2D size,
@@ -21,6 +31,7 @@ class VulkanFramebuffer {
   VulkanFramebuffer& operator=(const VulkanFramebuffer&) = delete;
   VulkanFramebuffer& operator=(VulkanFramebuffer&&) = default;
 
+  // Accessors
   vk::raii::Framebuffer& handle() { return _handle; }
 
  private:

@@ -1,5 +1,8 @@
 #include <vulkan/vulkan.hpp>
 
+/**
+ * Convert the vk::Result into a user-readable string.
+ */
 inline const char* resultToString(vk::Result result, bool getExtended = false) {
   // From:
   // https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkResult.html

@@ -10,8 +10,8 @@ namespace seng::rendering {
 class VulkanDevice;
 
 /**
- * Exception singaling an outof date or suboptimal swapchain. Users of the class
- * should recreate the swapchain and relative framebuffers if they catch this
+ * Exception signaling an error occurred while waiting for a fence. It carries
+ * the vk::Result returned by the correponding FenceWait.
  */
 class FenceWaitException : std::exception {
  public:
@@ -26,8 +26,19 @@ class FenceWaitException : std::exception {
   vk::Result r;
 };
 
+/**
+ * Wrapper class for a Vulkan fence. It implements the RAII pattern, meaning
+ * that instantiating the class allocates, all resources, while destruction of
+ * the class deallocate them.
+ *
+ * It is not copyable, only movable.
+ */
 class VulkanFence {
  public:
+  /**
+   * Create and allocate a new fence. If `makeSignaled` is set, the fence will
+   * be instatiated as singaled.
+   */
   VulkanFence(VulkanDevice& device, bool makeSignaled = false);
   VulkanFence(const VulkanFence&) = delete;
   VulkanFence(VulkanFence&&) = default;
@@ -35,9 +46,18 @@ class VulkanFence {
   VulkanFence& operator=(const VulkanFence&) = delete;
   VulkanFence& operator=(VulkanFence&&) = default;
 
+  /**
+   * Wait on this fence until the timeout is reached. If an error occurs while
+   * waiting, a FenceWaitException is throuwn.
+   */
   void wait(uint64_t timeout = std::numeric_limits<uint64_t>::max());
+
+  /**
+   * Reset the fence
+   */
   void reset();
 
+  // Accessors
   vk::raii::Fence& handle() { return _handle; }
   bool signaled() { return _signaled; }
 
