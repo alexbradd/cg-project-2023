@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iterator>
 #include <seng/vulkan_renderer.hpp>
 
@@ -130,6 +131,157 @@ vector<VulkanFence> createFences(VulkanDevice &device, VulkanSwapchain &swap) {
 }
 
 void VulkanRenderer::signalResize() { fbGeneration++; }
+
+void VulkanRenderer::beginFrame() {
+  if (recreatingSwapchain) {
+    device.logical().waitIdle();
+    throw BeginFrameException("Already recreating swapchain, waiting...");
+  }
+
+  if (lastFbGeneration != fbGeneration) {
+    device.logical().waitIdle();
+    recreateSwapchain();
+    throw BeginFrameException("Frambuffer changed, aborting...");
+  }
+
+  try {
+    inFlightFences[currentFrame].wait();
+    imageIndex = swapchain.nextImageIndex(imageAvailableSems[currentFrame]);
+
+    VulkanFramebuffer &curFb = framebuffers[imageIndex];
+    VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
+    curBuf.reset();
+    curBuf.begin();
+
+    // Dynamic states
+    vk::Viewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(swapchain.extent().width);
+    viewport.height = static_cast<float>(swapchain.extent().height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    curBuf.buffer().setViewport(0, viewport);
+
+    vk::Rect2D scissor{{0, 0}, swapchain.extent()};
+    curBuf.buffer().setScissor(0, scissor);
+
+    // Begin the render pass
+    renderPass.begin(curBuf, curFb);
+
+  } catch (const exception &e) {
+    log::warning("Caught exception: {}", e.what());
+    throw BeginFrameException("Caught exception while starting recording...");
+  }
+}
+
+void VulkanRenderer::endFrame() {
+  VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
+
+  renderPass.end(curBuf);
+  curBuf.end();
+
+  // Make sure the previous frame is not using this image
+  if (imgsInFlight[imageIndex] != nullptr) imgsInFlight[imageIndex]->wait();
+  // Then mark the image fence as in-use by this frame
+  imgsInFlight[imageIndex] = &inFlightFences.data()[currentFrame];
+  // Reset the fence for use on the next frame
+  inFlightFences[currentFrame].reset();
+
+  vk::SubmitInfo submit_info{};
+  submit_info.commandBufferCount = 1;
+  submit_info.pCommandBuffers = &(*curBuf.buffer());
+
+  // The semaphore(s) to be signaled when the queue is complete.
+  submit_info.signalSemaphoreCount = 1;
+  submit_info.pSignalSemaphores = &(*queueCompleteSems[currentFrame]);
+
+  // Wait semaphore ensures that the operation cannot begin until the image is
+  // available
+  submit_info.waitSemaphoreCount = 1;
+  submit_info.pWaitSemaphores = &(*imageAvailableSems[currentFrame]);
+
+  // Each semaphore waits on the corresponding pipeline stage to complete.
+  // 1:1 ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents
+  // subsequent colour attachment writes from executing until the semaphore
+  // signals (i.e. one frame is presented at a time)
+  vk::PipelineStageFlags flags[1] = {
+      vk::PipelineStageFlagBits::eColorAttachmentOutput};
+  submit_info.pWaitDstStageMask = flags;
+
+  device.graphicsQueue().submit(submit_info,
+                                *inFlightFences[currentFrame].handle());
+  curBuf.setSubmitted();
+
+  try {
+    swapchain.present(device.presentQueue(), device.graphicsQueue(),
+                      queueCompleteSems[currentFrame], imageIndex);
+  } catch (const InadequateSwapchainException &e) {
+    log::info("Error while presenting: swapchain out of date. Recreating...");
+    recreateSwapchain();
+  }
+
+  currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
+}
+
+void VulkanRenderer::recreateSwapchain() {
+  // If already recreating, do nothing.
+  if (recreatingSwapchain) return;
+
+  // Get the new framebuffer size, if null do nothing
+  pair<unsigned int, unsigned int> fbSize = window.get().framebufferSize();
+  if (fbSize.first == 0 || fbSize.second == 0) {
+    log::dbg("Null framebuffer, aborting...");
+    return;
+  }
+
+  // Start the creation process
+  recreatingSwapchain = true;
+  log::info("Started swapchain recreation");
+
+  // Wait for any pending work to finish and flush out temporary data
+  device.logical().waitIdle();
+  for (size_t i = 0; i < imgsInFlight.size(); i++) imgsInFlight[i] = nullptr;
+
+  // Requery swapchain support data (it might have changed)
+  device.requerySupport();
+  device.requeryDepthFormat();
+
+  // Recreate the swapchain and clear the currentFrame counter
+  VulkanSwapchain::recreate(swapchain, device, _surface, window);
+  currentFrame = 0;
+
+  // Sync framebuffer generation
+  lastFbGeneration = fbGeneration;
+
+  // Clear old command buffers and frabuffers
+  graphicsCmdBufs.clear();
+  framebuffers.clear();
+
+  // Update the render pass dimesions
+  renderPass.updateOffset({0, 0});
+  renderPass.updateExtent(swapchain.extent());
+
+  // Create new framebuffers and command buffers
+  framebuffers = createFramebuffers(device, swapchain, renderPass);
+  graphicsCmdBufs = VulkanCommandBuffer::createMultiple(
+      device, cmdPool, swapchain.images().size());
+
+  // Finish the recreation process
+  recreatingSwapchain = false;
+  log::info("Finished swapchain recreation");
+}
+
+void VulkanRenderer::draw() {
+  try {
+    beginFrame();
+    endFrame();
+  } catch (const BeginFrameException &e) {
+    log::info("Could not begin frame: {}", e.what());
+  } catch (const exception &e) {
+    log::warning("Unhandled exception reached draw function: {}", e.what());
+  }
+}
 
 VulkanRenderer::~VulkanRenderer() {
   // Just checking if the instance handle is valid is enough

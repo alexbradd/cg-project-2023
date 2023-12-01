@@ -16,6 +16,7 @@ void Application::run(unsigned int width, unsigned int height) {
   makeWindow(width, height);
   while (!window->shouldClose()) {
     glfwPollEvents();
+    vulkan->draw();
   }
   destroyWindow();
 }

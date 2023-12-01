@@ -14,6 +14,18 @@
 namespace seng::rendering {
 
 /**
+ * Exception thrown if, for some reason, starting the frame was not possible.
+ */
+class BeginFrameException : public std::exception {
+ public:
+  BeginFrameException(std::string_view error) : err{error} {}
+  const char *what() const noexcept override { return err.c_str(); }
+
+ private:
+  std::string err{};
+};
+
+/**
  * Class containing the entirety of the vulkan rendering context. Instantiating
  * creates the vulkan context and allocates all the necessary resoruces, while
  * destruction destroy the vulkan context.
@@ -48,6 +60,22 @@ class VulkanRenderer {
    */
   void signalResize();
 
+  /**
+   * Starts recording a frame. If recording cannot be started, raise a
+   * `BeginFrameException`.
+   */
+  void beginFrame();
+
+  /**
+   * Finishes recording a frame.
+   */
+  void endFrame();
+
+  /**
+   * Draws a frame.
+   */
+  void draw();
+
  private:
   std::reference_wrapper<GlfwWindow> window;
   vk::raii::Context context;
@@ -65,6 +93,14 @@ class VulkanRenderer {
   std::vector<VulkanFence> inFlightFences;
   std::vector<VulkanFence *> imgsInFlight;
   uint64_t fbGeneration = 0, lastFbGeneration = 0;
+  uint32_t currentFrame = 0;
+  uint32_t imageIndex = 0;
+  bool recreatingSwapchain = false;
+
+  /**
+   * Recreate the current swapchain and framebuffers
+   */
+  void recreateSwapchain();
 };
 
 }  // namespace seng::rendering
