@@ -8,14 +8,14 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int main(int argc, char* argv[]) {
+int main(int, char* argv[]) {
   fs::path dir{fs::path{argv[0]}.parent_path()};
 
   seng::Application app{"Froggo"};
 
-  app.setModelPath((dir / "models").string());
+  app.setModelPath((dir / "assets").string());
   app.setShaderPath((dir / "shaders").string());
-  seng::log::info("Reading models from {}", app.getModelPath());
+  seng::log::info("Reading assets from {}", app.getModelPath());
   seng::log::info("Reading shaders from {}", app.getShaderPath());
 
   try {

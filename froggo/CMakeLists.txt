@@ -53,19 +53,19 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/shaders_src")
   )
 endif()
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/models")
-  message(STATUS "Copying models...")
-  add_custom_target(models
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/models"
+if(EXISTS "${PROJECT_SOURCE_DIR}/assets")
+  message(STATUS "Copying assets...")
+  add_custom_target(assets
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-      "${PROJECT_SOURCE_DIR}/models"
-      "${PROJECT_BINARY_DIR}/models"
+      "${PROJECT_SOURCE_DIR}/assets"
+      "${PROJECT_BINARY_DIR}/assets"
   )
-  add_dependencies(${PROJECT_NAME} models)
+  add_dependencies(${PROJECT_NAME} assets)
   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/models"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-      "${PROJECT_SOURCE_DIR}/models"
-      "$<TARGET_FILE_DIR:${PROJECT_NAME}>/models"
+      "${PROJECT_SOURCE_DIR}/assets"
+      "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
   )
 endif()
