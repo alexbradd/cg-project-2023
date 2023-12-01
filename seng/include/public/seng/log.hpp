@@ -11,8 +11,6 @@ namespace seng::log {
 #define INFO_STR "[INFO] "
 #define WARN_STR "[WARN] "
 #define ERRO_STR "[ERRO] "
-
-#ifndef NDEBUG
 #define DBUG_STR "[DBUG] "
 
 /**
@@ -21,17 +19,10 @@ namespace seng::log {
  */
 template <typename... Args>
 void dbg(const std::string &fmt, Args &&...args) {
-  std::cerr << DBUG_STR << __FILE__ << ":" << __LINE__ << " "
-            << fmt::format(fmt, args...) << std::endl;
-}
-#else
-/**
- * Print a debug message to stderr. If built in release mode function is a noop.
- * Supports fmt-style format arguments.
- */
-template <typename... Args>
-void dbg(const std::string &fmt, Args &&...args) {}
+#ifndef NDEBUG
+  std::cerr << DBUG_STR << fmt::format(fmt, args...) << std::endl;
 #endif
+}
 
 /**
  * Print a information message to stderr. Supports fmt-style format arguments.
