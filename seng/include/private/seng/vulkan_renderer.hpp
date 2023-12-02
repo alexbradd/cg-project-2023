@@ -92,9 +92,9 @@ class VulkanRenderer {
   VulkanDevice device;
   VulkanSwapchain swapchain;
   VulkanRenderPass renderPass;
+  std::vector<VulkanFramebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;
   std::vector<VulkanCommandBuffer> graphicsCmdBufs;
-  std::vector<VulkanFramebuffer> framebuffers;
   std::vector<vk::raii::Semaphore> imageAvailableSems;
   std::vector<vk::raii::Semaphore> queueCompleteSems;
   std::vector<VulkanFence> inFlightFences;

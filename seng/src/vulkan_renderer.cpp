@@ -1,9 +1,11 @@
 #include <cstddef>
 #include <iterator>
 #include <seng/primitive_types.hpp>
+#include <seng/utils.hpp>
 #include <seng/vulkan_renderer.hpp>
 
 using namespace seng::rendering;
+using namespace seng::internal;
 using namespace std;
 using namespace vk::raii;
 
@@ -15,12 +17,12 @@ const std::vector<const char *> VulkanRenderer::validationLayers{
 // Intializer functions
 static Instance createInstance(Context &, GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
-static CommandPool createCommandPool(VulkanDevice &);
 static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
                                                     VulkanSwapchain &,
                                                     VulkanRenderPass &);
-static vector<Semaphore> createSemahpores(VulkanDevice &, VulkanSwapchain &);
-static vector<VulkanFence> createFences(VulkanDevice &, VulkanSwapchain &);
+
+static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
+    vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
 static constexpr vk::BufferUsageFlags vertexBufferUsage =
     vk::BufferUsageFlagBits::eVertexBuffer |
@@ -31,26 +33,42 @@ static constexpr vk::BufferUsageFlags indexBufferUsage =
     vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 
-VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window)
-    : window(window),
-      context(),
-      _instance(createInstance(context, window)),
-      debugMessenger(_instance, VulkanRenderer::useValidationLayers),
-      _surface(window.createVulkanSurface(_instance)),
-      device(_instance, _surface),
-      swapchain(device, _surface, window),
-      renderPass(device, swapchain),
-      cmdPool(createCommandPool(device)),
-      graphicsCmdBufs(VulkanCommandBuffer::createMultiple(
-          device, cmdPool, swapchain.images().size())),
-      framebuffers(createFramebuffers(device, swapchain, renderPass)),
-      imageAvailableSems(createSemahpores(device, swapchain)),
-      queueCompleteSems(createSemahpores(device, swapchain)),
-      inFlightFences(createFences(device, swapchain)),
-      imgsInFlight(swapchain.images().size()),
-      vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
-      indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
-      shaderLoader(device, renderPass, config.shaderPath) {
+VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
+    window(window),
+    context(),
+    // Instance creation
+    _instance(createInstance(context, window)),
+    debugMessenger(_instance, VulkanRenderer::useValidationLayers),
+    _surface(window.createVulkanSurface(_instance)),
+
+    // Device, swapchain and framebuffers
+    device(_instance, _surface),
+    swapchain(device, _surface, window),
+    renderPass(device, swapchain),
+    framebuffers(createFramebuffers(device, swapchain, renderPass)),
+
+    // Command pools and buffers
+    cmdPool(device.logical(),
+            {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
+    graphicsCmdBufs(
+        many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
+
+    // Sync objects
+    imageAvailableSems(many<Semaphore>(swapchain.images().size(),
+                                       device.logical(),
+                                       vk::SemaphoreCreateInfo{})),
+    queueCompleteSems(many<Semaphore>(swapchain.images().size(),
+                                      device.logical(),
+                                      vk::SemaphoreCreateInfo{})),
+    inFlightFences(many<VulkanFence>(swapchain.images().size(), device, true)),
+    imgsInFlight(swapchain.images().size()),
+
+    // Buffers
+    vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
+    indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
+
+    // Shaders
+    shaderLoader(device, renderPass, config.shaderPath) {
   log::info("Vulkan context is up and running!");
   shaderLoader.loadShaders();
 }
@@ -106,12 +124,6 @@ bool supportsAllLayers(const vector<const char *> &l) {
   });
 }
 
-CommandPool createCommandPool(VulkanDevice &device) {
-  return CommandPool(device.logical(),
-                     {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                      device.queueFamiliyIndices().graphicsFamily().value()});
-}
-
 vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &dev,
                                              VulkanSwapchain &swap,
                                              VulkanRenderPass &pass) {
@@ -122,26 +134,9 @@ vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &dev,
     vector<vk::ImageView> attachments(2);  // TODO: make configurable
     attachments[0] = *img;
     attachments[1] = **swap.depthBuffer().imageView();
-    fbs.emplace_back(dev, pass, swap.extent(), std::move(attachments));
+    fbs.emplace_back(dev, pass, swap.extent(), attachments);
   }
   return fbs;
-}
-
-vector<Semaphore> createSemahpores(VulkanDevice &device,
-                                   VulkanSwapchain &swap) {
-  vector<Semaphore> ret;
-  ret.reserve(swap.images().size());
-  for (uint32_t i = 0; i < swap.images().size(); i++)
-    ret.emplace_back(device.logical(), vk::SemaphoreCreateInfo{});
-  return ret;
-}
-
-vector<VulkanFence> createFences(VulkanDevice &device, VulkanSwapchain &swap) {
-  vector<VulkanFence> ret;
-  ret.reserve(swap.images().size());
-  for (uint32_t i = 0; i < swap.images().size(); i++)
-    ret.emplace_back(device, true);
-  return ret;
 }
 
 void VulkanRenderer::signalResize() { fbGeneration++; }
