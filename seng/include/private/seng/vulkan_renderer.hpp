@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <seng/application_config.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
@@ -37,7 +38,7 @@ class VulkanRenderer {
   /**
    * Boot up the vulkan renderer and draw into the given window.
    */
-  VulkanRenderer(GlfwWindow &window);
+  VulkanRenderer(ApplicationConfig config, GlfwWindow &window);
   VulkanRenderer(const VulkanRenderer &) = delete;
   VulkanRenderer(VulkanRenderer &&) = default;
   ~VulkanRenderer();

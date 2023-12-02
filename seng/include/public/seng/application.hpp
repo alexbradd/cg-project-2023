@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <seng/application_config.hpp>
 
 namespace seng {
 
@@ -19,11 +19,14 @@ class VulkanRenderer;
 class Application {
  public:
   Application();
-  Application(std::string appName);
-  ~Application();
-
+  Application(ApplicationConfig &config);
+  Application(ApplicationConfig &&config);
   Application(const Application &) = delete;
   Application(Application &&) = delete;
+  ~Application();
+
+  Application &operator=(const Application &other) = delete;
+  Application &operator=(const Application &&other) noexcept = delete;
 
   /**
    * Starts execution of the engine in a window of the specified starting size.
@@ -33,39 +36,10 @@ class Application {
    */
   void run(unsigned int width, unsigned int height);
 
-  /**
-   * Get the lookup path for SPIR-V shaders
-   */
-  const std::string &getShaderPath();
-
-  /**
-   * Set the current lookup path for SPIR-V shaders
-   */
-  void setShaderPath(std::string s);
-
-  /**
-   * Get the lookup path for models
-   */
-  const std::string &getModelPath();
-
-  /**
-   * Set the current lookup path for models
-   */
-  void setModelPath(std::string s);
-
-  /**
-   * Get the current app name
-   */
-  const std::string &getAppName();
-
-  Application &operator=(const Application &other) = delete;
-  Application &operator=(const Application &&other) noexcept = delete;
+  const ApplicationConfig &config() const;
 
  private:
-  const std::string appName;
-
-  std::string shaderPath{"./shaders/"};
-  std::string modelPath{"./models/"};
+  ApplicationConfig conf;
 
   std::shared_ptr<rendering::GlfwWindow> window;
   std::unique_ptr<rendering::VulkanRenderer> vulkan;

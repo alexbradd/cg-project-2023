@@ -21,7 +21,7 @@ static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
 static vector<Semaphore> createSemahpores(VulkanDevice &, VulkanSwapchain &);
 static vector<VulkanFence> createFences(VulkanDevice &, VulkanSwapchain &);
 
-VulkanRenderer::VulkanRenderer(GlfwWindow &window)
+VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window)
     : window(window),
       context(),
       _instance(createInstance(context, window)),

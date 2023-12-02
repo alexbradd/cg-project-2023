@@ -8,9 +8,11 @@ using namespace std;
 using namespace seng;
 using namespace seng::rendering;
 
-Application::Application() : Application("Vulkan") {}
-Application::Application(string appName) : appName{appName} {}
-Application::~Application() {}
+Application::Application() : Application(ApplicationConfig{}) {}
+Application::Application(ApplicationConfig& config)
+    : Application(std::move(config)) {}
+Application::Application(ApplicationConfig&& config) : conf{config} {}
+Application::~Application() { destroyWindow(); }
 
 void Application::run(unsigned int width, unsigned int height) {
   makeWindow(width, height);
@@ -22,8 +24,8 @@ void Application::run(unsigned int width, unsigned int height) {
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height) {
-  window = make_shared<GlfwWindow>(appName, width, height);
-  vulkan = make_unique<VulkanRenderer>(*window);
+  window = make_shared<GlfwWindow>(conf.appName, width, height);
+  vulkan = make_unique<VulkanRenderer>(conf, *window);
   window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
     if (vulkan != nullptr) vulkan->signalResize();
   });
@@ -34,10 +36,4 @@ void Application::destroyWindow() {
   vulkan = nullptr;
 }
 
-const string& Application::getShaderPath() { return shaderPath; }
-void Application::setShaderPath(string s) { shaderPath = s; }
-
-const string& Application::getModelPath() { return modelPath; }
-void Application::setModelPath(string s) { modelPath = s; }
-
-const string& Application::getAppName() { return appName; }
+const ApplicationConfig& Application::config() const { return conf; }
