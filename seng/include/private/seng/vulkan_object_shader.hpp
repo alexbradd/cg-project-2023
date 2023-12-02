@@ -1,13 +1,13 @@
 #pragma once
 
 #include <functional>
+#include <seng/vulkan_pipeline.hpp>
 #include <seng/vulkan_shader_stage.hpp>
 
 namespace seng::rendering {
 
 class VulkanDevice;
 class VulkanShaderStage;
-/* TODO: class VulkanPipeline; */
 class VulkanRenderPass;
 
 /**
@@ -35,12 +35,17 @@ class VulkanObjectShader {
   VulkanObjectShader& operator=(const VulkanObjectShader&) = delete;
   VulkanObjectShader& operator=(VulkanObjectShader&&);
 
+  /**
+   * Use the shader by binding the pipeline in the given command buffer
+   */
+  void use(VulkanCommandBuffer& buffer);
+
  private:
   bool isMoved = false;
   std::reference_wrapper<VulkanDevice> vkDevRef;
   std::string name;
   std::vector<std::shared_ptr<VulkanShaderStage>> _stages;
-  /* TODO: VulkanPipeline pipeline; */
+  VulkanPipeline pipeline;
 };
 
 }  // namespace seng::rendering
