@@ -20,7 +20,8 @@ VulkanRenderer::VulkanRenderer(GlfwWindow &window)
       context(),
       _instance(createInstance(context, window)),
       debugMessenger(_instance, VulkanRenderer::useValidationLayers),
-      _surface(window.createVulkanSurface(_instance)) {}
+      _surface(window.createVulkanSurface(_instance)),
+      device(_instance, _surface) {}
 
 Instance createInstance(Context &context, GlfwWindow &window) {
   vk::ApplicationInfo ai{};

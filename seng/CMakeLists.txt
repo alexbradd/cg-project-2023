@@ -29,6 +29,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_swapchain_support_details.cpp
     ./src/vulkan_queue_family_indices.cpp
     ./src/vulkan_debug_messenger.cpp
+    ./src/vulkan_device.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
