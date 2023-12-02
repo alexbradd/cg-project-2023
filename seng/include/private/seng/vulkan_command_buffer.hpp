@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -75,17 +76,15 @@ class VulkanCommandBuffer {
       bool primary = true);
 
   /**
-   * Allocate a throwaway single-use buffer and start recording it. Should be
-   * matched by a call to VulkanCommandBuffer::endSingleUse.
+   * Allocate a throwaway single-use buffer and start recording it. Then execute
+   * the given function. Once done, end the recording and deallocate the buffer.
+   *
+   * The lambda will receive a reference to the temporary VulkanBuffer.
    */
-  static VulkanCommandBuffer beginSingleUse(VulkanDevice& dev,
-                                            vk::raii::CommandPool& pool);
-
-  /**
-   * End recording and submit a single use CommandBuffer created by
-   * VulkanCommandBuffer::beginSingleUse.
-   */
-  static void endSingleUse(VulkanCommandBuffer& buf, vk::raii::Queue& queue);
+  static void recordSingleUse(VulkanDevice& dev,
+                              vk::raii::CommandPool& pool,
+                              vk::raii::Queue& queue,
+                              std::function<void(VulkanCommandBuffer&)> usage);
 
  private:
   VulkanCommandBuffer(vk::raii::CommandBuffer&& buf);

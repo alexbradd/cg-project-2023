@@ -13,12 +13,12 @@ static CommandBuffers allocateBuffers(Device &device,
 
 VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice &dev,
                                          CommandPool &pool,
-                                         bool primary)
-    : VulkanCommandBuffer(
-          std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0])) {}
+                                         bool primary) :
+    VulkanCommandBuffer(
+        std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0])) {}
 
-VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b)
-    : buf(std::move(b)), state(VulkanCommandBuffer::State::eReady) {
+VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b) :
+    buf(std::move(b)), state(VulkanCommandBuffer::State::eReady) {
   log::dbg("Allocated command buffer");
 }
 
@@ -66,14 +66,18 @@ void VulkanCommandBuffer::end() {
   state = VulkanCommandBuffer::State::eRecordingEnded;
 }
 
-VulkanCommandBuffer VulkanCommandBuffer::beginSingleUse(VulkanDevice &dev,
-                                                        CommandPool &pool) {
-  VulkanCommandBuffer ret(dev, pool);
-  ret.begin(true);
-  return ret;
-}
+void VulkanCommandBuffer::recordSingleUse(
+    VulkanDevice &dev,
+    CommandPool &pool,
+    Queue &q,
+    function<void(VulkanCommandBuffer &)> usage) {
+  VulkanCommandBuffer buf(dev, pool);
+  buf.begin(true);
 
-void VulkanCommandBuffer::endSingleUse(VulkanCommandBuffer &buf, Queue &q) {
+  usage(buf);
+
+  buf.end();
+
   vk::SubmitInfo submitInfo{};
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &(*buf.buffer());

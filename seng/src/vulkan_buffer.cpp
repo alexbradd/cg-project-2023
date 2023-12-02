@@ -105,9 +105,9 @@ void VulkanBuffer::rawCopy(Buffer &dest,
                            Queue &queue,
                            optional<reference_wrapper<Fence>>) {
   queue.waitIdle();
-  auto temp = VulkanCommandBuffer::beginSingleUse(vkDevRef, pool);
-  temp.buffer().copyBuffer(*this->handle, *dest, copyRegion);
-  VulkanCommandBuffer::endSingleUse(temp, queue);
+  VulkanCommandBuffer::recordSingleUse(vkDevRef, pool, queue, [&](auto &buf) {
+    buf.buffer().copyBuffer(*handle, *dest, copyRegion);
+  });
 }
 
 void VulkanBuffer::copy(VulkanBuffer &dest,
