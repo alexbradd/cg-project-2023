@@ -37,8 +37,10 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window)
       imageAvailableSems(createSemahpores(device, swapchain)),
       queueCompleteSems(createSemahpores(device, swapchain)),
       inFlightFences(createFences(device, swapchain)),
-      imgsInFlight(swapchain.images().size()) {
+      imgsInFlight(swapchain.images().size()),
+      shaderLoader(device, renderPass, config.shaderPath) {
   log::info("Vulkan context is up and running!");
+  shaderLoader.loadShaders();
 }
 
 Instance createInstance(Context &context, GlfwWindow &window) {

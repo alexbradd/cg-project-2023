@@ -3,6 +3,7 @@
 #include <functional>
 #include <seng/application_config.hpp>
 #include <seng/glfw_window.hpp>
+#include <seng/shader_loader.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
 #include <seng/vulkan_device.hpp>
@@ -101,6 +102,8 @@ class VulkanRenderer {
   uint32_t currentFrame = 0;
   uint32_t imageIndex = 0;
   bool recreatingSwapchain = false;
+
+  ShaderLoader shaderLoader;  // FIXME: add dynamic loading
 
   /**
    * Recreate the current swapchain and framebuffers

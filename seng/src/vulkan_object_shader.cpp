@@ -2,6 +2,7 @@
 #include <seng/log.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_object_shader.hpp>
+#include <seng/vulkan_shader_stage.hpp>
 
 using namespace seng::rendering;
 using namespace std;
