@@ -1,5 +1,7 @@
 .cache/
 build/
+.gdb_history
+.gdbinit
 
 # From github/gitignore/CMake
 CMakeLists.txt.user
