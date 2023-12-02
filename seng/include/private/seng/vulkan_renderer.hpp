@@ -4,6 +4,7 @@
 #include <seng/glfw_window.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
 #include <seng/vulkan_device.hpp>
+#include <seng/vulkan_swapchain.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -43,6 +44,7 @@ class VulkanRenderer {
   DebugMessenger debugMessenger;
   vk::raii::SurfaceKHR _surface;
   VulkanDevice device;
+  VulkanSwapchain swapchain;
 };
 
 }  // namespace seng::rendering
