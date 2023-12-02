@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <iterator>
+#include <seng/primitive_types.hpp>
 #include <seng/vulkan_renderer.hpp>
 
 using namespace seng::rendering;
@@ -21,6 +22,15 @@ static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
 static vector<Semaphore> createSemahpores(VulkanDevice &, VulkanSwapchain &);
 static vector<VulkanFence> createFences(VulkanDevice &, VulkanSwapchain &);
 
+static constexpr vk::BufferUsageFlags vertexBufferUsage =
+    vk::BufferUsageFlagBits::eVertexBuffer |
+    vk::BufferUsageFlagBits::eTransferSrc |
+    vk::BufferUsageFlagBits::eTransferDst;
+static constexpr vk::BufferUsageFlags indexBufferUsage =
+    vk::BufferUsageFlagBits::eIndexBuffer |
+    vk::BufferUsageFlagBits::eTransferSrc |
+    vk::BufferUsageFlagBits::eTransferDst;
+
 VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window)
     : window(window),
       context(),
@@ -38,6 +48,8 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window)
       queueCompleteSems(createSemahpores(device, swapchain)),
       inFlightFences(createFences(device, swapchain)),
       imgsInFlight(swapchain.images().size()),
+      vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
+      indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
       shaderLoader(device, renderPass, config.shaderPath) {
   log::info("Vulkan context is up and running!");
   shaderLoader.loadShaders();
