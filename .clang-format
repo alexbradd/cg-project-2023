@@ -2,3 +2,4 @@
 BasedOnStyle: google
 IndentWidth: 2
 BinPackParameters: false
+BreakConstructorInitializers: AfterColon
