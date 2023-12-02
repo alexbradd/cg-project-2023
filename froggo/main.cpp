@@ -11,12 +11,12 @@ namespace fs = std::filesystem;
 int main(int, char* argv[]) {
   fs::path dir{fs::path{argv[0]}.parent_path()};
 
-  seng::Application app{"Froggo"};
+  seng::ApplicationConfig config{"Froggo", (dir / "shaders").string(),
+                                 (dir / "assets").string()};
+  seng::Application app(config);
 
-  app.setModelPath((dir / "assets").string());
-  app.setShaderPath((dir / "shaders").string());
-  seng::log::info("Reading assets from {}", app.getModelPath());
-  seng::log::info("Reading shaders from {}", app.getShaderPath());
+  seng::log::info("Reading assets from {}", app.config().assetPath);
+  seng::log::info("Reading shaders from {}", app.config().shaderPath);
 
   try {
     seng::log::info("Starting application");

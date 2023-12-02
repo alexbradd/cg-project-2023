@@ -36,6 +36,9 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_command_buffer.cpp
     ./src/vulkan_framebuffer.cpp
     ./src/vulkan_fence.cpp
+    ./src/vulkan_object_shader.cpp
+    ./src/vulkan_shader_stage.cpp
+    ./src/shader_loader.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
