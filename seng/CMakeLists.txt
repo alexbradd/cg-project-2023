@@ -40,6 +40,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_shader_stage.cpp
     ./src/shader_loader.cpp
     ./src/vulkan_pipeline.cpp
+    ./src/vulkan_buffer.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
