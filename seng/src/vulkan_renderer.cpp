@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <iterator>
+#include <seng/log.hpp>
 #include <seng/primitive_types.hpp>
 #include <seng/utils.hpp>
 #include <seng/vulkan_renderer.hpp>

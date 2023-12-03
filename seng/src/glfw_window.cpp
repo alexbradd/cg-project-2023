@@ -1,13 +1,19 @@
+// clang-format off
+#include <vulkan/vulkan_raii.hpp>
+#include <GLFW/glfw3.h>
+// clang-format on
+
 #include <cstdint>
 #include <seng/glfw_window.hpp>
 #include <utility>
-#include <vulkan/vulkan_raii.hpp>
 
 using namespace std;
 using namespace seng::rendering;
 
-GlfwWindow::GlfwWindow(string appName, unsigned int width, unsigned int height)
-    : _appName(std::move(appName)), _width(width), _height(height) {
+GlfwWindow::GlfwWindow(string appName,
+                       unsigned int width,
+                       unsigned int height) :
+    _appName(std::move(appName)), _width(width), _height(height) {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -16,12 +22,12 @@ GlfwWindow::GlfwWindow(string appName, unsigned int width, unsigned int height)
   glfwSetFramebufferSizeCallback(ptr, resizeCallback);
 }
 
-GlfwWindow::GlfwWindow(GlfwWindow &&other) noexcept
-    : ptr(exchange(other.ptr, nullptr)),
-      _appName(std::move(other._appName)),
-      _width(exchange(other._width, 0)),
-      _height(exchange(other._height, 0)),
-      _onResize(std::move(other._onResize)) {}
+GlfwWindow::GlfwWindow(GlfwWindow &&other) noexcept :
+    ptr(exchange(other.ptr, nullptr)),
+    _appName(std::move(other._appName)),
+    _width(exchange(other._width, 0)),
+    _height(exchange(other._height, 0)),
+    _onResize(std::move(other._onResize)) {}
 
 GlfwWindow::~GlfwWindow() {
   glfwDestroyWindow(ptr);
@@ -47,12 +53,6 @@ void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback) {
   _onResize = callback;
 }
 
-const string &GlfwWindow::appName() const { return _appName; }
-
-unsigned int GlfwWindow::width() const { return _width; }
-
-unsigned int GlfwWindow::height() const { return _height; }
-
 vector<const char *> GlfwWindow::extensions() const {
   uint32_t ext_count;
   vector<const char *> vec{};
@@ -69,6 +69,8 @@ pair<unsigned int, unsigned int> GlfwWindow::framebufferSize() const {
 }
 
 void GlfwWindow::wait() const { glfwWaitEvents(); }
+
+void GlfwWindow::poll() const { glfwPollEvents(); }
 
 vk::raii::SurfaceKHR GlfwWindow::createVulkanSurface(
     vk::raii::Instance &i) const {

@@ -1,16 +1,16 @@
+#include <limits>
 #include <seng/glfw_window.hpp>
 #include <seng/vulkan_swapchain_support_details.hpp>
-#include <seng/glfw_window.hpp>
 
 using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
 SwapchainSupportDetails::SwapchainSupportDetails(PhysicalDevice &dev,
-                                                 SurfaceKHR &surface)
-    : _capabilities(dev.getSurfaceCapabilitiesKHR(*surface)),
-      _formats(dev.getSurfaceFormatsKHR(*surface)),
-      _presentModes(dev.getSurfacePresentModesKHR(*surface)) {}
+                                                 SurfaceKHR &surface) :
+    _capabilities(dev.getSurfaceCapabilitiesKHR(*surface)),
+    _formats(dev.getSurfaceFormatsKHR(*surface)),
+    _presentModes(dev.getSurfacePresentModesKHR(*surface)) {}
 
 vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat() {
   for (const auto &f : _formats) {

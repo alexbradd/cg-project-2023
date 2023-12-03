@@ -1,3 +1,4 @@
+#include <seng/log.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_renderer.hpp>
 #include <set>
@@ -14,15 +15,15 @@ static bool checkSwapchain(PhysicalDevice &, SurfaceKHR &);
 static Device createLogicalDevice(PhysicalDevice &, QueueFamilyIndices &);
 static vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &);
 
-VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface)
-    : _surface(surface),
-      _physical(pickPhysicalDevice(instance, surface)),
-      _queueIndices(_physical, surface),
-      _swapchainDetails(_physical, surface),
-      _logical(createLogicalDevice(_physical, _queueIndices)),
-      _presentQueue(_logical, *_queueIndices.presentFamily(), 0),
-      _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0),
-      _depthFormat(detectDepthFormat(_physical)) {
+VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface) :
+    _surface(surface),
+    _physical(pickPhysicalDevice(instance, surface)),
+    _queueIndices(_physical, surface),
+    _swapchainDetails(_physical, surface),
+    _logical(createLogicalDevice(_physical, _queueIndices)),
+    _presentQueue(_logical, *_queueIndices.presentFamily(), 0),
+    _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0),
+    _depthFormat(detectDepthFormat(_physical)) {
   log::dbg("Device has beeen created successfully");
 }
 

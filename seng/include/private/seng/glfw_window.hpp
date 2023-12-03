@@ -1,15 +1,14 @@
 #pragma once
 
-// clang-format off
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_raii.hpp>
-#include <GLFW/glfw3.h>
-// clang-format on
-
 #include <functional>
 #include <optional>
-#include <seng/log.hpp>
 #include <string>
+
+struct GLFWwindow;
+namespace vk::raii {
+class Instance;
+class SurfaceKHR;
+}  // namespace vk::raii
 
 namespace seng::rendering {
 
@@ -39,11 +38,6 @@ class GlfwWindow {
   GlfwWindow &operator=(const GlfwWindow &) = delete;
   GlfwWindow &operator=(GlfwWindow &&);
 
-  GLFWwindow *getPointer() const {
-    seng::log::warning("FIXME: remove access to internal pointer");
-    return ptr;
-  }
-
   /**
    * Return true if the user has request window closure.
    */
@@ -58,9 +52,10 @@ class GlfwWindow {
   void onResize(std::function<void(GLFWwindow *, int, int)> callback);
 
   // getters for various properties
-  const std::string &appName() const;
-  unsigned int width() const;
-  unsigned int height() const;
+  const std::string &appName() const { return _appName; }
+  unsigned int width() const { return _width; }
+  unsigned int height() const { return _height; }
+
   std::vector<const char *> extensions() const;
   std::pair<unsigned int, unsigned int> framebufferSize() const;
 
@@ -68,6 +63,11 @@ class GlfwWindow {
    * Equivalent to calling glfwWaitEvents().
    */
   void wait() const;
+
+  /**
+   * Equivalent to calling glfwPollEvents().
+   */
+  void poll() const;
 
   /**
    * Create the underlying Vulkan surface.
