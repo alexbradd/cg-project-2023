@@ -3,6 +3,7 @@
 #include <functional>
 #include <seng/application_config.hpp>
 #include <seng/glfw_window.hpp>
+#include <seng/primitive_types.hpp>
 #include <seng/shader_loader.hpp>
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
@@ -108,6 +109,10 @@ class VulkanRenderer {
   bool recreatingSwapchain = false;
 
   ShaderLoader shaderLoader;  // FIXME: add dynamic loading
+
+  // FIXME: Test Geometry
+  Vertex verts[4];
+  uint32_t indices[6];
 
   /**
    * Recreate the current swapchain and framebuffers

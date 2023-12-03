@@ -20,6 +20,23 @@ static bool supportsAllLayers(const vector<const char *> &);
 static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
                                                     VulkanSwapchain &,
                                                     VulkanRenderPass &);
+// Stub geometry uploading
+static void uploadTo(VulkanDevice &device,
+                     CommandPool &pool,
+                     Queue &queue,
+                     VulkanBuffer &to,
+                     vk::DeviceSize size,
+                     vk::DeviceSize offset,
+                     const void *data) {
+  vk::MemoryPropertyFlags hostVisible =
+      vk::MemoryPropertyFlagBits::eHostCoherent |
+      vk::MemoryPropertyFlagBits::eHostVisible;
+
+  VulkanBuffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size,
+                    hostVisible, true);
+  temp.load(data, 0, size, {});
+  temp.copy(to, {0, offset, size}, pool, queue);
+}
 
 static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
@@ -71,6 +88,23 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     shaderLoader(device, renderPass, config.shaderPath) {
   log::info("Vulkan context is up and running!");
   shaderLoader.loadShaders();
+
+  // FIXME: Temporary geometry
+  log::dbg("Loading test geometry");
+  verts[0].pos = glm::vec3(0.0, 0.5, 0.0);
+  verts[1].pos = glm::vec3(0.5, 0.5, 0.0);
+  verts[2].pos = glm::vec3(0.0, -0.5, 0.0);
+  verts[3].pos = glm::vec3(0.5, -0.5, 0.0);
+  indices[0] = 0;
+  indices[1] = 1;
+  indices[2] = 2;
+  indices[3] = 1;
+  indices[4] = 3;
+  indices[5] = 2;
+  uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer,
+           sizeof(Vertex) * 4, 0, verts);
+  uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer,
+           sizeof(uint32_t) * 6, 0, indices);
 }
 
 Instance createInstance(Context &context, GlfwWindow &window) {
@@ -162,6 +196,17 @@ void VulkanRenderer::beginFrame() {
     curBuf.reset();
     curBuf.begin();
 
+    // Begin the render pass
+    renderPass.begin(curBuf, curFb);
+
+    // FIXME: temporary shader
+    shaderLoader.getShader("default")->use(curBuf);
+    //
+    // FIXME: temporary geometry
+    curBuf.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
+    curBuf.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0,
+                                    vk::IndexType::eUint32);
+
     // Dynamic states
     vk::Viewport viewport{};
     viewport.x = 0.0f;
@@ -175,8 +220,7 @@ void VulkanRenderer::beginFrame() {
     vk::Rect2D scissor{{0, 0}, swapchain.extent()};
     curBuf.buffer().setScissor(0, scissor);
 
-    // Begin the render pass
-    renderPass.begin(curBuf, curFb);
+    curBuf.buffer().drawIndexed(6, 1, 0, 0, 0);
 
   } catch (const exception &e) {
     log::warning("Caught exception: {}", e.what());
