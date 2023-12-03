@@ -1,12 +1,14 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
 
 class VulkanDevice;
 class VulkanRenderPass;
+class VulkanSwapchain;
 
 /**
  * Wrapper for a Vulkan framebuffer. It implements the RAII pattern, meaning
@@ -33,6 +35,14 @@ class VulkanFramebuffer {
 
   // Accessors
   vk::raii::Framebuffer& handle() { return _handle; }
+
+  /**
+   * Create and allocate a new framebuffers taking as attachments the views and
+   * depth buffer from the given swapchain
+   */
+  static std::vector<VulkanFramebuffer> fromSwapchain(VulkanDevice& device,
+                                                      VulkanRenderPass& pass,
+                                                      VulkanSwapchain& chain);
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;

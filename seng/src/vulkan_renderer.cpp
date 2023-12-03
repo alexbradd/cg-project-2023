@@ -15,9 +15,7 @@ using namespace vk::raii;
 // Intializer functions
 static Instance createInstance(Context &, GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
-static vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &,
-                                                    VulkanSwapchain &,
-                                                    VulkanRenderPass &);
+
 // Stub geometry uploading
 static void uploadTo(VulkanDevice &device,
                      CommandPool &pool,
@@ -63,7 +61,8 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     device(instance, surface),
     swapchain(device, surface, window),
     renderPass(device, swapchain),
-    framebuffers(createFramebuffers(device, swapchain, renderPass)),
+    framebuffers(
+        VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
 
     // Command pools and buffers
     cmdPool(device.logical(),
@@ -157,21 +156,6 @@ bool supportsAllLayers(const vector<const char *> &l) {
       return strcmp(property.layerName, name) == 0;
     });
   });
-}
-
-vector<VulkanFramebuffer> createFramebuffers(VulkanDevice &dev,
-                                             VulkanSwapchain &swap,
-                                             VulkanRenderPass &pass) {
-  vector<VulkanFramebuffer> fbs{};
-  fbs.reserve(swap.images().size());
-
-  for (auto &img : swap.images()) {
-    vector<vk::ImageView> attachments(2);  // TODO: make configurable
-    attachments[0] = *img;
-    attachments[1] = **swap.depthBuffer().imageView();
-    fbs.emplace_back(dev, pass, swap.extent(), attachments);
-  }
-  return fbs;
 }
 
 void VulkanRenderer::signalResize() { fbGeneration++; }
@@ -317,7 +301,8 @@ void VulkanRenderer::recreateSwapchain() {
   renderPass.updateExtent(swapchain.extent());
 
   // Create new framebuffers and command buffers
-  framebuffers = createFramebuffers(device, swapchain, renderPass);
+  framebuffers =
+      VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain);
   graphicsCmdBufs = VulkanCommandBuffer::createMultiple(
       device, cmdPool, swapchain.images().size());
 
