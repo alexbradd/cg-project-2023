@@ -5,6 +5,9 @@
 
 namespace seng::internal {
 
+/**
+ * Read the contents of the file with the given path in an array of bytes.
+ */
 extern std::vector<char> readFile(const std::string& name);
 
 /**
