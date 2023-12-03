@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <seng/application_config.hpp>
-#include <seng/glfw_window.hpp>
 #include <seng/primitive_types.hpp>
 #include <seng/shader_loader.hpp>
 #include <seng/vulkan_buffer.hpp>
@@ -16,6 +15,9 @@
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
+
+// Forward declarations
+class GlfwWindow;
 
 /**
  * Exception thrown if, for some reason, starting the frame was not possible.
@@ -49,18 +51,13 @@ class VulkanRenderer {
   VulkanRenderer &operator=(const VulkanRenderer &) = delete;
   VulkanRenderer &operator=(VulkanRenderer &&) = default;
 
-  static const std::vector<const char *> requiredDeviceExtensions;
-  static const std::vector<const char *> validationLayers;
+  static const std::vector<const char *> VALIDATION_LAYERS;
 
 #ifndef NDEBUG
-  static constexpr bool useValidationLayers{true};
+  static constexpr bool USE_VALIDATION{true};
 #else
-  static constexpr bool useValidationLayers{false};
+  static constexpr bool USE_VALIDATION{false};
 #endif  // !NDEBUG
-
-  // Accessors
-  vk::raii::Instance &instance() { return _instance; }
-  vk::raii::SurfaceKHR &surface() { return _surface; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
@@ -87,9 +84,9 @@ class VulkanRenderer {
  private:
   std::reference_wrapper<GlfwWindow> window;
   vk::raii::Context context;
-  vk::raii::Instance _instance;
+  vk::raii::Instance instance;
   DebugMessenger debugMessenger;
-  vk::raii::SurfaceKHR _surface;
+  vk::raii::SurfaceKHR surface;
   VulkanDevice device;
   VulkanSwapchain swapchain;
   VulkanRenderPass renderPass;

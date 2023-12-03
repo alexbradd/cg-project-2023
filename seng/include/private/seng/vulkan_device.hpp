@@ -32,6 +32,8 @@ class VulkanDevice {
   VulkanDevice &operator=(const VulkanDevice &) = delete;
   VulkanDevice &operator=(VulkanDevice &&) = default;
 
+  static const std::vector<const char *> REQUIRED_EXT;
+
   // Accessors to the underlying handles
   vk::raii::PhysicalDevice &physical() { return _physical; }
   vk::raii::Device &logical() { return _logical; }

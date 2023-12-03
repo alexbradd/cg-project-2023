@@ -1,19 +1,16 @@
 #include <cstddef>
 #include <iterator>
+#include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
 #include <seng/primitive_types.hpp>
 #include <seng/utils.hpp>
+#include <seng/vulkan_object_shader.hpp>
 #include <seng/vulkan_renderer.hpp>
 
 using namespace seng::rendering;
 using namespace seng::internal;
 using namespace std;
 using namespace vk::raii;
-
-const std::vector<const char *> VulkanRenderer::requiredDeviceExtensions{
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-const std::vector<const char *> VulkanRenderer::validationLayers{
-    "VK_LAYER_KHRONOS_validation"};
 
 // Intializer functions
 static Instance createInstance(Context &, GlfwWindow &);
@@ -51,17 +48,20 @@ static constexpr vk::BufferUsageFlags indexBufferUsage =
     vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 
+const std::vector<const char *> VulkanRenderer::VALIDATION_LAYERS{
+    "VK_LAYER_KHRONOS_validation"};
+
 VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     window(window),
     context(),
     // Instance creation
-    _instance(createInstance(context, window)),
-    debugMessenger(_instance, VulkanRenderer::useValidationLayers),
-    _surface(window.createVulkanSurface(_instance)),
+    instance(createInstance(context, window)),
+    debugMessenger(instance, USE_VALIDATION),
+    surface(window.createVulkanSurface(instance)),
 
     // Device, swapchain and framebuffers
-    device(_instance, _surface),
-    swapchain(device, _surface, window),
+    device(instance, surface),
+    swapchain(device, surface, window),
     renderPass(device, swapchain),
     framebuffers(createFramebuffers(device, swapchain, renderPass)),
 
@@ -109,6 +109,9 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
 }
 
 Instance createInstance(Context &context, GlfwWindow &window) {
+  auto &LAYERS = VulkanRenderer::VALIDATION_LAYERS;
+  auto &VALIDATE = VulkanRenderer::USE_VALIDATION;
+
   vk::ApplicationInfo ai{};
   ai.pApplicationName = window.appName().c_str();
   ai.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -116,8 +119,7 @@ Instance createInstance(Context &context, GlfwWindow &window) {
   ai.engineVersion = VK_MAKE_VERSION(1, 0, 0);
   ai.apiVersion = VK_API_VERSION_1_0;
 
-  if (VulkanRenderer::useValidationLayers &&
-      !supportsAllLayers(VulkanRenderer::validationLayers))
+  if (VALIDATE && !supportsAllLayers(LAYERS))
     throw runtime_error("Validation layers requested, but not available");
 
   vector<const char *> extensions{};
@@ -127,7 +129,7 @@ Instance createInstance(Context &context, GlfwWindow &window) {
   extensions.insert(extensions.end(),
                     make_move_iterator(windowExtensions.begin()),
                     make_move_iterator(windowExtensions.end()));
-  if (VulkanRenderer::useValidationLayers)
+  if (VALIDATE)
     // extension always present if validation layers are present
     extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
@@ -136,10 +138,8 @@ Instance createInstance(Context &context, GlfwWindow &window) {
   ci.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
   ci.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   ci.ppEnabledExtensionNames = extensions.data();
-  if (VulkanRenderer::useValidationLayers) {
-    ci.enabledLayerCount =
-        static_cast<uint32_t>(VulkanRenderer::validationLayers.size());
-    ci.ppEnabledLayerNames = VulkanRenderer::validationLayers.data();
+  if (VALIDATE) {
+    ci.setPEnabledLayerNames(LAYERS);
     vk::DebugUtilsMessengerCreateInfoEXT dbg{DebugMessenger::createInfo()};
     ci.pNext = &dbg;
   } else {
@@ -302,7 +302,7 @@ void VulkanRenderer::recreateSwapchain() {
   device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  VulkanSwapchain::recreate(swapchain, device, _surface, window);
+  VulkanSwapchain::recreate(swapchain, device, surface, window);
   currentFrame = 0;
 
   // Sync framebuffer generation
@@ -340,7 +340,7 @@ void VulkanRenderer::draw() {
 VulkanRenderer::~VulkanRenderer() {
   // Just checking if the instance handle is valid is enough
   // since all objects are valid or none are.
-  if (*_instance != vk::Instance{}) {
+  if (*instance != vk::Instance{}) {
     device.logical().waitIdle();
     log::info("Destroying vulkan context");
   }

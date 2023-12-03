@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <seng/vulkan_pipeline.hpp>
-#include <seng/vulkan_shader_stage.hpp>
 
 namespace seng::rendering {
 

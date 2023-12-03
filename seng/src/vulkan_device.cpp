@@ -1,6 +1,5 @@
 #include <seng/log.hpp>
 #include <seng/vulkan_device.hpp>
-#include <seng/vulkan_renderer.hpp>
 #include <set>
 #include <stdexcept>
 #include <unordered_set>
@@ -8,6 +7,9 @@
 using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
+
+const vector<const char *> VulkanDevice::REQUIRED_EXT{
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 static PhysicalDevice pickPhysicalDevice(Instance &, SurfaceKHR &);
 static bool checkExtensions(const vector<const char *> &, PhysicalDevice &);
@@ -35,8 +37,7 @@ PhysicalDevice pickPhysicalDevice(Instance &i, SurfaceKHR &s) {
     QueueFamilyIndices queueFamilyIndices(dev, s);
 
     bool queueFamilyComplete = queueFamilyIndices.isComplete();
-    bool extensionSupported =
-        checkExtensions(VulkanRenderer::requiredDeviceExtensions, dev);
+    bool extensionSupported = checkExtensions(VulkanDevice::REQUIRED_EXT, dev);
     bool swapchainAdequate =
         extensionSupported ? checkSwapchain(dev, s) : false;
     return queueFamilyComplete && extensionSupported && swapchainAdequate;
@@ -75,7 +76,7 @@ Device createLogicalDevice(PhysicalDevice &phy, QueueFamilyIndices &indices) {
 
   vk::DeviceCreateInfo dci{};
   dci.setQueueCreateInfos(qcis);
-  dci.setPEnabledExtensionNames(VulkanRenderer::requiredDeviceExtensions);
+  dci.setPEnabledExtensionNames(VulkanDevice::REQUIRED_EXT);
   dci.pEnabledFeatures = &features;
 
   return Device(phy, dci);

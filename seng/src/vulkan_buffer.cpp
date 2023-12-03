@@ -3,7 +3,6 @@
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 using namespace std;
 using namespace vk::raii;
@@ -20,16 +19,16 @@ VulkanBuffer::VulkanBuffer(VulkanDevice &dev,
                            vk::BufferUsageFlags usage,
                            vk::DeviceSize size,
                            vk::MemoryPropertyFlags memFlags,
-                           bool bind)
-    : vkDevRef(dev),
-      usage(usage),
-      size(size),
-      handle(create(vkDevRef, usage, size)),
-      memRequirements(handle.getMemoryRequirements()),
-      memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits,
-                                              memFlags)),
-      memory(allocate(vkDevRef, memRequirements, memIndex)),
-      locked(false) {
+                           bool bind) :
+    vkDevRef(dev),
+    usage(usage),
+    size(size),
+    handle(create(vkDevRef, usage, size)),
+    memRequirements(handle.getMemoryRequirements()),
+    memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits,
+                                            memFlags)),
+    memory(allocate(vkDevRef, memRequirements, memIndex)),
+    locked(false) {
   log::dbg("Allocated buffer");
   if (bind) this->bind(0);
 }

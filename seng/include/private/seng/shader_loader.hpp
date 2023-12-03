@@ -1,12 +1,12 @@
 #pragma once
 
 #include <memory>
-#include <seng/vulkan_object_shader.hpp>
 #include <string>
 #include <unordered_map>
 
 namespace seng::rendering {
 
+class VulkanObjectShader;
 class VulkanShaderStage;
 class VulkanDevice;
 class VulkanRenderPass;
