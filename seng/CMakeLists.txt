@@ -25,7 +25,6 @@ target_sources(${PROJECT_NAME}
     ./src/glfw_window.cpp
     ./src/utils.cpp
     ./src/log.cpp
-    # ./src/vulkan_internals.cpp
     ./src/vulkan_renderer.cpp
     ./src/vulkan_swapchain.cpp
     ./src/vulkan_swapchain_support_details.cpp
