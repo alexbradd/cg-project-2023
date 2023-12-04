@@ -23,6 +23,7 @@ target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
     ./src/glfw_window.cpp
+    ./src/input_manager.cpp
     ./src/utils.cpp
     ./src/log.cpp
     ./src/vulkan_renderer.cpp

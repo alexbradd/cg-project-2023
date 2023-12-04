@@ -5,9 +5,12 @@
 
 #include <cstdint>
 #include <seng/glfw_window.hpp>
+#include <seng/input_enums.hpp>
+#include <seng/log.hpp>
 #include <utility>
 
 using namespace std;
+using namespace seng;
 using namespace seng::rendering;
 
 GlfwWindow::GlfwWindow(string appName,
@@ -19,7 +22,10 @@ GlfwWindow::GlfwWindow(string appName,
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
   ptr = glfwCreateWindow(width, height, _appName.c_str(), nullptr, nullptr);
   glfwSetWindowUserPointer(ptr, this);
+
+  // Callbacks
   glfwSetFramebufferSizeCallback(ptr, resizeCallback);
+  glfwSetKeyCallback(ptr, onKeyCallback);
 }
 
 GlfwWindow::~GlfwWindow() {
@@ -31,6 +37,11 @@ bool GlfwWindow::shouldClose() const { return glfwWindowShouldClose(ptr); }
 
 void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback) {
   _onResize = callback;
+}
+
+void GlfwWindow::onKeyEvent(
+    function<void(GLFWwindow *, int, int, int, int)> callback) {
+  _onKeyEvent = callback;
 }
 
 vector<const char *> GlfwWindow::extensions() const {
@@ -69,4 +80,12 @@ void GlfwWindow::resizeCallback(GLFWwindow *window, int w, int h) {
   if (w == 0 || h == 0) return;
   if (wrapper->_onResize.has_value())
     (wrapper->_onResize).value()(window, w, h);
+}
+
+void GlfwWindow::onKeyCallback(
+    GLFWwindow *window, int key, int scancode, int action, int mods) {
+  auto wrapper =
+      reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
+  if (wrapper->_onKeyEvent.has_value())
+    (wrapper->_onKeyEvent).value()(window, key, scancode, action, mods);
 }

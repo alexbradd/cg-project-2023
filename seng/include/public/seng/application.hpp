@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <seng/application_config.hpp>
 
@@ -9,6 +10,8 @@ namespace rendering {
 class GlfwWindow;
 class VulkanRenderer;
 }  // namespace rendering
+
+class InputManager;
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and
@@ -33,8 +36,13 @@ class Application {
    * Blocks until application is closed.
    *
    * In case of a fatal error a std::runtime_error will be thrown
+   *
+   * TODO: For test purposes, we pass in a lambda that will get drawn every
+   * frame, once we have the gameObject system up we will remove this
    */
-  void run(unsigned int width, unsigned int height);
+  void run(unsigned int width,
+           unsigned int height,
+           std::function<void(std::shared_ptr<InputManager>)> cb);
 
   const ApplicationConfig &config() const;
 
@@ -42,6 +50,7 @@ class Application {
   ApplicationConfig conf;
 
   std::shared_ptr<rendering::GlfwWindow> window;
+  std::shared_ptr<InputManager> inputManager;
   std::unique_ptr<rendering::VulkanRenderer> vulkan;
 
   void makeWindow(unsigned int width, unsigned int height);

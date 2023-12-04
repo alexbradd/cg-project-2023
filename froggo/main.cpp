@@ -20,7 +20,8 @@ int main(int, char* argv[]) {
 
   try {
     seng::log::info("Starting application");
-    app.run(800, 600);
+    app.run(800, 600, [](auto input) {
+    });
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }

@@ -51,6 +51,14 @@ class GlfwWindow {
    */
   void onResize(std::function<void(GLFWwindow *, int, int)> callback);
 
+  /**
+   * Run the given callback on key events.
+   *
+   * The parameters passed to the callback are the same passed
+   * glfwSetKeyCallback().
+   */
+  void onKeyEvent(std::function<void(GLFWwindow *, int, int, int, int)> cb);
+
   // getters for various properties
   const std::string &appName() const { return _appName; }
   unsigned int width() const { return _width; }
@@ -79,8 +87,12 @@ class GlfwWindow {
   std::string _appName;
   unsigned int _width, _height;
   std::optional<std::function<void(GLFWwindow *, int, int)>> _onResize;
+  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>>
+      _onKeyEvent;
 
   static void resizeCallback(GLFWwindow *window, int w, int h);
+  static void onKeyCallback(
+      GLFWwindow *window, int key, int scancode, int action, int mods);
 };
 
 }  // namespace seng::rendering
