@@ -37,7 +37,7 @@ class Application {
    *
    * In case of a fatal error a std::runtime_error will be thrown
    *
-   * TODO: For test purposes, we pass in a lambda that will get drawn every
+   * TODO: For test purposes, we pass in a lambda that will get called every
    * frame, once we have the gameObject system up we will remove this
    */
   void run(unsigned int width,

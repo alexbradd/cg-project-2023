@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <iostream>
 #include <seng/application.hpp>
+#include <seng/input_enums.hpp>
+#include <seng/input_manager.hpp>
 #include <seng/log.hpp>
 
 using namespace std;
@@ -21,6 +23,9 @@ int main(int, char* argv[]) {
   try {
     seng::log::info("Starting application");
     app.run(800, 600, [](auto input) {
+      if (input->keyDown(seng::KeyCode::eKeyA)) seng::log::dbg("Pressed A");
+      if (input->keyHold(seng::KeyCode::eKeyA)) seng::log::dbg("Pressing A");
+      if (input->keyUp(seng::KeyCode::eKeyA)) seng::log::dbg("Released A");
     });
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
