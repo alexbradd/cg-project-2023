@@ -22,29 +22,9 @@ GlfwWindow::GlfwWindow(string appName,
   glfwSetFramebufferSizeCallback(ptr, resizeCallback);
 }
 
-GlfwWindow::GlfwWindow(GlfwWindow &&other) noexcept :
-    ptr(exchange(other.ptr, nullptr)),
-    _appName(std::move(other._appName)),
-    _width(exchange(other._width, 0)),
-    _height(exchange(other._height, 0)),
-    _onResize(std::move(other._onResize)) {}
-
 GlfwWindow::~GlfwWindow() {
   glfwDestroyWindow(ptr);
   glfwTerminate();
-}
-
-GlfwWindow &GlfwWindow::operator=(GlfwWindow &&other) {
-  if (this != &other) {
-    if (this->ptr != nullptr) glfwDestroyWindow(this->ptr);
-    this->ptr = exchange(other.ptr, nullptr);
-    this->_appName = other._appName;
-    this->_width = exchange(other._width, 0);
-    this->_height = exchange(other._height, 0);
-    this->_onResize = std::move(other._onResize);
-    glfwSetWindowUserPointer(this->ptr, this);
-  }
-  return *this;
 }
 
 bool GlfwWindow::shouldClose() const { return glfwWindowShouldClose(ptr); }

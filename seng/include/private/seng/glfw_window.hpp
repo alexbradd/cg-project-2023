@@ -32,11 +32,11 @@ class GlfwWindow {
    */
   GlfwWindow(std::string appName, unsigned int width, unsigned int height);
   GlfwWindow(const GlfwWindow &) = delete;
-  GlfwWindow(GlfwWindow &&) noexcept;
+  GlfwWindow(GlfwWindow &&) = default;
   ~GlfwWindow();
 
   GlfwWindow &operator=(const GlfwWindow &) = delete;
-  GlfwWindow &operator=(GlfwWindow &&);
+  GlfwWindow &operator=(GlfwWindow &&) = default;
 
   /**
    * Return true if the user has request window closure.
