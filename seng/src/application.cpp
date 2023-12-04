@@ -10,9 +10,9 @@ using namespace seng;
 using namespace seng::rendering;
 
 Application::Application() : Application(ApplicationConfig{}) {}
-Application::Application(ApplicationConfig& config)
-    : Application(std::move(config)) {}
-Application::Application(ApplicationConfig&& config) : conf{config} {}
+Application::Application(ApplicationConfig& config) : conf{config} {}
+Application::Application(ApplicationConfig&& config) :
+    conf{std::move(config)} {}
 Application::~Application() { destroyWindow(); }
 
 void Application::run(unsigned int width,
