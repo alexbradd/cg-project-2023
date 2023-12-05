@@ -1,5 +1,8 @@
 ---
 BasedOnStyle: google
+ColumnLimit: 90
 IndentWidth: 2
 BinPackParameters: false
 BreakConstructorInitializers: AfterColon
+AllowShortFunctionsOnASingleLine: Inline
+BreakBeforeBraces: WebKit
