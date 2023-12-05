@@ -61,14 +61,11 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     device(instance, surface),
     swapchain(device, surface, window),
     renderPass(device, swapchain),
-    framebuffers(
-        VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
+    framebuffers(VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
 
     // Command pools and buffers
-    cmdPool(device.logical(),
-            {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
-    graphicsCmdBufs(
-        many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
+    cmdPool(device.logical(), {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
+    graphicsCmdBufs(many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
 
     // Sync objects
     imageAvailableSems(many<Semaphore>(swapchain.images().size(),
@@ -85,7 +82,8 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
 
     // Shaders
-    shaderLoader(device, renderPass, config.shaderPath) {
+    shaderLoader(device, renderPass, config.shaderPath)
+{
   log::info("Vulkan context is up and running!");
   shaderLoader.loadShaders();
 

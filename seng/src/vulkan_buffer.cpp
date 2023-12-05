@@ -1,19 +1,12 @@
-#include <cstdint>
 #include <seng/log.hpp>
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
+#include <vulkan/vulkan_enums.hpp>
 
 using namespace std;
 using namespace vk::raii;
 using namespace seng::rendering;
-
-static Buffer create(VulkanDevice &device,
-                     vk::BufferUsageFlags usage,
-                     uint64_t size);
-static DeviceMemory allocate(VulkanDevice &device,
-                             vk::MemoryRequirements reqs,
-                             int32_t memId);
 
 VulkanBuffer::VulkanBuffer(VulkanDevice &dev,
                            vk::BufferUsageFlags usage,
@@ -23,39 +16,20 @@ VulkanBuffer::VulkanBuffer(VulkanDevice &dev,
     vkDevRef(dev),
     usage(usage),
     size(size),
-    handle(create(vkDevRef, usage, size)),
+    handle(Buffer(dev.logical(), {{}, size, usage, vk::SharingMode::eExclusive})),
     memRequirements(handle.getMemoryRequirements()),
-    memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits,
-                                            memFlags)),
-    memory(allocate(vkDevRef, memRequirements, memIndex)),
+    memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits, memFlags)),
+    memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex}),
     locked(false) {
   log::dbg("Allocated buffer");
   if (bind) this->bind(0);
-}
-
-Buffer create(VulkanDevice &device,
-              vk::BufferUsageFlags usage,
-              vk::DeviceSize size) {
-  return Buffer(device.logical(),
-                {{}, size, usage, vk::SharingMode::eExclusive});
-}
-
-DeviceMemory allocate(VulkanDevice &device,
-                      vk::MemoryRequirements reqs,
-                      int32_t memId) {
-  vk::MemoryAllocateInfo info{};
-  info.allocationSize = reqs.size;
-  info.memoryTypeIndex = memId;
-  return DeviceMemory(device.logical(), info);
 }
 
 void VulkanBuffer::bind(vk::DeviceSize offset) {
   handle.bindMemory(*memory, offset);
 }
 
-void VulkanBuffer::resize(vk::DeviceSize size,
-                          Queue &queue,
-                          CommandPool &pool) {
+void VulkanBuffer::resize(vk::DeviceSize size, Queue &queue, CommandPool &pool) {
   // Create new buffer
   vk::BufferCreateInfo newInfo{{}, size, usage, vk::SharingMode::eExclusive};
   Buffer newBuffer(vkDevRef.get().logical(), newInfo);

@@ -12,23 +12,36 @@ using namespace vk::raii;
 static constexpr char VERT_SUFFIX[] = ".vert.spv";
 static constexpr char FRAG_SUFFIX[] = ".frag.spv";
 
-static vector<char> readCode(string &path,
-                             string &name,
-                             VulkanShaderStage::Type typ);
-
 VulkanShaderStage::VulkanShaderStage(VulkanDevice &dev,
                                      string &shaderLoadPath,
                                      string name,
                                      VulkanShaderStage::Type type,
-                                     vk::ShaderStageFlagBits flags)
-    : vkDevRef(dev),
-      typ(type),
-      name(name),
-      code(readCode(shaderLoadPath, name, typ)),
-      moduleCreateInfo{
-          {}, code.size(), reinterpret_cast<const uint32_t *>(code.data())},
-      module(vkDevRef.get().logical(), moduleCreateInfo),
-      stageCreateInfo{{}, flags, *module, "main"} {
+                                     vk::ShaderStageFlagBits flags) :
+    vkDevRef(dev),
+    typ(type),
+    name(name),
+    code(std::invoke([&]() {
+      namespace fs = std::filesystem;
+
+      fs::path shaderDir(shaderLoadPath);
+      const char *suffix;
+      string filename;
+      switch (typ) {
+        case VulkanShaderStage::Type::eVertex:
+          suffix = VERT_SUFFIX;
+          break;
+        case VulkanShaderStage::Type::eFragment:
+          suffix = FRAG_SUFFIX;
+          break;
+      }
+      filename = name + suffix;
+
+      return seng::internal::readFile((shaderDir / filename).string());
+    })),
+    moduleCreateInfo{{}, code.size(), reinterpret_cast<const uint32_t *>(code.data())},
+    module(vkDevRef.get().logical(), moduleCreateInfo),
+    stageCreateInfo{{}, flags, *module, "main"}
+{
   switch (type) {
     case VulkanShaderStage::Type::eVertex:
       log::dbg("Loaded vertex shader named {}", name);
@@ -37,26 +50,6 @@ VulkanShaderStage::VulkanShaderStage(VulkanDevice &dev,
       log::dbg("Loaded fragment shader named {}", name);
       break;
   }
-}
-
-vector<char> readCode(string &path, string &name, VulkanShaderStage::Type typ) {
-  namespace fs = std::filesystem;
-
-  fs::path shaderDir(path);
-  const char *suffix;
-  string filename;
-
-  switch (typ) {
-    case VulkanShaderStage::Type::eVertex:
-      suffix = VERT_SUFFIX;
-      break;
-    case VulkanShaderStage::Type::eFragment:
-      suffix = FRAG_SUFFIX;
-      break;
-  }
-  filename = name + suffix;
-
-  return seng::internal::readFile((shaderDir / filename).string());
 }
 
 VulkanShaderStage::~VulkanShaderStage() {

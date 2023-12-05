@@ -9,8 +9,6 @@ using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
-static PipelineLayout createPipelineLayout(VulkanDevice& dev,
-                                           VulkanPipeline::CreateInfo& info);
 static Pipeline createPipeline(VulkanDevice& dev,
                                VulkanRenderPass& pass,
                                PipelineLayout& layout,
@@ -21,20 +19,16 @@ VulkanPipeline::VulkanPipeline(VulkanDevice& device,
                                CreateInfo info)
     : vkDevRef(device),
       vkRenderPassRef(pass),
-      pipelineLayout(createPipelineLayout(vkDevRef, info)),
-      pipeline(
-          createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info)) {
+      pipelineLayout(std::invoke([&]() {
+        vector<vk::DescriptorSetLayout> layouts{};
+        for (const auto& l : info.descriptorSetLayouts) layouts.emplace_back(*l);
+
+        vk::PipelineLayoutCreateInfo layoutInfo{};
+        layoutInfo.setSetLayouts(layouts);
+        return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
+      })),
+      pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info)) {
   log::dbg("Created pipeline");
-}
-
-static PipelineLayout createPipelineLayout(VulkanDevice& dev,
-                                           VulkanPipeline::CreateInfo& info) {
-  vector<vk::DescriptorSetLayout> layouts{};
-  for (const auto& l : info.descriptorSetLayouts) layouts.emplace_back(*l);
-
-  vk::PipelineLayoutCreateInfo layoutInfo{};
-  layoutInfo.setSetLayouts(layouts);
-  return PipelineLayout(dev.logical(), layoutInfo);
 }
 
 static Pipeline createPipeline(VulkanDevice& dev,

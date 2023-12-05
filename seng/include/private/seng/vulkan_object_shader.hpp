@@ -3,6 +3,8 @@
 #include <functional>
 #include <seng/vulkan_pipeline.hpp>
 
+#define ATTRIBUTE_COUNT 1
+
 namespace seng::rendering {
 
 class VulkanDevice;

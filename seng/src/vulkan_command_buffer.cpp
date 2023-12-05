@@ -14,8 +14,7 @@ static CommandBuffers allocateBuffers(Device &device,
 VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice &dev,
                                          CommandPool &pool,
                                          bool primary) :
-    VulkanCommandBuffer(
-        std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0])) {}
+    VulkanCommandBuffer(std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0])) {}
 
 VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b) :
     buf(std::move(b)), state(VulkanCommandBuffer::State::eReady) {
