@@ -36,6 +36,8 @@ class VulkanPipeline {
   VulkanPipeline& operator=(const VulkanPipeline&) = delete;
   VulkanPipeline& operator=(VulkanPipeline&&) = default;
 
+  vk::raii::Pipeline& handle() { return pipeline; }
+
   /**
    * Bind the pipeline at the given bind point on the given command buffer
    */

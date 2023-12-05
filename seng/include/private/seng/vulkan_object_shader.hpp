@@ -28,11 +28,11 @@ class VulkanObjectShader {
                      std::string name,
                      std::vector<std::shared_ptr<VulkanShaderStage>> stages);
   VulkanObjectShader(const VulkanObjectShader&) = delete;
-  VulkanObjectShader(VulkanObjectShader&&);
+  VulkanObjectShader(VulkanObjectShader&&) = default;
   ~VulkanObjectShader();
 
   VulkanObjectShader& operator=(const VulkanObjectShader&) = delete;
-  VulkanObjectShader& operator=(VulkanObjectShader&&);
+  VulkanObjectShader& operator=(VulkanObjectShader&&) = default;
 
   /**
    * Use the shader by binding the pipeline in the given command buffer
@@ -40,7 +40,6 @@ class VulkanObjectShader {
   void use(VulkanCommandBuffer& buffer);
 
  private:
-  bool isMoved = false;
   std::reference_wrapper<VulkanDevice> vkDevRef;
   std::string name;
   std::vector<std::shared_ptr<VulkanShaderStage>> _stages;

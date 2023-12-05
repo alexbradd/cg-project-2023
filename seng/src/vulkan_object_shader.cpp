@@ -62,28 +62,13 @@ VulkanPipeline createPipeline(VulkanDevice& device,
   return VulkanPipeline{device, pass, pipeInfo};
 }
 
-VulkanObjectShader::VulkanObjectShader(VulkanObjectShader&& rhs) :
-    isMoved(std::exchange(rhs.isMoved, true)),
-    vkDevRef(std::move(rhs.vkDevRef)),
-    name(std::move(rhs.name)),
-    _stages(std::move(rhs._stages)),
-    pipeline(std::move(rhs.pipeline)) {}
-
-VulkanObjectShader& VulkanObjectShader::operator=(VulkanObjectShader&& rhs) {
-  if (this != &rhs) {
-    std::swap(isMoved, rhs.isMoved);
-    std::swap(vkDevRef, rhs.vkDevRef);
-    std::swap(name, rhs.name);
-    std::swap(_stages, rhs._stages);
-    std::swap(pipeline, rhs.pipeline);
-  }
-  return *this;
-}
-
 void VulkanObjectShader::use(VulkanCommandBuffer& buffer) {
   pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
 VulkanObjectShader::~VulkanObjectShader() {
-  log::dbg("Destroying object shader");
+  // Since all handles are either all valid or all invalid, we simply check one
+  // of them to see if we have been moved from
+  if (*pipeline.handle() != vk::Pipeline(nullptr))
+    log::dbg("Destroying object shader");
 }
