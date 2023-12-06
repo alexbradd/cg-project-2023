@@ -53,6 +53,10 @@ class VulkanObjectShader {
    */
   void uploadGlobalState(VulkanCommandBuffer& buf, uint32_t imageIndex);
 
+  /**
+   * Push the given model matrix to the shader
+   */
+  void updateModelState(VulkanCommandBuffer& buf, glm::mat4 model);
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;

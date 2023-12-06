@@ -121,6 +121,12 @@ void VulkanObjectShader::uploadGlobalState(VulkanCommandBuffer& buf, uint32_t im
                                   *descriptor, {});
 }
 
+void VulkanObjectShader::updateModelState(VulkanCommandBuffer& buf, glm::mat4 model)
+{
+  buf.buffer().pushConstants<glm::mat4>(*pipeline.layout(),
+                                        vk::ShaderStageFlagBits::eVertex, 0, model);
+}
+
 VulkanObjectShader::~VulkanObjectShader()
 {
   // Since all handles are either all valid or all invalid, we simply check one

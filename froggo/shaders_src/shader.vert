@@ -8,6 +8,13 @@ layout(set = 0, binding = 0) uniform GlobalUniformObject {
   mat4 view;
 } gubo;
 
+// Faster than using the uniform. Downside is we have only 128 bytes
+// in total (guaranteed by the vulkan spec)
+layout(push_constant) uniform push_constant {
+    mat4 model; // 64 bytes
+    mat4 _unused; // 64 bytes
+} pushConstants;
+
 void main() {
-  gl_Position = gubo.projection * gubo.view *  vec4(inPosition, 1.0);
+  gl_Position = gubo.projection * gubo.view * pushConstants.model * vec4(inPosition, 1.0);
 }

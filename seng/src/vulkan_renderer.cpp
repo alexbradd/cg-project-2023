@@ -201,11 +201,10 @@ void VulkanRenderer::beginFrame() {
   }
 }
 
-// TODO: Wrap mvp stuff into a camera object
-void VulkanRenderer::update(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition) {
+// FIXME: start of stub
+void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition)
+{
   auto& commandBuffer = graphicsCmdBufs[imageIndex];
-
-  // FIXME: temporary shader
   auto shader = shaderLoader.getShader("default");
 
   shader->globalUniformObject().projection = projection;
@@ -214,13 +213,26 @@ void VulkanRenderer::update(glm::mat4 projection, glm::mat4 view, glm::vec3 view
   // TODO: add other properties
 
   shader->uploadGlobalState(commandBuffer, imageIndex);
-  shader->use(commandBuffer);
+}
 
-  // FIXME: temporary geometry
+void VulkanRenderer::updateModel(glm::mat4 model)
+{
+  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+  auto shader = shaderLoader.getShader("default");
+  shader->updateModelState(commandBuffer, model);
+}
+
+void VulkanRenderer::draw()
+{
+  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+  auto shader = shaderLoader.getShader("default");
+
+  shader->use(commandBuffer);
   commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
   commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0, vk::IndexType::eUint32);
   commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0);
 }
+// FIXME: end if stub
 
 void VulkanRenderer::endFrame() {
   VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
@@ -318,19 +330,6 @@ void VulkanRenderer::recreateSwapchain() {
   // Finish the recreation process
   recreatingSwapchain = false;
   log::info("Finished swapchain recreation");
-}
-
-// TODO: Wrap mvp stuff into a bespoke objects
-void VulkanRenderer::draw(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition) {
-  try {
-    beginFrame();
-    update(projection, view, viewPosition);
-    endFrame();
-  } catch (const BeginFrameException &e) {
-    log::info("Could not begin frame: {}", e.what());
-  } catch (const exception &e) {
-    log::warning("Unhandled exception reached draw function: {}", e.what());
-  }
 }
 
 VulkanRenderer::~VulkanRenderer() {

@@ -26,11 +26,22 @@ VulkanPipeline::VulkanPipeline(VulkanDevice& device,
           layouts.emplace_back(*l.get());
 
         vk::PipelineLayoutCreateInfo layoutInfo{};
+
+        // Push constants
+        vk::PushConstantRange pushConstant{};
+        pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
+        pushConstant.offset = sizeof(glm::mat4) * 0;
+        pushConstant.size = sizeof(glm::mat4) * 2; // So that we use the whole 128 byte
+                                                   // range
+        layoutInfo.setPushConstantRanges(pushConstant);
+
+        // Layouts
         layoutInfo.setLayoutCount = 1;
         layoutInfo.pSetLayouts = layouts.data();
         return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
       })),
-      pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info)) {
+      pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info))
+{
   log::dbg("Created pipeline");
 }
 
@@ -122,10 +133,12 @@ static Pipeline createPipeline(VulkanDevice& dev,
 }
 
 void VulkanPipeline::bind(VulkanCommandBuffer& buffer,
-                          vk::PipelineBindPoint bind) {
+                          vk::PipelineBindPoint bind)
+{
   buffer.buffer().bindPipeline(bind, *pipeline);
 }
 
-VulkanPipeline::~VulkanPipeline() {
+VulkanPipeline::~VulkanPipeline()
+{
   if (*pipeline != vk::Pipeline{}) log::dbg("Destroying pipeline");
 }
