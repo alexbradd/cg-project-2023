@@ -14,6 +14,9 @@
 #include <seng/vulkan_swapchain.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+
 namespace seng::rendering {
 
 // Forward declarations
@@ -71,6 +74,8 @@ class VulkanRenderer {
    */
   void beginFrame();
 
+  void update(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition);
+
   /**
    * Finishes recording a frame.
    */
@@ -79,7 +84,7 @@ class VulkanRenderer {
   /**
    * Draws a frame.
    */
-  void draw();
+  void draw(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition);
 
  private:
   std::reference_wrapper<GlfwWindow> window;

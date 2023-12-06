@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -19,7 +20,7 @@ class VulkanPipeline {
    */
   struct CreateInfo {
     std::vector<vk::VertexInputAttributeDescription>& attributes;
-    std::vector<vk::raii::DescriptorSetLayout>& descriptorSetLayouts;
+    std::vector<std::reference_wrapper<vk::raii::DescriptorSetLayout>>& descriptorSetLayouts;
     std::vector<vk::PipelineShaderStageCreateInfo>& stages;
     bool wireframe = false;
   };
@@ -37,6 +38,7 @@ class VulkanPipeline {
   VulkanPipeline& operator=(VulkanPipeline&&) = default;
 
   vk::raii::Pipeline& handle() { return pipeline; }
+  vk::raii::PipelineLayout& layout() { return pipelineLayout; }
 
   /**
    * Bind the pipeline at the given bind point on the given command buffer

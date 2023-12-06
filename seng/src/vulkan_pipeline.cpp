@@ -21,10 +21,13 @@ VulkanPipeline::VulkanPipeline(VulkanDevice& device,
       vkRenderPassRef(pass),
       pipelineLayout(std::invoke([&]() {
         vector<vk::DescriptorSetLayout> layouts{};
-        for (const auto& l : info.descriptorSetLayouts) layouts.emplace_back(*l);
+        layouts.reserve(info.descriptorSetLayouts.size());
+        for (const auto& l : info.descriptorSetLayouts)
+          layouts.emplace_back(*l.get());
 
         vk::PipelineLayoutCreateInfo layoutInfo{};
-        layoutInfo.setSetLayouts(layouts);
+        layoutInfo.setLayoutCount = 1;
+        layoutInfo.pSetLayouts = layouts.data();
         return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
       })),
       pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info)) {

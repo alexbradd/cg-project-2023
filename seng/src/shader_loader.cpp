@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <seng/shader_loader.hpp>
@@ -13,8 +14,12 @@ using namespace std;
 
 ShaderLoader::ShaderLoader(VulkanDevice &dev,
                            VulkanRenderPass &pass,
+                           uint32_t globalPoolSize,
                            std::string shaderPath) :
-    vkDevRef(dev), vkRenderPassRef(pass), shaderPath(shaderPath) {}
+    vkDevRef(dev),
+    vkRenderPassRef(pass),
+    shaderPath(shaderPath),
+    globalPoolSize(globalPoolSize) {}
 
 // FIXME: add dynamic shader loading
 void ShaderLoader::loadShaders() {
@@ -29,7 +34,7 @@ void ShaderLoader::loadShaders() {
       vk::ShaderStageFlagBits::eFragment);
 
   shaders[SHADER_NAME] = make_shared<VulkanObjectShader>(
-      vkDevRef.get(), vkRenderPassRef.get(), SHADER_NAME,
+      vkDevRef.get(), vkRenderPassRef.get(), globalPoolSize, SHADER_NAME,
       vector<shared_ptr<VulkanShaderStage>>{stages[VERT_NAME ".vert"],
                                             stages[FRAG_NAME ".frag"]});
 }

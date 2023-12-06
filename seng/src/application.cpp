@@ -1,9 +1,18 @@
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_LEFT_HANDED
+
 #include <memory>
 #include <seng/application.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
 #include <seng/vulkan_renderer.hpp>
+
+// clang-format off
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+// clang-format on
 
 using namespace std;
 using namespace seng;
@@ -18,6 +27,9 @@ Application::~Application() { destroyWindow(); }
 void Application::run(unsigned int width,
                       unsigned int height,
                       function<void(shared_ptr<InputManager>)> cb) {
+  float z = 0.1f;
+  glm::mat4 projection = glm::perspective(glm::radians(45.0f), width/static_cast<float>(height), 0.1f, 1000.0f);
+  projection[1][1] *= -1;
   makeWindow(width, height);
 
   // The main applcation loop goes like this:
@@ -27,7 +39,12 @@ void Application::run(unsigned int width,
   // 3. Pending input events are processed and made available for the next frame
   while (!window->shouldClose()) {
     cb(inputManager);  // TODO: to be substituted with gamobject Update
-    vulkan->draw();
+
+    // FIXME: stub drawing
+    z += 0.05f;
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, z));
+    vulkan->draw(projection, view, glm::vec3(0.0f, 0.0f, 0.0f));
+
     inputManager->updateEvents();
   }
 

@@ -18,6 +18,7 @@ class ShaderLoader {
  public:
   ShaderLoader(VulkanDevice &dev,
                VulkanRenderPass &pass,
+               uint32_t globalPoolSize,
                std::string shaderPath);
   ShaderLoader(const ShaderLoader &) = delete;
   ShaderLoader(ShaderLoader &&) = default;
@@ -36,6 +37,7 @@ class ShaderLoader {
   std::reference_wrapper<VulkanDevice> vkDevRef;
   std::reference_wrapper<VulkanRenderPass> vkRenderPassRef;
   std::string shaderPath;
+  uint32_t globalPoolSize;
   std::unordered_map<std::string, std::shared_ptr<VulkanShaderStage>> stages;
   std::unordered_map<std::string, std::shared_ptr<VulkanObjectShader>> shaders;
 };

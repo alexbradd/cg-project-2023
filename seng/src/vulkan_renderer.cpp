@@ -82,23 +82,23 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
 
     // Shaders
-    shaderLoader(device, renderPass, config.shaderPath)
+    shaderLoader(device, renderPass, swapchain.images().size(), config.shaderPath)
 {
   log::info("Vulkan context is up and running!");
   shaderLoader.loadShaders();
 
   // FIXME: Temporary geometry
   log::dbg("Loading test geometry");
-  verts[0].pos = glm::vec3(0.0, 0.5, 0.0);
-  verts[1].pos = glm::vec3(0.5, 0.5, 0.0);
-  verts[2].pos = glm::vec3(0.0, -0.5, 0.0);
-  verts[3].pos = glm::vec3(0.5, -0.5, 0.0);
+  verts[0].pos = glm::vec3(-0.5, -0.5, 0.0);
+  verts[1].pos = glm::vec3(0.5, -0.5, 0.0);
+  verts[2].pos = glm::vec3(0.5, 0.5, 0.0);
+  verts[3].pos = glm::vec3(-0.5, 0.5, 0.0);
   indices[0] = 0;
   indices[1] = 1;
   indices[2] = 2;
-  indices[3] = 1;
-  indices[4] = 3;
-  indices[5] = 2;
+  indices[3] = 0;
+  indices[4] = 2;
+  indices[5] = 3;
   uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer,
            sizeof(Vertex) * 4, 0, verts);
   uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer,
@@ -182,14 +182,6 @@ void VulkanRenderer::beginFrame() {
     // Begin the render pass
     renderPass.begin(curBuf, curFb);
 
-    // FIXME: temporary shader
-    shaderLoader.getShader("default")->use(curBuf);
-    //
-    // FIXME: temporary geometry
-    curBuf.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
-    curBuf.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0,
-                                    vk::IndexType::eUint32);
-
     // Dynamic states
     vk::Viewport viewport{};
     viewport.x = 0.0f;
@@ -203,12 +195,31 @@ void VulkanRenderer::beginFrame() {
     vk::Rect2D scissor{{0, 0}, swapchain.extent()};
     curBuf.buffer().setScissor(0, scissor);
 
-    curBuf.buffer().drawIndexed(6, 1, 0, 0, 0);
-
   } catch (const exception &e) {
     log::warning("Caught exception: {}", e.what());
     throw BeginFrameException("Caught exception while starting recording...");
   }
+}
+
+// TODO: Wrap mvp stuff into a camera object
+void VulkanRenderer::update(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition) {
+  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+
+  // FIXME: temporary shader
+  auto shader = shaderLoader.getShader("default");
+
+  shader->globalUniformObject().projection = projection;
+  shader->globalUniformObject().view = view;
+
+  // TODO: add other properties
+
+  shader->uploadGlobalState(commandBuffer, imageIndex);
+  shader->use(commandBuffer);
+
+  // FIXME: temporary geometry
+  commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
+  commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0, vk::IndexType::eUint32);
+  commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0);
 }
 
 void VulkanRenderer::endFrame() {
@@ -309,9 +320,11 @@ void VulkanRenderer::recreateSwapchain() {
   log::info("Finished swapchain recreation");
 }
 
-void VulkanRenderer::draw() {
+// TODO: Wrap mvp stuff into a bespoke objects
+void VulkanRenderer::draw(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition) {
   try {
     beginFrame();
+    update(projection, view, viewPosition);
     endFrame();
   } catch (const BeginFrameException &e) {
     log::info("Could not begin frame: {}", e.what());
