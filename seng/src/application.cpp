@@ -1,6 +1,5 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RADIANS
-#define GLM_FORCE_LEFT_HANDED
 
 #include <memory>
 #include <seng/application.hpp>
@@ -8,12 +7,11 @@
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
 #include <seng/vulkan_renderer.hpp>
+#include <seng/transform.hpp>
 
 // clang-format off
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 // clang-format on
 
 using namespace std;
@@ -29,10 +27,12 @@ Application::~Application() { destroyWindow(); }
 void Application::run(unsigned int width,
                       unsigned int height,
                       function<void(shared_ptr<InputManager>)> cb) {
-  float z = 0.1f;
-  float angle = 0.0f;
   glm::mat4 projection = glm::perspective(glm::radians(45.0f), width/static_cast<float>(height), 0.1f, 1000.0f);
   projection[1][1] *= -1;
+
+  Transform cameraTransform(glm::vec3(0.0, 0.0f, 2.0f));
+  Transform model;
+
   makeWindow(width, height);
 
   // The main applcation loop goes like this:
@@ -47,14 +47,13 @@ void Application::run(unsigned int width,
     try {
       vulkan->beginFrame();
 
-      z += 0.05f;
-      glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 5.0f));
+      cameraTransform.translate(cameraTransform.forward() * 0.01f);
+
+      glm::mat4 view = glm::inverse(cameraTransform.toMat4());
       vulkan->updateGlobalState(projection, view, glm::vec3(0.0));
 
-      angle += 0.01f;
-      glm::quat rotation = glm::angleAxis(angle, glm::vec3(0, 0, 1));
-      glm::mat4 model = glm::toMat4(rotation);
-      vulkan->updateModel(model);
+      model.rotate(0.0f, 0.0f, 0.01f);
+      vulkan->updateModel(model.toMat4());
 
       vulkan->draw();
 

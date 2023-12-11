@@ -42,6 +42,7 @@ target_sources(${PROJECT_NAME}
     ./src/shader_loader.cpp
     ./src/vulkan_pipeline.cpp
     ./src/vulkan_buffer.cpp
+    ./src/transform.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
