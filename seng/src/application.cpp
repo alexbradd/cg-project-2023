@@ -1,6 +1,3 @@
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_RADIANS
-
 #include <memory>
 #include <seng/application.hpp>
 #include <seng/glfw_window.hpp>
@@ -8,11 +5,7 @@
 #include <seng/log.hpp>
 #include <seng/vulkan_renderer.hpp>
 #include <seng/transform.hpp>
-
-// clang-format off
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-// clang-format on
+#include <seng/camera.hpp>
 
 using namespace std;
 using namespace seng;
@@ -27,10 +20,8 @@ Application::~Application() { destroyWindow(); }
 void Application::run(unsigned int width,
                       unsigned int height,
                       function<void(shared_ptr<InputManager>)> cb) {
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f), width/static_cast<float>(height), 0.1f, 1000.0f);
-  projection[1][1] *= -1;
-
-  Transform cameraTransform(glm::vec3(0.0, 0.0f, 2.0f));
+  Camera camera(width/static_cast<float>(height));
+  camera.transform().setPos(0.0, 0.0, 2.0f);
   Transform model;
 
   makeWindow(width, height);
@@ -47,10 +38,8 @@ void Application::run(unsigned int width,
     try {
       vulkan->beginFrame();
 
-      cameraTransform.translate(cameraTransform.forward() * 0.01f);
-
-      glm::mat4 view = glm::inverse(cameraTransform.toMat4());
-      vulkan->updateGlobalState(projection, view, glm::vec3(0.0));
+      camera.transform().translate(camera.transform().forward() * 0.01f);
+      vulkan->updateGlobalState(camera.projectionMatrix(), camera.viewMatrix(), glm::vec3(0.0));
 
       model.rotate(0.0f, 0.0f, 0.01f);
       vulkan->updateModel(model.toMat4());

@@ -43,6 +43,7 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_pipeline.cpp
     ./src/vulkan_buffer.cpp
     ./src/transform.cpp
+    ./src/camera.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
