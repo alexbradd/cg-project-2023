@@ -74,9 +74,8 @@ class VulkanRenderer {
    */
   void beginFrame();
 
-  void updateGlobalState(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition);
+  void updateGlobalState(glm::mat4 projection, glm::mat4 view);
   void updateModel(glm::mat4 model);
-  void draw();
 
   /**
    * Finishes recording a frame.
@@ -86,7 +85,7 @@ class VulkanRenderer {
   /**
    * Draws a frame.
    */
-  void draw(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition);
+  void draw();
 
  private:
   std::reference_wrapper<GlfwWindow> window;

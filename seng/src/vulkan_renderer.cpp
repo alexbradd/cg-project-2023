@@ -202,7 +202,7 @@ void VulkanRenderer::beginFrame() {
 }
 
 // FIXME: start of stub
-void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view, glm::vec3 viewPosition)
+void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view)
 {
   auto& commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
