@@ -11,7 +11,7 @@ class GlfwWindow;
 class VulkanRenderer;
 }  // namespace rendering
 
-class InputManager;
+class GameContext;
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and
@@ -42,7 +42,7 @@ class Application {
    */
   void run(unsigned int width,
            unsigned int height,
-           std::function<void(std::shared_ptr<InputManager>)> cb);
+           std::function<void(std::shared_ptr<GameContext>)> cb);
 
   const ApplicationConfig &config() const;
 
@@ -50,8 +50,9 @@ class Application {
   ApplicationConfig conf;
 
   std::shared_ptr<rendering::GlfwWindow> window;
-  std::shared_ptr<InputManager> inputManager;
   std::unique_ptr<rendering::VulkanRenderer> vulkan;
+
+  std::shared_ptr<GameContext> ctx;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();

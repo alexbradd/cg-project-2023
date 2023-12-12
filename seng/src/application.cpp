@@ -1,6 +1,8 @@
+#include <chrono>
 #include <memory>
 #include <seng/application.hpp>
 #include <seng/camera.hpp>
+#include <seng/game_context.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
@@ -21,13 +23,17 @@ Application::~Application()
 
 void Application::run(unsigned int width,
                       unsigned int height,
-                      function<void(shared_ptr<InputManager>)> cb)
+                      function<void(shared_ptr<GameContext>)> cb)
 {
+  makeWindow(width, height);
+
   Camera camera(width / static_cast<float>(height));
   camera.transform().setPos(0.0, 0.0, 2.0f);
   Transform model;
 
-  makeWindow(width, height);
+  ctx = make_shared<GameContext>(camera);
+  ctx->_inputManager = make_shared<InputManager>(*window);
+
 
   // The main applcation loop goes like this:
   //
@@ -35,14 +41,12 @@ void Application::run(unsigned int width,
   // 2. That state is drawn to screen
   // 3. Pending input events are processed and made available for the next frame
   while (!window->shouldClose()) {
-    cb(inputManager);  // TODO: to be substituted with gamobject Update
-
     // FIXME: stub drawing
     try {
+      const auto start{chrono::high_resolution_clock::now()};
       vulkan->beginFrame();
 
-      camera.transform().translate(camera.transform().forward() * 0.01f);
-      vulkan->updateGlobalState(camera.projectionMatrix(), camera.viewMatrix(), glm::vec3(0.0));
+      vulkan->updateGlobalState(camera.projectionMatrix(), camera.viewMatrix());
 
       model.rotate(0.0f, 0.0f, 0.01f);
       vulkan->updateModel(model.toMat4());
@@ -50,23 +54,28 @@ void Application::run(unsigned int width,
       vulkan->draw();
 
       vulkan->endFrame();
+      const auto end{chrono::high_resolution_clock::now()};
+      ctx->_deltaTime = end - start;
     } catch (const BeginFrameException& e) {
       log::info("Could not begin frame: {}", e.what());
     } catch (const exception& e) {
       log::warning("Unhandled exception reached draw function: {}", e.what());
     }
 
-    inputManager->updateEvents();
+    ctx->_inputManager->updateEvents();
+
+    cb(ctx);  // TODO: to be substituted with gamobject Update
   }
 
   destroyWindow();
+  ctx = nullptr;
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height)
 {
   window = make_shared<GlfwWindow>(conf.appName, width, height);
-  inputManager = make_shared<InputManager>(*window);
   vulkan = make_unique<VulkanRenderer>(conf, *window);
+
   window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
     if (vulkan != nullptr) vulkan->signalResize();
   });
