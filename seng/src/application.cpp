@@ -1,11 +1,11 @@
 #include <memory>
 #include <seng/application.hpp>
+#include <seng/camera.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
-#include <seng/vulkan_renderer.hpp>
 #include <seng/transform.hpp>
-#include <seng/camera.hpp>
+#include <seng/vulkan_renderer.hpp>
 
 using namespace std;
 using namespace seng;
@@ -13,14 +13,17 @@ using namespace seng::rendering;
 
 Application::Application() : Application(ApplicationConfig{}) {}
 Application::Application(ApplicationConfig& config) : conf{config} {}
-Application::Application(ApplicationConfig&& config) :
-    conf{std::move(config)} {}
-Application::~Application() { destroyWindow(); }
+Application::Application(ApplicationConfig&& config) : conf{std::move(config)} {}
+Application::~Application()
+{
+  destroyWindow();
+}
 
 void Application::run(unsigned int width,
                       unsigned int height,
-                      function<void(shared_ptr<InputManager>)> cb) {
-  Camera camera(width/static_cast<float>(height));
+                      function<void(shared_ptr<InputManager>)> cb)
+{
+  Camera camera(width / static_cast<float>(height));
   camera.transform().setPos(0.0, 0.0, 2.0f);
   Transform model;
 
@@ -47,9 +50,9 @@ void Application::run(unsigned int width,
       vulkan->draw();
 
       vulkan->endFrame();
-    } catch (const BeginFrameException &e) {
+    } catch (const BeginFrameException& e) {
       log::info("Could not begin frame: {}", e.what());
-    } catch (const exception &e) {
+    } catch (const exception& e) {
       log::warning("Unhandled exception reached draw function: {}", e.what());
     }
 
@@ -59,7 +62,8 @@ void Application::run(unsigned int width,
   destroyWindow();
 }
 
-void Application::makeWindow(unsigned int width, unsigned int height) {
+void Application::makeWindow(unsigned int width, unsigned int height)
+{
   window = make_shared<GlfwWindow>(conf.appName, width, height);
   inputManager = make_shared<InputManager>(*window);
   vulkan = make_unique<VulkanRenderer>(conf, *window);
@@ -68,10 +72,13 @@ void Application::makeWindow(unsigned int width, unsigned int height) {
   });
 }
 
-void Application::destroyWindow() {
-  inputManager = nullptr;
+void Application::destroyWindow()
+{
   vulkan = nullptr;
   window = nullptr;
 }
 
-const ApplicationConfig& Application::config() const { return conf; }
+const ApplicationConfig& Application::config() const
+{
+  return conf;
+}
