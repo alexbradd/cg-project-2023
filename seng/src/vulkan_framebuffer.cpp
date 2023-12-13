@@ -24,12 +24,15 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanDevice &dev,
       info.layers = 1;
 
       return Framebuffer(dev.logical(), info);
-    })) {
+    }))
+{
   log::dbg("Framebuffer created with size {}x{}", size.width, size.height);
 }
 
-vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(
-    VulkanDevice &dev, VulkanRenderPass &pass, VulkanSwapchain &swap) {
+vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(VulkanDevice &dev,
+                                                           VulkanRenderPass &pass,
+                                                           VulkanSwapchain &swap)
+{
   vector<VulkanFramebuffer> fbs{};
   fbs.reserve(swap.images().size());
 
@@ -42,6 +45,7 @@ vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(
   return fbs;
 }
 
-VulkanFramebuffer::~VulkanFramebuffer() {
+VulkanFramebuffer::~VulkanFramebuffer()
+{
   if (*_handle != vk::Framebuffer{}) log::dbg("Destroying framebuffer");
 }
