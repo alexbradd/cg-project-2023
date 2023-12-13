@@ -10,9 +10,12 @@ SwapchainSupportDetails::SwapchainSupportDetails(PhysicalDevice &dev,
                                                  SurfaceKHR &surface) :
     _capabilities(dev.getSurfaceCapabilitiesKHR(*surface)),
     _formats(dev.getSurfaceFormatsKHR(*surface)),
-    _presentModes(dev.getSurfacePresentModesKHR(*surface)) {}
+    _presentModes(dev.getSurfacePresentModesKHR(*surface))
+{
+}
 
-vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat() {
+vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat()
+{
   for (const auto &f : _formats) {
     if (f.format == vk::Format::eB8G8R8A8Srgb &&
         f.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
@@ -21,8 +24,8 @@ vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat() {
   return _formats[0];
 }
 
-vk::Extent2D SwapchainSupportDetails::chooseSwapchainExtent(
-    GlfwWindow &window) {
+vk::Extent2D SwapchainSupportDetails::chooseSwapchainExtent(GlfwWindow &window)
+{
   if (_capabilities.currentExtent.width != numeric_limits<uint32_t>::max()) {
     return _capabilities.currentExtent;
   } else {
