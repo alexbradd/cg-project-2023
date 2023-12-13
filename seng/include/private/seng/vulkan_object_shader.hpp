@@ -32,7 +32,7 @@ class VulkanObjectShader {
                      const VulkanRenderPass& pass,
                      uint32_t globalPoolSize,
                      std::string name,
-                     std::vector<std::shared_ptr<VulkanShaderStage>> stages);
+                     std::vector<const VulkanShaderStage*> stages);
   VulkanObjectShader(const VulkanObjectShader&) = delete;
   VulkanObjectShader(VulkanObjectShader&&) = default;
   ~VulkanObjectShader();
@@ -61,7 +61,7 @@ class VulkanObjectShader {
  private:
   const VulkanDevice* vulkanDev;
   std::string name;
-  std::vector<std::shared_ptr<VulkanShaderStage>> _stages;
+  std::vector<const VulkanShaderStage*> _stages;
 
   vk::raii::DescriptorPool globalDescriptorPool;
   vk::raii::DescriptorSetLayout globalDescriptorSetLayout;

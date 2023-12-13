@@ -20,7 +20,7 @@ VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
                                        const VulkanRenderPass& pass,
                                        uint32_t globalPoolSize,
                                        string name,
-                                       vector<shared_ptr<VulkanShaderStage>> stages) :
+                                       vector<const VulkanShaderStage*> stages) :
     vulkanDev(std::addressof(dev)),
     name(name),
     _stages(stages),
