@@ -7,9 +7,9 @@ using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
-VulkanImage::VulkanImage(VulkanDevice &dev, VulkanImage::CreateInfo &info) :
+VulkanImage::VulkanImage(const VulkanDevice &dev, const VulkanImage::CreateInfo &info) :
     info(info),
-    vkDevRef(dev),
+    vulkanDev(std::addressof(dev)),
     width(info.width),
     height(info.height),
     // Create image handle
@@ -25,19 +25,19 @@ VulkanImage::VulkanImage(VulkanDevice &dev, VulkanImage::CreateInfo &info) :
       ci.usage = info.usage;
       ci.samples = vk::SampleCountFlagBits::e1;
       ci.sharingMode = vk::SharingMode::eExclusive;
-      return Image(vkDevRef.get().logical(), ci);
+      return Image(dev.logical(), ci);
     })),
     // Allocate memory
     memory(std::invoke([&]() {
       vk::MemoryRequirements requirements(handle.getMemoryRequirements());
       uint32_t memoryIndex =
-          vkDevRef.get().findMemoryIndex(requirements.memoryTypeBits, info.memoryFlags);
+          dev.findMemoryIndex(requirements.memoryTypeBits, info.memoryFlags);
 
       vk::MemoryAllocateInfo ai;
       ai.allocationSize = requirements.size;
       ai.memoryTypeIndex = memoryIndex;
 
-      DeviceMemory ret(vkDevRef.get().logical(), ai);
+      DeviceMemory ret(dev.logical(), ai);
       handle.bindMemory(*ret, 0);
 
       return ret;
@@ -72,7 +72,7 @@ void VulkanImage::createView()
   ci.subresourceRange.levelCount = 1;
   ci.subresourceRange.baseArrayLayer = 0;
   ci.subresourceRange.layerCount = 1;
-  view = ImageView(vkDevRef.get().logical(), ci);
+  view = ImageView(vulkanDev->logical(), ci);
 }
 
 VulkanImage::~VulkanImage()

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <optional>
 #include <vulkan/vulkan_raii.hpp>
 
@@ -34,7 +33,7 @@ class VulkanImage {
    * Create and allocate an image. If CreateInfo.createView is set, then the
    * corresponding view will also be allocated.
    */
-  VulkanImage(VulkanDevice &dev, CreateInfo &info);
+  VulkanImage(const VulkanDevice &dev, const CreateInfo &info);
   VulkanImage(const VulkanImage &) = delete;
   VulkanImage(VulkanImage &&) = default;
   ~VulkanImage();
@@ -43,8 +42,8 @@ class VulkanImage {
   VulkanImage &operator=(VulkanImage &&) = default;
 
   // Accessors
-  vk::raii::Image &image() { return handle; }
-  std::optional<vk::raii::ImageView> &imageView() { return view; }
+  const vk::raii::Image &image() const { return handle; }
+  const std::optional<vk::raii::ImageView> &imageView() const { return view; }
 
   /**
    * Create the relative image view. If a view has already been created, the do
@@ -54,7 +53,7 @@ class VulkanImage {
 
  private:
   CreateInfo info;
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice *vulkanDev;
   uint32_t width, height;
   vk::raii::Image handle;
   vk::raii::DeviceMemory memory;
