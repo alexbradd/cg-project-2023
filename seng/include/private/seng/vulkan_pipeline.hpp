@@ -20,7 +20,8 @@ class VulkanPipeline {
    */
   struct CreateInfo {
     std::vector<vk::VertexInputAttributeDescription>& attributes;
-    std::vector<std::reference_wrapper<vk::raii::DescriptorSetLayout>>& descriptorSetLayouts;
+    std::vector<std::reference_wrapper<vk::raii::DescriptorSetLayout>>&
+        descriptorSetLayouts;
     std::vector<vk::PipelineShaderStageCreateInfo>& stages;
     bool wireframe = false;
   };
@@ -29,7 +30,9 @@ class VulkanPipeline {
    * Create a new pipeline that will draw to the give render pass using the
    * details specified in the given creation info
    */
-  VulkanPipeline(VulkanDevice& device, VulkanRenderPass& pass, CreateInfo info);
+  VulkanPipeline(const VulkanDevice& device,
+                 const VulkanRenderPass& pass,
+                 CreateInfo info);
   VulkanPipeline(const VulkanPipeline&) = delete;
   VulkanPipeline(VulkanPipeline&&) = default;
   ~VulkanPipeline();
@@ -37,17 +40,17 @@ class VulkanPipeline {
   VulkanPipeline& operator=(const VulkanPipeline&) = delete;
   VulkanPipeline& operator=(VulkanPipeline&&) = default;
 
-  vk::raii::Pipeline& handle() { return pipeline; }
-  vk::raii::PipelineLayout& layout() { return pipelineLayout; }
+  const vk::raii::Pipeline& handle() const { return pipeline; }
+  const vk::raii::PipelineLayout& layout() const { return pipelineLayout; }
 
   /**
    * Bind the pipeline at the given bind point on the given command buffer
    */
-  void bind(VulkanCommandBuffer& buffer, vk::PipelineBindPoint bind);
+  void bind(const VulkanCommandBuffer& buffer, vk::PipelineBindPoint bind) const;
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
-  std::reference_wrapper<VulkanRenderPass> vkRenderPassRef;
+  const VulkanDevice* vulkanDevice;
+  const VulkanRenderPass* vulkanRenderPass;
   vk::raii::PipelineLayout pipelineLayout;
   vk::raii::Pipeline pipeline;
 };

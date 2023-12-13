@@ -9,16 +9,16 @@ using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
-static Pipeline createPipeline(VulkanDevice& dev,
-                               VulkanRenderPass& pass,
-                               PipelineLayout& layout,
-                               VulkanPipeline::CreateInfo& info);
+static Pipeline createPipeline(const VulkanDevice& dev,
+                               const VulkanRenderPass& pass,
+                               const PipelineLayout& layout,
+                               const VulkanPipeline::CreateInfo& info);
 
-VulkanPipeline::VulkanPipeline(VulkanDevice& device,
-                               VulkanRenderPass& pass,
+VulkanPipeline::VulkanPipeline(const VulkanDevice& device,
+                               const VulkanRenderPass& pass,
                                CreateInfo info) :
-    vkDevRef(device),
-    vkRenderPassRef(pass),
+    vulkanDevice(std::addressof(device)),
+    vulkanRenderPass(std::addressof(pass)),
     pipelineLayout(std::invoke([&]() {
       vector<vk::DescriptorSetLayout> layouts{};
       layouts.reserve(info.descriptorSetLayouts.size());
@@ -37,17 +37,17 @@ VulkanPipeline::VulkanPipeline(VulkanDevice& device,
       // Layouts
       layoutInfo.setLayoutCount = 1;
       layoutInfo.pSetLayouts = layouts.data();
-      return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
+      return PipelineLayout(device.logical(), layoutInfo);
     })),
-    pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info))
+    pipeline(createPipeline(device, pass, pipelineLayout, info))
 {
   log::dbg("Created pipeline");
 }
 
-static Pipeline createPipeline(VulkanDevice& dev,
-                               VulkanRenderPass& pass,
-                               PipelineLayout& layout,
-                               VulkanPipeline::CreateInfo& info)
+static Pipeline createPipeline(const VulkanDevice& dev,
+                               const VulkanRenderPass& pass,
+                               const PipelineLayout& layout,
+                               const VulkanPipeline::CreateInfo& info)
 {
   // Fixed part of the pipeline
   vk::PipelineViewportStateCreateInfo viewportState{};
@@ -132,7 +132,8 @@ static Pipeline createPipeline(VulkanDevice& dev,
   return Pipeline(dev.logical(), nullptr, pipelineInfo);
 }
 
-void VulkanPipeline::bind(VulkanCommandBuffer& buffer, vk::PipelineBindPoint bind)
+void VulkanPipeline::bind(const VulkanCommandBuffer& buffer,
+                          vk::PipelineBindPoint bind) const
 {
   buffer.buffer().bindPipeline(bind, *pipeline);
 }
