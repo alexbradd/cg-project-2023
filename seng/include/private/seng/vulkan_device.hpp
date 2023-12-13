@@ -43,9 +43,7 @@ class VulkanDevice {
 
   // Accessors to the support details
   QueueFamilyIndices &queueFamiliyIndices() { return _queueIndices; }
-  SwapchainSupportDetails &swapchainSupportDetails() {
-    return _swapchainDetails;
-  }
+  SwapchainSupportDetails &swapchainSupportDetails() { return _swapchainDetails; }
 
   /**
    * Requery the swapchain support details.
