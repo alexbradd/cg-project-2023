@@ -98,7 +98,7 @@ vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &phy)
   throw runtime_error("Unable to find appropriate depth format!");
 }
 
-uint32_t VulkanDevice::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags)
+uint32_t VulkanDevice::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags) const
 {
   vk::PhysicalDeviceMemoryProperties props{_physical.getMemoryProperties()};
 
