@@ -58,10 +58,9 @@ class VulkanSwapchain {
    * If the swapchain is out of date or suboptimal,
    * `InadequateSwapchainException` is thrown.
    */
-  uint32_t nextImageIndex(
-      vk::raii::Semaphore &imgAvailable,
-      std::optional<std::reference_wrapper<VulkanFence>> fence = std::nullopt,
-      uint64_t timeout = std::numeric_limits<uint64_t>::max());
+  uint32_t nextImageIndex(vk::raii::Semaphore &imgAvailable,
+                          VulkanFence *fence = nullptr,
+                          uint64_t timeout = std::numeric_limits<uint64_t>::max());
 
   /**
    * Presents the frame with index `imageIndex` on the present Queue. If the

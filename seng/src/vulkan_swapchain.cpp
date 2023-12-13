@@ -96,13 +96,12 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
 }
 
 uint32_t VulkanSwapchain::nextImageIndex(Semaphore &imgAvailable,
-                                         optional<reference_wrapper<VulkanFence>> fence,
+                                         VulkanFence *fence,
                                          uint64_t timeout)
 {
   optional<pair<vk::Result, uint32_t>> res;
-  if (fence.has_value()) {
-    res = _swapchain.acquireNextImage(timeout, *imgAvailable,
-                                      *fence.value().get().handle());
+  if (fence != nullptr) {
+    res = _swapchain.acquireNextImage(timeout, *imgAvailable, *fence->handle());
   } else {
     res = _swapchain.acquireNextImage(timeout, *imgAvailable);
   }
