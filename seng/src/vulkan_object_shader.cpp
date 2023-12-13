@@ -22,8 +22,8 @@ VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
                                        string name,
                                        vector<const VulkanShaderStage*> stages) :
     vulkanDev(std::addressof(dev)),
-    name(name),
-    _stages(stages),
+    name(std::move(name)),
+    _stages(std::move(stages)),
     globalDescriptorPool(std::invoke([&]() {
       vk::DescriptorPoolSize poolSize{vk::DescriptorType::eUniformBuffer, globalPoolSize};
       vk::DescriptorPoolCreateInfo info{};
