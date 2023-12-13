@@ -22,8 +22,7 @@ class VulkanShaderStage {
   VulkanShaderStage(const VulkanDevice& device,
                     const std::string& shaderLoadPath,
                     std::string name,
-                    Type type,
-                    vk::ShaderStageFlagBits flags);
+                    Type type);
   VulkanShaderStage(const VulkanShaderStage&) = delete;
   VulkanShaderStage(VulkanShaderStage&&) = default;
   ~VulkanShaderStage();

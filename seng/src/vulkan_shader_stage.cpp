@@ -15,8 +15,7 @@ static constexpr char FRAG_SUFFIX[] = ".frag.spv";
 VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
                                      const string &shaderLoadPath,
                                      string name,
-                                     VulkanShaderStage::Type type,
-                                     vk::ShaderStageFlagBits flags) :
+                                     VulkanShaderStage::Type type) :
     vulkanDev(std::addressof(dev)),
     typ(type),
     name(name),
@@ -40,7 +39,18 @@ VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
     })),
     moduleCreateInfo{{}, code.size(), reinterpret_cast<const uint32_t *>(code.data())},
     module(dev.logical(), moduleCreateInfo),
-    stageCreateInfo{{}, flags, *module, "main"}
+    stageCreateInfo(std::invoke([&]() {
+      vk::ShaderStageFlagBits flags{};
+      switch (type) {
+        case VulkanShaderStage::Type::eVertex:
+          flags = vk::ShaderStageFlagBits::eVertex;
+          break;
+        case VulkanShaderStage::Type::eFragment:
+          flags = vk::ShaderStageFlagBits::eFragment;
+          break;
+      }
+      return vk::PipelineShaderStageCreateInfo{{}, flags, *module, "main"};
+    }))
 {
   switch (type) {
     case VulkanShaderStage::Type::eVertex:
