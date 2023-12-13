@@ -16,8 +16,8 @@ class VulkanRenderPass;
  */
 class ShaderLoader {
  public:
-  ShaderLoader(VulkanDevice &dev,
-               VulkanRenderPass &pass,
+  ShaderLoader(const VulkanDevice &dev,
+               const VulkanRenderPass &pass,
                uint32_t globalPoolSize,
                std::string shaderPath);
   ShaderLoader(const ShaderLoader &) = delete;
@@ -31,11 +31,11 @@ class ShaderLoader {
    */
   void loadShaders();
 
-  std::shared_ptr<VulkanObjectShader> getShader(std::string name);
+  std::shared_ptr<VulkanObjectShader> getShader(std::string name) const;
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
-  std::reference_wrapper<VulkanRenderPass> vkRenderPassRef;
+  const VulkanDevice *vulkanDev;
+  const VulkanRenderPass *vulkanRenderPass;
   std::string shaderPath;
   uint32_t globalPoolSize;
   std::unordered_map<std::string, std::shared_ptr<VulkanShaderStage>> stages;
