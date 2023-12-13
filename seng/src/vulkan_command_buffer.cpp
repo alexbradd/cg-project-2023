@@ -10,13 +10,13 @@ using SingleUse = VulkanCommandBuffer::SingleUse;
 using RenderPassContinue = VulkanCommandBuffer::RenderPassContinue;
 using SimultanousUse = VulkanCommandBuffer::SimultaneousUse;
 
-static CommandBuffers allocateBuffers(Device &device,
-                                      CommandPool &pool,
+static CommandBuffers allocateBuffers(const Device &device,
+                                      const CommandPool &pool,
                                       uint32_t n,
                                       bool primary);
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice &dev,
-                                         CommandPool &pool,
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanDevice &dev,
+                                         const CommandPool &pool,
                                          bool primary) :
     VulkanCommandBuffer(std::move(allocateBuffers(dev.logical(), pool, 1, primary)[0]))
 {
@@ -27,8 +27,8 @@ VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b) : buf(std::move(b))
   log::dbg("Allocated command buffer");
 }
 
-CommandBuffers allocateBuffers(Device &device,
-                               CommandPool &pool,
+CommandBuffers allocateBuffers(const Device &device,
+                               const CommandPool &pool,
                                uint32_t n,
                                bool primary)
 {
@@ -42,7 +42,7 @@ CommandBuffers allocateBuffers(Device &device,
 }
 
 vector<VulkanCommandBuffer> VulkanCommandBuffer::createMultiple(
-    VulkanDevice &dev, vk::raii::CommandPool &pool, uint32_t n, bool primary)
+    const VulkanDevice &dev, const vk::raii::CommandPool &pool, uint32_t n, bool primary)
 {
   CommandBuffers bufs(allocateBuffers(dev.logical(), pool, n, primary));
 
@@ -55,7 +55,7 @@ vector<VulkanCommandBuffer> VulkanCommandBuffer::createMultiple(
 
 void VulkanCommandBuffer::begin(SingleUse single,
                                 RenderPassContinue passContinue,
-                                SimultaneousUse simultaneous)
+                                SimultaneousUse simultaneous) const
 {
   vk::CommandBufferBeginInfo info{};
 
@@ -69,14 +69,14 @@ void VulkanCommandBuffer::begin(SingleUse single,
   buf.begin(info);
 }
 
-void VulkanCommandBuffer::end()
+void VulkanCommandBuffer::end() const
 {
   buf.end();
 }
 
-void VulkanCommandBuffer::recordSingleUse(VulkanDevice &dev,
-                                          CommandPool &pool,
-                                          Queue &q,
+void VulkanCommandBuffer::recordSingleUse(const VulkanDevice &dev,
+                                          const CommandPool &pool,
+                                          const Queue &q,
                                           function<void(VulkanCommandBuffer &)> usage)
 {
   VulkanCommandBuffer buf(dev, pool);
@@ -93,7 +93,7 @@ void VulkanCommandBuffer::recordSingleUse(VulkanDevice &dev,
   q.waitIdle();
 }
 
-void VulkanCommandBuffer::reset()
+void VulkanCommandBuffer::reset() const
 {
   buf.reset();
 }
