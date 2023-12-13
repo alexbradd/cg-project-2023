@@ -14,9 +14,12 @@ VulkanFence::VulkanFence(VulkanDevice &device, bool signaled) :
       vk::FenceCreateInfo info{};
       if (signaled) info.flags |= vk::FenceCreateFlagBits::eSignaled;
       return Fence(vkDevRef.get().logical(), info);
-    })) {}
+    }))
+{
+}
 
-void VulkanFence::wait(uint64_t timeout) {
+void VulkanFence::wait(uint64_t timeout)
+{
   if (!_signaled) {
     auto res = vkDevRef.get().logical().waitForFences(*_handle, true, timeout);
     string err;
@@ -46,7 +49,8 @@ void VulkanFence::wait(uint64_t timeout) {
   }
 }
 
-void VulkanFence::reset() {
+void VulkanFence::reset()
+{
   if (_signaled) {
     vkDevRef.get().logical().resetFences(*_handle);
     _signaled = false;

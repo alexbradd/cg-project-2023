@@ -15,8 +15,7 @@ class VulkanDevice;
  */
 class FenceWaitException : std::exception {
  public:
-  FenceWaitException(std::string_view error, vk::Result res)
-      : err{error}, r{res} {}
+  FenceWaitException(std::string_view error, vk::Result res) : err{error}, r{res} {}
 
   const char* what() const noexcept override { return err.c_str(); }
   vk::Result result() const noexcept { return r; }
