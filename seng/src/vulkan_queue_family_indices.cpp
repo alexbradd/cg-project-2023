@@ -4,7 +4,8 @@ using namespace vk::raii;
 using namespace seng::rendering;
 using namespace std;
 
-QueueFamilyIndices::QueueFamilyIndices(PhysicalDevice &dev, SurfaceKHR &surface)
+QueueFamilyIndices::QueueFamilyIndices(const PhysicalDevice &dev,
+                                       const SurfaceKHR &surface)
 {
   vector<vk::QueueFamilyProperties> queueFamilies = dev.getQueueFamilyProperties();
 
@@ -17,7 +18,7 @@ QueueFamilyIndices::QueueFamilyIndices(PhysicalDevice &dev, SurfaceKHR &surface)
   }
 }
 
-bool QueueFamilyIndices::isComplete()
+bool QueueFamilyIndices::isComplete() const
 {
   return _graphicsFamily.has_value() && _presentFamily.has_value();
 }

@@ -16,17 +16,17 @@ class QueueFamilyIndices {
    * Instatiate a new class. The given device and surface are queries for
    * support.
    */
-  QueueFamilyIndices(vk::raii::PhysicalDevice &device,
-                     vk::raii::SurfaceKHR &surface);
+  QueueFamilyIndices(const vk::raii::PhysicalDevice &device,
+                     const vk::raii::SurfaceKHR &surface);
 
   // Accessors
-  std::optional<uint32_t> graphicsFamily() { return _graphicsFamily; }
-  std::optional<uint32_t> presentFamily() { return _presentFamily; }
+  const std::optional<uint32_t> graphicsFamily() const { return _graphicsFamily; }
+  const std::optional<uint32_t> presentFamily() const { return _presentFamily; }
 
   /**
    * Return true if both graphics and presentation indices have been found
    */
-  bool isComplete();
+  bool isComplete() const;
 
  private:
   std::optional<uint32_t> _graphicsFamily;
