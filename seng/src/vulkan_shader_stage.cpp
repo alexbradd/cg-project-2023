@@ -18,7 +18,7 @@ VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
                                      VulkanShaderStage::Type type) :
     vulkanDev(std::addressof(dev)),
     typ(type),
-    name(name),
+    name(std::move(name)),
     code(std::invoke([&]() {
       namespace fs = std::filesystem;
 
