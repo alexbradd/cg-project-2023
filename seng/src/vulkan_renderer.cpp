@@ -17,10 +17,10 @@ static Instance createInstance(Context &, GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
 
 // Stub geometry uploading
-static void uploadTo(VulkanDevice &device,
-                     CommandPool &pool,
-                     Queue &queue,
-                     VulkanBuffer &to,
+static void uploadTo(const VulkanDevice &device,
+                     const CommandPool &pool,
+                     const Queue &queue,
+                     const VulkanBuffer &to,
                      vk::DeviceSize size,
                      vk::DeviceSize offset,
                      const void *data) {

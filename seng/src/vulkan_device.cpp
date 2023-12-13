@@ -10,14 +10,14 @@ using namespace vk::raii;
 
 const vector<const char *> VulkanDevice::REQUIRED_EXT{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-static PhysicalDevice pickPhysicalDevice(Instance &, SurfaceKHR &);
-static bool checkExtensions(const vector<const char *> &, PhysicalDevice &);
-static bool checkSwapchain(PhysicalDevice &, SurfaceKHR &);
-static Device createLogicalDevice(PhysicalDevice &, QueueFamilyIndices &);
-static vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &);
+static PhysicalDevice pickPhysicalDevice(const Instance &, const SurfaceKHR &);
+static bool checkExtensions(const vector<const char *> &, const PhysicalDevice &);
+static bool checkSwapchain(const PhysicalDevice &, const SurfaceKHR &);
+static Device createLogicalDevice(const PhysicalDevice &, const QueueFamilyIndices &);
+static vk::SurfaceFormatKHR detectDepthFormat(const PhysicalDevice &);
 
-VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface) :
-    _surface(surface),
+VulkanDevice::VulkanDevice(const Instance &instance, const SurfaceKHR &surface) :
+    _surface(std::addressof(surface)),
     _physical(pickPhysicalDevice(instance, surface)),
     _queueIndices(_physical, surface),
     _swapchainDetails(_physical, surface),
@@ -29,7 +29,7 @@ VulkanDevice::VulkanDevice(Instance &instance, SurfaceKHR &surface) :
   log::dbg("Device has beeen created successfully");
 }
 
-PhysicalDevice pickPhysicalDevice(Instance &i, SurfaceKHR &s)
+PhysicalDevice pickPhysicalDevice(const Instance &i, const SurfaceKHR &s)
 {
   PhysicalDevices devs(i);
   if (devs.empty()) throw runtime_error("Failed to find GPUs with Vulkan support!");
@@ -45,7 +45,7 @@ PhysicalDevice pickPhysicalDevice(Instance &i, SurfaceKHR &s)
   return *dev;
 }
 
-bool checkExtensions(const vector<const char *> &req, PhysicalDevice &dev)
+bool checkExtensions(const vector<const char *> &req, const PhysicalDevice &dev)
 {
   vector<vk::ExtensionProperties> available{dev.enumerateDeviceExtensionProperties()};
   unordered_set<string> required(req.begin(), req.end());
@@ -53,13 +53,13 @@ bool checkExtensions(const vector<const char *> &req, PhysicalDevice &dev)
   return required.empty();
 }
 
-bool checkSwapchain(PhysicalDevice &dev, SurfaceKHR &surface)
+bool checkSwapchain(const PhysicalDevice &dev, const SurfaceKHR &surface)
 {
   SwapchainSupportDetails details(dev, surface);
   return !details.formats().empty() && !details.presentModes().empty();
 }
 
-Device createLogicalDevice(PhysicalDevice &phy, QueueFamilyIndices &indices)
+Device createLogicalDevice(const PhysicalDevice &phy, const QueueFamilyIndices &indices)
 {
   float queuePrio = 1.0f;
 
@@ -82,7 +82,7 @@ Device createLogicalDevice(PhysicalDevice &phy, QueueFamilyIndices &indices)
   return Device(phy, dci);
 }
 
-vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &phy)
+vk::SurfaceFormatKHR detectDepthFormat(const PhysicalDevice &phy)
 {
   vector<vk::Format> candidates{vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,
                                 vk::Format::eD24UnormS8Uint};
@@ -98,7 +98,8 @@ vk::SurfaceFormatKHR detectDepthFormat(PhysicalDevice &phy)
   throw runtime_error("Unable to find appropriate depth format!");
 }
 
-uint32_t VulkanDevice::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags) const
+uint32_t VulkanDevice::findMemoryIndex(uint32_t filter,
+                                       vk::MemoryPropertyFlags flags) const
 {
   vk::PhysicalDeviceMemoryProperties props{_physical.getMemoryProperties()};
 
@@ -111,8 +112,8 @@ uint32_t VulkanDevice::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags 
 
 void VulkanDevice::requerySupport()
 {
-  _queueIndices = QueueFamilyIndices(_physical, _surface);
-  _swapchainDetails = SwapchainSupportDetails(_physical, _surface);
+  _queueIndices = QueueFamilyIndices(_physical, *_surface);
+  _swapchainDetails = SwapchainSupportDetails(_physical, *_surface);
 }
 
 void VulkanDevice::requeryDepthFormat()
