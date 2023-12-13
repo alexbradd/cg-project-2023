@@ -19,13 +19,7 @@ class VulkanCommandBuffer {
   /**
    * Possible states in which the command buffer may be.
    */
-  enum struct State {
-    eReady,
-    eRecording,
-    eInRenderPass,
-    eRecordingEnded,
-    eSubmitted
-  };
+  enum struct State { eReady, eRecording, eInRenderPass, eRecordingEnded, eSubmitted };
 
   /**
    * Create and allocate from the given pool a new CommandBuffer.
@@ -69,11 +63,10 @@ class VulkanCommandBuffer {
   /**
    * Factory method for allocating multiple command buffers with one call.
    */
-  static std::vector<VulkanCommandBuffer> createMultiple(
-      VulkanDevice& dev,
-      vk::raii::CommandPool& pool,
-      uint32_t n,
-      bool primary = true);
+  static std::vector<VulkanCommandBuffer> createMultiple(VulkanDevice& dev,
+                                                         vk::raii::CommandPool& pool,
+                                                         uint32_t n,
+                                                         bool primary = true);
 
   /**
    * Allocate a throwaway single-use buffer and start recording it. Then execute
