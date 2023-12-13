@@ -20,16 +20,19 @@ VulkanBuffer::VulkanBuffer(VulkanDevice &dev,
     memRequirements(handle.getMemoryRequirements()),
     memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits, memFlags)),
     memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex}),
-    locked(false) {
+    locked(false)
+{
   log::dbg("Allocated buffer");
   if (bind) this->bind(0);
 }
 
-void VulkanBuffer::bind(vk::DeviceSize offset) {
+void VulkanBuffer::bind(vk::DeviceSize offset)
+{
   handle.bindMemory(*memory, offset);
 }
 
-void VulkanBuffer::resize(vk::DeviceSize size, Queue &queue, CommandPool &pool) {
+void VulkanBuffer::resize(vk::DeviceSize size, Queue &queue, CommandPool &pool)
+{
   // Create new buffer
   vk::BufferCreateInfo newInfo{{}, size, usage, vk::SharingMode::eExclusive};
   Buffer newBuffer(vkDevRef.get().logical(), newInfo);
@@ -53,12 +56,14 @@ void VulkanBuffer::resize(vk::DeviceSize size, Queue &queue, CommandPool &pool) 
 
 void *VulkanBuffer::lockMemory(vk::DeviceSize offset,
                                vk::DeviceSize size,
-                               vk::MemoryMapFlags flags) {
+                               vk::MemoryMapFlags flags)
+{
   locked = true;
   return memory.mapMemory(offset, size, flags);
 }
 
-void VulkanBuffer::unlockMemory() {
+void VulkanBuffer::unlockMemory()
+{
   locked = false;
   memory.unmapMemory();
 }
@@ -66,7 +71,8 @@ void VulkanBuffer::unlockMemory() {
 void VulkanBuffer::load(const void *data,
                         vk::DeviceSize offset,
                         vk::DeviceSize size,
-                        vk::MemoryMapFlags flags) {
+                        vk::MemoryMapFlags flags)
+{
   void *mem = lockMemory(offset, size, flags);
   memcpy(mem, data, size);
   unlockMemory();
@@ -76,7 +82,8 @@ void VulkanBuffer::rawCopy(Buffer &dest,
                            vk::BufferCopy copyRegion,
                            CommandPool &pool,
                            Queue &queue,
-                           optional<reference_wrapper<Fence>>) {
+                           optional<reference_wrapper<Fence>>)
+{
   queue.waitIdle();
   VulkanCommandBuffer::recordSingleUse(vkDevRef, pool, queue, [&](auto &buf) {
     buf.buffer().copyBuffer(*handle, *dest, copyRegion);
@@ -87,10 +94,12 @@ void VulkanBuffer::copy(VulkanBuffer &dest,
                         vk::BufferCopy copyRegion,
                         CommandPool &pool,
                         Queue &queue,
-                        optional<reference_wrapper<Fence>> fence) {
+                        optional<reference_wrapper<Fence>> fence)
+{
   rawCopy(dest.handle, copyRegion, pool, queue, fence);
 }
 
-VulkanBuffer::~VulkanBuffer() {
+VulkanBuffer::~VulkanBuffer()
+{
   if (*handle != vk::Buffer{}) log::dbg("Destroying buffer");
 }

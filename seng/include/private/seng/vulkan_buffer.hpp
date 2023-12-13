@@ -21,12 +21,12 @@ class VulkanBuffer {
   /**
    * Allocate a new buffer, also bind it if instructed to do so.
    */
-  VulkanBuffer(VulkanDevice &dev,
-               vk::BufferUsageFlags usage,
-               vk::DeviceSize size,
-               vk::MemoryPropertyFlags memoryFlags =
-                   vk::MemoryPropertyFlagBits::eDeviceLocal,
-               bool bind = true);
+  VulkanBuffer(
+      VulkanDevice &dev,
+      vk::BufferUsageFlags usage,
+      vk::DeviceSize size,
+      vk::MemoryPropertyFlags memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+      bool bind = true);
   VulkanBuffer(const VulkanBuffer &) = delete;
   VulkanBuffer(VulkanBuffer &&) = default;
   ~VulkanBuffer();
@@ -44,16 +44,12 @@ class VulkanBuffer {
   /**
    * Resize the buffer to the new size.
    */
-  void resize(vk::DeviceSize size,
-              vk::raii::Queue &queue,
-              vk::raii::CommandPool &pool);
+  void resize(vk::DeviceSize size, vk::raii::Queue &queue, vk::raii::CommandPool &pool);
 
   /**
    * Lock the memory of the buffer.
    */
-  void *lockMemory(vk::DeviceSize size,
-                   vk::DeviceSize offset,
-                   vk::MemoryMapFlags flags);
+  void *lockMemory(vk::DeviceSize size, vk::DeviceSize offset, vk::MemoryMapFlags flags);
 
   /**
    * Unlock the buffer.
@@ -76,8 +72,7 @@ class VulkanBuffer {
             vk::BufferCopy copyRegion,
             vk::raii::CommandPool &pool,
             vk::raii::Queue &queue,
-            std::optional<std::reference_wrapper<vk::raii::Fence>> fence =
-                std::nullopt);
+            std::optional<std::reference_wrapper<vk::raii::Fence>> fence = std::nullopt);
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;
@@ -92,12 +87,12 @@ class VulkanBuffer {
   /**
    * Copy a region of this buffer into one of the destination buffer.
    */
-  void rawCopy(vk::raii::Buffer &dest,
-               vk::BufferCopy copyRegion,
-               vk::raii::CommandPool &pool,
-               vk::raii::Queue &queue,
-               std::optional<std::reference_wrapper<vk::raii::Fence>> fence =
-                   std::nullopt);
+  void rawCopy(
+      vk::raii::Buffer &dest,
+      vk::BufferCopy copyRegion,
+      vk::raii::CommandPool &pool,
+      vk::raii::Queue &queue,
+      std::optional<std::reference_wrapper<vk::raii::Fence>> fence = std::nullopt);
 };
 
 }  // namespace seng::rendering
