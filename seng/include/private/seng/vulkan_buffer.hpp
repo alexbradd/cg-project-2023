@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <functional>
-#include <optional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -72,7 +71,7 @@ class VulkanBuffer {
             vk::BufferCopy copyRegion,
             vk::raii::CommandPool &pool,
             vk::raii::Queue &queue,
-            std::optional<std::reference_wrapper<vk::raii::Fence>> fence = std::nullopt);
+            vk::raii::Fence *fence = nullptr);
 
  private:
   std::reference_wrapper<VulkanDevice> vkDevRef;
@@ -87,12 +86,11 @@ class VulkanBuffer {
   /**
    * Copy a region of this buffer into one of the destination buffer.
    */
-  void rawCopy(
-      vk::raii::Buffer &dest,
-      vk::BufferCopy copyRegion,
-      vk::raii::CommandPool &pool,
-      vk::raii::Queue &queue,
-      std::optional<std::reference_wrapper<vk::raii::Fence>> fence = std::nullopt);
+  void rawCopy(vk::raii::Buffer &dest,
+               vk::BufferCopy copyRegion,
+               vk::raii::CommandPool &pool,
+               vk::raii::Queue &queue,
+               vk::raii::Fence *fence = nullptr);
 };
 
 }  // namespace seng::rendering

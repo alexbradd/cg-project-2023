@@ -82,7 +82,7 @@ void VulkanBuffer::rawCopy(Buffer &dest,
                            vk::BufferCopy copyRegion,
                            CommandPool &pool,
                            Queue &queue,
-                           optional<reference_wrapper<Fence>>)
+                           [[maybe_unused]] Fence *fence)
 {
   queue.waitIdle();
   VulkanCommandBuffer::recordSingleUse(vkDevRef, pool, queue, [&](auto &buf) {
@@ -94,7 +94,7 @@ void VulkanBuffer::copy(VulkanBuffer &dest,
                         vk::BufferCopy copyRegion,
                         CommandPool &pool,
                         Queue &queue,
-                        optional<reference_wrapper<Fence>> fence)
+                        Fence *fence)
 {
   rawCopy(dest.handle, copyRegion, pool, queue, fence);
 }
