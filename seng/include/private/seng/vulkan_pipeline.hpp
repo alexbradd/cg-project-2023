@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -20,8 +19,7 @@ class VulkanPipeline {
    */
   struct CreateInfo {
     std::vector<vk::VertexInputAttributeDescription>& attributes;
-    std::vector<std::reference_wrapper<vk::raii::DescriptorSetLayout>>&
-        descriptorSetLayouts;
+    std::vector<vk::DescriptorSetLayout>& descriptorSetLayouts;
     std::vector<vk::PipelineShaderStageCreateInfo>& stages;
     bool wireframe = false;
   };

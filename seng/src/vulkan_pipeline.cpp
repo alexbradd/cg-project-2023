@@ -20,10 +20,6 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& device,
     vulkanDevice(std::addressof(device)),
     vulkanRenderPass(std::addressof(pass)),
     pipelineLayout(std::invoke([&]() {
-      vector<vk::DescriptorSetLayout> layouts{};
-      layouts.reserve(info.descriptorSetLayouts.size());
-      for (const auto& l : info.descriptorSetLayouts) layouts.emplace_back(*l.get());
-
       vk::PipelineLayoutCreateInfo layoutInfo{};
 
       // Push constants
@@ -36,7 +32,7 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& device,
 
       // Layouts
       layoutInfo.setLayoutCount = 1;
-      layoutInfo.pSetLayouts = layouts.data();
+      layoutInfo.pSetLayouts = info.descriptorSetLayouts.data();
       return PipelineLayout(device.logical(), layoutInfo);
     })),
     pipeline(createPipeline(device, pass, pipelineLayout, info))

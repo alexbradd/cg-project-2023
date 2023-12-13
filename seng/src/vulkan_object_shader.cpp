@@ -61,8 +61,8 @@ VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
       }
 
       // Descriptor layouts
-      vector<reference_wrapper<DescriptorSetLayout>> descriptors;
-      descriptors.emplace_back(globalDescriptorSetLayout);
+      vector<vk::DescriptorSetLayout> descriptors;
+      descriptors.emplace_back(*globalDescriptorSetLayout);
       // TODO: Local descriptor layouts
 
       // Stages
