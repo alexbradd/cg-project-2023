@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <exception>
-#include <functional>
 #include <limits>
 #include <seng/vulkan_image.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -41,7 +40,7 @@ class InadequateSwapchainException : public std::exception {
  */
 class VulkanSwapchain {
  public:
-  VulkanSwapchain(VulkanDevice &, vk::raii::SurfaceKHR &, GlfwWindow &);
+  VulkanSwapchain(const VulkanDevice &, const vk::raii::SurfaceKHR &, const GlfwWindow &);
   VulkanSwapchain(const VulkanSwapchain &) = delete;
   VulkanSwapchain(VulkanSwapchain &&) = default;
   ~VulkanSwapchain();
@@ -58,19 +57,19 @@ class VulkanSwapchain {
    * If the swapchain is out of date or suboptimal,
    * `InadequateSwapchainException` is thrown.
    */
-  uint32_t nextImageIndex(vk::raii::Semaphore &imgAvailable,
-                          VulkanFence *fence = nullptr,
-                          uint64_t timeout = std::numeric_limits<uint64_t>::max());
+  uint32_t nextImageIndex(const vk::raii::Semaphore &imgAvailable,
+                          const VulkanFence *fence = nullptr,
+                          uint64_t timeout = std::numeric_limits<uint64_t>::max()) const;
 
   /**
    * Presents the frame with index `imageIndex` on the present Queue. If the
    * current swapchain is inadequate/out of date `InadequateSwapchainException`
    * is thrown.
    */
-  void present(vk::raii::Queue &presentQueue,
-               vk::raii::Queue &graphicsQueue,
-               vk::raii::Semaphore &renderComplete,
-               uint32_t imageIndex);
+  void present(const vk::raii::Queue &presentQueue,
+               const vk::raii::Queue &graphicsQueue,
+               const vk::raii::Semaphore &renderComplete,
+               uint32_t imageIndex) const;
 
   /**
    * Recreate in-place the swapchain.
@@ -83,14 +82,14 @@ class VulkanSwapchain {
                        GlfwWindow &window);
 
   // Accessors
-  vk::raii::SwapchainKHR &swapchain() { return _swapchain; }
-  std::vector<vk::raii::ImageView> &images() { return _imageViews; }
-  vk::SurfaceFormatKHR &format() { return _format; }
-  vk::Extent2D &extent() { return _extent; }
-  VulkanImage &depthBuffer() { return _depthBufferImage; }
+  const vk::raii::SwapchainKHR &swapchain() const { return _swapchain; }
+  const std::vector<vk::raii::ImageView> &images() const { return _imageViews; }
+  const vk::SurfaceFormatKHR &format() const { return _format; }
+  const vk::Extent2D &extent() const { return _extent; }
+  const VulkanImage &depthBuffer() const { return _depthBufferImage; }
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice *vulkanDev;
   vk::SurfaceFormatKHR _format;
   vk::Extent2D _extent;
   vk::raii::SwapchainKHR _swapchain;

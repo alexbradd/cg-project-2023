@@ -12,17 +12,17 @@ using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
-VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
-                                 SurfaceKHR &surface,
-                                 GlfwWindow &window) :
-    vkDevRef(dev),
+VulkanSwapchain::VulkanSwapchain(const VulkanDevice &dev,
+                                 const SurfaceKHR &surface,
+                                 const GlfwWindow &window) :
+    vulkanDev(std::addressof(dev)),
     _format(dev.swapchainSupportDetails().chooseFormat()),
     _extent(dev.swapchainSupportDetails().chooseSwapchainExtent(window)),
     // === Create swapchain
     _swapchain(std::invoke([&]() {
-      QueueFamilyIndices indices(vkDevRef.get().queueFamiliyIndices());
+      QueueFamilyIndices indices(dev.queueFamiliyIndices());
       vk::SurfaceCapabilitiesKHR capabilities(
-          vkDevRef.get().swapchainSupportDetails().capabilities());
+          dev.swapchainSupportDetails().capabilities());
 
       vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
       uint32_t imageCount = capabilities.minImageCount + 1;
@@ -52,7 +52,7 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
         sci.imageSharingMode = vk::SharingMode::eExclusive;
         sci.setQueueFamilyIndices({});
       }
-      return SwapchainKHR(vkDevRef.get().logical(), sci);
+      return SwapchainKHR(dev.logical(), sci);
     })),
     _images(_swapchain.getImages()),
     // === Create ImageViews
@@ -83,21 +83,21 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
       VulkanImage::CreateInfo ci{vk::ImageType::e2D,
                                  _extent.width,
                                  _extent.height,
-                                 vkDevRef.get().depthFormat().format,
+                                 dev.depthFormat().format,
                                  vk::ImageTiling::eOptimal,
                                  vk::ImageUsageFlagBits::eDepthStencilAttachment,
                                  vk::MemoryPropertyFlagBits::eDeviceLocal,
                                  vk::ImageAspectFlagBits::eDepth,
                                  true};
-      return VulkanImage(vkDevRef.get(), ci);
+      return VulkanImage(dev, ci);
     }))
 {
   log::dbg("Swapchain created with extent {}x{}", _extent.width, _extent.height);
 }
 
-uint32_t VulkanSwapchain::nextImageIndex(Semaphore &imgAvailable,
-                                         VulkanFence *fence,
-                                         uint64_t timeout)
+uint32_t VulkanSwapchain::nextImageIndex(const Semaphore &imgAvailable,
+                                         const VulkanFence *fence,
+                                         uint64_t timeout) const
 {
   optional<pair<vk::Result, uint32_t>> res;
   if (fence != nullptr) {
@@ -118,10 +118,10 @@ uint32_t VulkanSwapchain::nextImageIndex(Semaphore &imgAvailable,
   }
 }
 
-void VulkanSwapchain::present(Queue &presentQueue,
-                              Queue &,
-                              Semaphore &renderComplete,
-                              uint32_t imageIndex)
+void VulkanSwapchain::present(const Queue &presentQueue,
+                              const Queue &,
+                              const Semaphore &renderComplete,
+                              uint32_t imageIndex) const
 {
   vk::PresentInfoKHR info{};
   info.waitSemaphoreCount = 1;
@@ -157,7 +157,7 @@ void VulkanSwapchain::recreate(VulkanSwapchain &loc,
 VulkanSwapchain::~VulkanSwapchain()
 {
   if (*_swapchain != vk::SwapchainKHR{}) {
-    vkDevRef.get().logical().waitIdle();
+    vulkanDev->logical().waitIdle();
     log::dbg("Destroying swapchain");
   }
 }
