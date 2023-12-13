@@ -30,8 +30,8 @@ VulkanImage::VulkanImage(VulkanDevice &dev, VulkanImage::CreateInfo &info) :
     // Allocate memory
     memory(std::invoke([&]() {
       vk::MemoryRequirements requirements(handle.getMemoryRequirements());
-      uint32_t memoryIndex = vkDevRef.get().findMemoryIndex(
-          requirements.memoryTypeBits, info.memoryFlags);
+      uint32_t memoryIndex =
+          vkDevRef.get().findMemoryIndex(requirements.memoryTypeBits, info.memoryFlags);
 
       vk::MemoryAllocateInfo ai;
       ai.allocationSize = requirements.size;
@@ -55,12 +55,13 @@ VulkanImage::VulkanImage(VulkanDevice &dev, VulkanImage::CreateInfo &info) :
       ci.subresourceRange.baseArrayLayer = 0;
       ci.subresourceRange.layerCount = 1;
       return ImageView(dev.logical(), ci);
-    })) {
-  log::dbg("Created new image {}",
-           info.createView ? "with view" : "without view");
+    }))
+{
+  log::dbg("Created new image {}", info.createView ? "with view" : "without view");
 }
 
-void VulkanImage::createView() {
+void VulkanImage::createView()
+{
   if (view.has_value()) return;
 
   vk::ImageViewCreateInfo ci;
@@ -74,7 +75,8 @@ void VulkanImage::createView() {
   view = ImageView(vkDevRef.get().logical(), ci);
 }
 
-VulkanImage::~VulkanImage() {
+VulkanImage::~VulkanImage()
+{
   // Just checking if the device handle is valid is enough
   // since all or none handles are valid
   if (*handle != vk::Image{}) log::dbg("Destroying image");
