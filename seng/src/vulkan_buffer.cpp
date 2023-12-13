@@ -19,8 +19,7 @@ VulkanBuffer::VulkanBuffer(VulkanDevice &dev,
     handle(Buffer(dev.logical(), {{}, size, usage, vk::SharingMode::eExclusive})),
     memRequirements(handle.getMemoryRequirements()),
     memIndex(vkDevRef.get().findMemoryIndex(memRequirements.memoryTypeBits, memFlags)),
-    memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex}),
-    locked(false)
+    memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex})
 {
   log::dbg("Allocated buffer");
   if (bind) this->bind(0);
@@ -58,13 +57,11 @@ void *VulkanBuffer::lockMemory(vk::DeviceSize offset,
                                vk::DeviceSize size,
                                vk::MemoryMapFlags flags)
 {
-  locked = true;
   return memory.mapMemory(offset, size, flags);
 }
 
 void VulkanBuffer::unlockMemory()
 {
-  locked = false;
   memory.unmapMemory();
 }
 

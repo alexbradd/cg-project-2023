@@ -81,7 +81,6 @@ class VulkanBuffer {
   vk::MemoryRequirements memRequirements;
   uint32_t memIndex;
   vk::raii::DeviceMemory memory;
-  bool locked;
 
   /**
    * Copy a region of this buffer into one of the destination buffer.
