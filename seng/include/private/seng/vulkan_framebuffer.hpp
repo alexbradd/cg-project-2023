@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <vector>
 #include <vulkan/vulkan_raii.hpp>
 
@@ -22,10 +21,10 @@ class VulkanFramebuffer {
   /**
    * Create and allocate a new framebuffer.
    */
-  VulkanFramebuffer(VulkanDevice& dev,
-                    VulkanRenderPass& pass,
+  VulkanFramebuffer(const VulkanDevice& dev,
+                    const VulkanRenderPass& pass,
                     vk::Extent2D size,
-                    std::vector<vk::ImageView>& attachments);
+                    const std::vector<vk::ImageView>& attachments);
   VulkanFramebuffer(const VulkanFramebuffer&) = delete;
   VulkanFramebuffer(VulkanFramebuffer&&) = default;
   ~VulkanFramebuffer();
@@ -40,13 +39,13 @@ class VulkanFramebuffer {
    * Create and allocate a new framebuffers taking as attachments the views and
    * depth buffer from the given swapchain
    */
-  static std::vector<VulkanFramebuffer> fromSwapchain(VulkanDevice& device,
-                                                      VulkanRenderPass& pass,
-                                                      VulkanSwapchain& chain);
+  static std::vector<VulkanFramebuffer> fromSwapchain(const VulkanDevice& device,
+                                                      const VulkanRenderPass& pass,
+                                                      const VulkanSwapchain& chain);
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
-  std::reference_wrapper<VulkanRenderPass> vkRenderPass;
+  const VulkanDevice* vulkanDev;
+  const VulkanRenderPass* vulkanRenderPass;
   std::vector<vk::ImageView> attachments;
   vk::raii::Framebuffer _handle;
 };

@@ -8,12 +8,12 @@ using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
-VulkanFramebuffer::VulkanFramebuffer(VulkanDevice &dev,
-                                     VulkanRenderPass &pass,
+VulkanFramebuffer::VulkanFramebuffer(const VulkanDevice &dev,
+                                     const VulkanRenderPass &pass,
                                      vk::Extent2D size,
-                                     vector<vk::ImageView> &attachments) :
-    vkDevRef(dev),
-    vkRenderPass(pass),
+                                     const vector<vk::ImageView> &attachments) :
+    vulkanDev(std::addressof(dev)),
+    vulkanRenderPass(std::addressof(pass)),
     attachments(attachments),
     _handle(std::invoke([&]() {
       vk::FramebufferCreateInfo info{};
@@ -29,9 +29,9 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanDevice &dev,
   log::dbg("Framebuffer created with size {}x{}", size.width, size.height);
 }
 
-vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(VulkanDevice &dev,
-                                                           VulkanRenderPass &pass,
-                                                           VulkanSwapchain &swap)
+vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(const VulkanDevice &dev,
+                                                           const VulkanRenderPass &pass,
+                                                           const VulkanSwapchain &swap)
 {
   vector<VulkanFramebuffer> fbs{};
   fbs.reserve(swap.images().size());
