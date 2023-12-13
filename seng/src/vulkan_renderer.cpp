@@ -13,7 +13,7 @@ using namespace std;
 using namespace vk::raii;
 
 // Intializer functions
-static Instance createInstance(Context &, GlfwWindow &);
+static Instance createInstance(const Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
 
 // Stub geometry uploading
@@ -47,8 +47,8 @@ static constexpr vk::BufferUsageFlags indexBufferUsage =
 const std::vector<const char *> VulkanRenderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
 
-VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
-    window(window),
+VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &window) :
+    window(std::addressof(window)),
     context(),
     // Instance creation
     instance(createInstance(context, window)),
@@ -103,7 +103,7 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
            indices.data());
 }
 
-Instance createInstance(Context &context, GlfwWindow &window)
+Instance createInstance(const Context &context, const GlfwWindow &window)
 {
   auto &LAYERS = VulkanRenderer::VALIDATION_LAYERS;
   auto &VALIDATE = VulkanRenderer::USE_VALIDATION;
@@ -205,7 +205,7 @@ void VulkanRenderer::beginFrame()
 }
 
 // FIXME: start of stub
-void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view)
+void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) const
 {
   auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
@@ -218,14 +218,14 @@ void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view)
   shader->uploadGlobalState(commandBuffer, imageIndex);
 }
 
-void VulkanRenderer::updateModel(glm::mat4 model)
+void VulkanRenderer::updateModel(glm::mat4 model) const
 {
   auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
   shader->updateModelState(commandBuffer, model);
 }
 
-void VulkanRenderer::draw()
+void VulkanRenderer::draw() const
 {
   auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
@@ -291,7 +291,7 @@ void VulkanRenderer::recreateSwapchain()
   if (recreatingSwapchain) return;
 
   // Get the new framebuffer size, if null do nothing
-  pair<unsigned int, unsigned int> fbSize = window.get().framebufferSize();
+  pair<unsigned int, unsigned int> fbSize = window->framebufferSize();
   if (fbSize.first == 0 || fbSize.second == 0) {
     log::dbg("Null framebuffer, aborting...");
     return;
@@ -310,13 +310,13 @@ void VulkanRenderer::recreateSwapchain()
   device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  swapchain = VulkanSwapchain(device, surface, window);
+  swapchain = VulkanSwapchain(device, surface, *window);
   currentFrame = 0;
 
   // Sync framebuffer generation
   lastFbGeneration = fbGeneration;
 
-  // Clear old command buffers and frabuffers
+  // Clear old command buffers and framebuffers
   graphicsCmdBufs.clear();
   framebuffers.clear();
 

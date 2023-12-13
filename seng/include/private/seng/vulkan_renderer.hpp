@@ -1,6 +1,7 @@
 #pragma once
 
-#include <functional>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <seng/application_config.hpp>
 #include <seng/primitive_types.hpp>
 #include <seng/shader_loader.hpp>
@@ -13,9 +14,6 @@
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
 #include <vulkan/vulkan_raii.hpp>
-
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
 
 namespace seng::rendering {
 
@@ -46,7 +44,7 @@ class VulkanRenderer {
   /**
    * Boot up the vulkan renderer and draw into the given window.
    */
-  VulkanRenderer(ApplicationConfig config, GlfwWindow &window);
+  VulkanRenderer(ApplicationConfig config, const GlfwWindow &window);
   VulkanRenderer(const VulkanRenderer &) = delete;
   VulkanRenderer(VulkanRenderer &&) = default;
   ~VulkanRenderer();
@@ -74,8 +72,8 @@ class VulkanRenderer {
    */
   void beginFrame();
 
-  void updateGlobalState(glm::mat4 projection, glm::mat4 view);
-  void updateModel(glm::mat4 model);
+  void updateGlobalState(glm::mat4 projection, glm::mat4 view) const;
+  void updateModel(glm::mat4 model) const;
 
   /**
    * Finishes recording a frame.
@@ -85,10 +83,10 @@ class VulkanRenderer {
   /**
    * Draws a frame.
    */
-  void draw();
+  void draw() const;
 
  private:
-  std::reference_wrapper<GlfwWindow> window;
+  const GlfwWindow *window;
   vk::raii::Context context;
   vk::raii::Instance instance;
   DebugMessenger debugMessenger;
