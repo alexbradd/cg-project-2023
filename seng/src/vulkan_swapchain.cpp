@@ -26,8 +26,7 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
 
       vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
       uint32_t imageCount = capabilities.minImageCount + 1;
-      if (capabilities.maxImageCount > 0 &&
-          imageCount > capabilities.maxImageCount)
+      if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
         imageCount = capabilities.maxImageCount;
 
       vk::SwapchainCreateInfoKHR sci{};
@@ -81,26 +80,25 @@ VulkanSwapchain::VulkanSwapchain(VulkanDevice &dev,
     })),
     // === Create depth buffer
     _depthBufferImage(std::invoke([&]() {
-      VulkanImage::CreateInfo ci{
-          vk::ImageType::e2D,
-          _extent.width,
-          _extent.height,
-          vkDevRef.get().depthFormat().format,
-          vk::ImageTiling::eOptimal,
-          vk::ImageUsageFlagBits::eDepthStencilAttachment,
-          vk::MemoryPropertyFlagBits::eDeviceLocal,
-          vk::ImageAspectFlagBits::eDepth,
-          true};
+      VulkanImage::CreateInfo ci{vk::ImageType::e2D,
+                                 _extent.width,
+                                 _extent.height,
+                                 vkDevRef.get().depthFormat().format,
+                                 vk::ImageTiling::eOptimal,
+                                 vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                                 vk::MemoryPropertyFlagBits::eDeviceLocal,
+                                 vk::ImageAspectFlagBits::eDepth,
+                                 true};
       return VulkanImage(vkDevRef.get(), ci);
-    })) {
-  log::dbg("Swapchain created with extent {}x{}", _extent.width,
-           _extent.height);
+    }))
+{
+  log::dbg("Swapchain created with extent {}x{}", _extent.width, _extent.height);
 }
 
-uint32_t VulkanSwapchain::nextImageIndex(
-    Semaphore &imgAvailable,
-    optional<reference_wrapper<VulkanFence>> fence,
-    uint64_t timeout) {
+uint32_t VulkanSwapchain::nextImageIndex(Semaphore &imgAvailable,
+                                         optional<reference_wrapper<VulkanFence>> fence,
+                                         uint64_t timeout)
+{
   optional<pair<vk::Result, uint32_t>> res;
   if (fence.has_value()) {
     res = _swapchain.acquireNextImage(timeout, *imgAvailable,
@@ -124,7 +122,8 @@ uint32_t VulkanSwapchain::nextImageIndex(
 void VulkanSwapchain::present(Queue &presentQueue,
                               Queue &,
                               Semaphore &renderComplete,
-                              uint32_t imageIndex) {
+                              uint32_t imageIndex)
+{
   vk::PresentInfoKHR info{};
   info.waitSemaphoreCount = 1;
   info.pWaitSemaphores = &(*renderComplete);
@@ -141,8 +140,8 @@ void VulkanSwapchain::present(Queue &presentQueue,
     case vk::Result::eSuboptimalKHR:
       throw InadequateSwapchainException("Out of date swapchain", res);
     default:
-      string s = string("Failed to present swapchain image! Error: ") +
-                 resultToString(res);
+      string s =
+          string("Failed to present swapchain image! Error: ") + resultToString(res);
       throw runtime_error(s);
   }
 }
@@ -150,12 +149,14 @@ void VulkanSwapchain::present(Queue &presentQueue,
 void VulkanSwapchain::recreate(VulkanSwapchain &loc,
                                VulkanDevice &dev,
                                SurfaceKHR &surface,
-                               GlfwWindow &window) {
+                               GlfwWindow &window)
+{
   loc.~VulkanSwapchain();
   ::new (&loc) VulkanSwapchain(dev, surface, window);
 }
 
-VulkanSwapchain::~VulkanSwapchain() {
+VulkanSwapchain::~VulkanSwapchain()
+{
   if (*_swapchain != vk::SwapchainKHR{}) {
     vkDevRef.get().logical().waitIdle();
     log::dbg("Destroying swapchain");

@@ -20,8 +20,10 @@ class GlfwWindow;
  */
 class InadequateSwapchainException : public std::exception {
  public:
-  InadequateSwapchainException(std::string_view error, vk::Result res)
-      : err{error}, r{res} {}
+  InadequateSwapchainException(std::string_view error, vk::Result res) :
+      err{error}, r{res}
+  {
+  }
 
   const char *what() const noexcept override { return err.c_str(); }
   vk::Result result() const noexcept { return r; }
