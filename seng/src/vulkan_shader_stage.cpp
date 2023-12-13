@@ -12,12 +12,12 @@ using namespace vk::raii;
 static constexpr char VERT_SUFFIX[] = ".vert.spv";
 static constexpr char FRAG_SUFFIX[] = ".frag.spv";
 
-VulkanShaderStage::VulkanShaderStage(VulkanDevice &dev,
-                                     string &shaderLoadPath,
+VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
+                                     const string &shaderLoadPath,
                                      string name,
                                      VulkanShaderStage::Type type,
                                      vk::ShaderStageFlagBits flags) :
-    vkDevRef(dev),
+    vulkanDev(std::addressof(dev)),
     typ(type),
     name(name),
     code(std::invoke([&]() {
@@ -39,7 +39,7 @@ VulkanShaderStage::VulkanShaderStage(VulkanDevice &dev,
       return seng::internal::readFile((shaderDir / filename).string());
     })),
     moduleCreateInfo{{}, code.size(), reinterpret_cast<const uint32_t *>(code.data())},
-    module(vkDevRef.get().logical(), moduleCreateInfo),
+    module(dev.logical(), moduleCreateInfo),
     stageCreateInfo{{}, flags, *module, "main"}
 {
   switch (type) {
@@ -52,6 +52,7 @@ VulkanShaderStage::VulkanShaderStage(VulkanDevice &dev,
   }
 }
 
-VulkanShaderStage::~VulkanShaderStage() {
+VulkanShaderStage::~VulkanShaderStage()
+{
   if (*module != vk::ShaderModule{}) log::dbg("Destroying shader module");
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -20,8 +19,8 @@ class VulkanShaderStage {
  public:
   enum struct Type { eVertex, eFragment };
 
-  VulkanShaderStage(VulkanDevice& device,
-                    std::string& shaderLoadPath,
+  VulkanShaderStage(const VulkanDevice& device,
+                    const std::string& shaderLoadPath,
                     std::string name,
                     Type type,
                     vk::ShaderStageFlagBits flags);
@@ -33,10 +32,10 @@ class VulkanShaderStage {
   VulkanShaderStage& operator=(VulkanShaderStage&&) = default;
 
   // Accessors
-  vk::PipelineShaderStageCreateInfo createInfo() { return stageCreateInfo; }
+  const vk::PipelineShaderStageCreateInfo& createInfo() const { return stageCreateInfo; }
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice* vulkanDev;
   Type typ;
   std::string name;
   std::vector<char> code;
