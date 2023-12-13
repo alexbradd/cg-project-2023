@@ -145,15 +145,6 @@ void VulkanSwapchain::present(const Queue &presentQueue,
   }
 }
 
-void VulkanSwapchain::recreate(VulkanSwapchain &loc,
-                               VulkanDevice &dev,
-                               SurfaceKHR &surface,
-                               GlfwWindow &window)
-{
-  loc.~VulkanSwapchain();
-  ::new (&loc) VulkanSwapchain(dev, surface, window);
-}
-
 VulkanSwapchain::~VulkanSwapchain()
 {
   if (*_swapchain != vk::SwapchainKHR{}) {

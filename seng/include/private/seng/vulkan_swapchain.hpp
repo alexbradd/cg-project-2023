@@ -71,16 +71,6 @@ class VulkanSwapchain {
                const vk::raii::Semaphore &renderComplete,
                uint32_t imageIndex) const;
 
-  /**
-   * Recreate in-place the swapchain.
-   *
-   * @param loc refernce for where the swapchain will be recreated
-   */
-  static void recreate(VulkanSwapchain &loc,
-                       VulkanDevice &dev,
-                       vk::raii::SurfaceKHR &surface,
-                       GlfwWindow &window);
-
   // Accessors
   const vk::raii::SwapchainKHR &swapchain() const { return _swapchain; }
   const std::vector<vk::raii::ImageView> &images() const { return _imageViews; }

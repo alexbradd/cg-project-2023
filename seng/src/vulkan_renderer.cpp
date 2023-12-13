@@ -306,7 +306,7 @@ void VulkanRenderer::recreateSwapchain() {
   device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  VulkanSwapchain::recreate(swapchain, device, surface, window);
+  swapchain = VulkanSwapchain(device, surface, window);
   currentFrame = 0;
 
   // Sync framebuffer generation
