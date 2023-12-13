@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <functional>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -21,7 +20,7 @@ class VulkanBuffer {
    * Allocate a new buffer, also bind it if instructed to do so.
    */
   VulkanBuffer(
-      VulkanDevice &dev,
+      const VulkanDevice &dev,
       vk::BufferUsageFlags usage,
       vk::DeviceSize size,
       vk::MemoryPropertyFlags memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -33,27 +32,31 @@ class VulkanBuffer {
   VulkanBuffer &operator=(const VulkanBuffer &) = delete;
   VulkanBuffer &operator=(VulkanBuffer &&) = default;
 
-  vk::raii::Buffer &buffer() { return handle; }
+  const vk::raii::Buffer &buffer() const { return handle; }
 
   /**
    * Bind the buffer at the give offset
    */
-  void bind(vk::DeviceSize offset);
+  void bind(vk::DeviceSize offset) const;
 
   /**
    * Resize the buffer to the new size.
    */
-  void resize(vk::DeviceSize size, vk::raii::Queue &queue, vk::raii::CommandPool &pool);
+  void resize(vk::DeviceSize size,
+              const vk::raii::Queue &queue,
+              const vk::raii::CommandPool &pool);
 
   /**
    * Lock the memory of the buffer.
    */
-  void *lockMemory(vk::DeviceSize size, vk::DeviceSize offset, vk::MemoryMapFlags flags);
+  void *lockMemory(vk::DeviceSize size,
+                   vk::DeviceSize offset,
+                   vk::MemoryMapFlags flags) const;
 
   /**
    * Unlock the buffer.
    */
-  void unlockMemory();
+  void unlockMemory() const;
 
   /**
    * Lock the buffer and copy the given amount of data into it at the given
@@ -62,19 +65,19 @@ class VulkanBuffer {
   void load(const void *data,
             vk::DeviceSize offset,
             vk::DeviceSize size,
-            vk::MemoryMapFlags flags);
+            vk::MemoryMapFlags flags) const;
 
   /**
    * Copy a region of this buffer into one of the destination buffer.
    */
-  void copy(VulkanBuffer &dest,
+  void copy(const VulkanBuffer &dest,
             vk::BufferCopy copyRegion,
-            vk::raii::CommandPool &pool,
-            vk::raii::Queue &queue,
-            vk::raii::Fence *fence = nullptr);
+            const vk::raii::CommandPool &pool,
+            const vk::raii::Queue &queue,
+            const vk::raii::Fence *fence = nullptr) const;
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice *vulkanDev;
   vk::BufferUsageFlags usage;
   vk::DeviceSize size;
   vk::raii::Buffer handle;
@@ -85,11 +88,11 @@ class VulkanBuffer {
   /**
    * Copy a region of this buffer into one of the destination buffer.
    */
-  void rawCopy(vk::raii::Buffer &dest,
+  void rawCopy(const vk::raii::Buffer &dest,
                vk::BufferCopy copyRegion,
-               vk::raii::CommandPool &pool,
-               vk::raii::Queue &queue,
-               vk::raii::Fence *fence = nullptr);
+               const vk::raii::CommandPool &pool,
+               const vk::raii::Queue &queue,
+               const vk::raii::Fence *fence = nullptr) const;
 };
 
 }  // namespace seng::rendering
