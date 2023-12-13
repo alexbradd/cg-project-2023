@@ -16,12 +16,12 @@ static const vk::MemoryPropertyFlags UNIFORM_MEM_FLAGS =
     vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible |
     vk::MemoryPropertyFlagBits::eHostCoherent;
 
-VulkanObjectShader::VulkanObjectShader(VulkanDevice& dev,
-                                       VulkanRenderPass& pass,
+VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
+                                       const VulkanRenderPass& pass,
                                        uint32_t globalPoolSize,
                                        string name,
                                        vector<shared_ptr<VulkanShaderStage>> stages) :
-    vkDevRef(dev),
+    vulkanDev(std::addressof(dev)),
     name(name),
     _stages(stages),
     globalDescriptorPool(std::invoke([&]() {
@@ -42,7 +42,7 @@ VulkanObjectShader::VulkanObjectShader(VulkanDevice& dev,
       vk::DescriptorSetLayoutCreateInfo info{};
       info.bindingCount = 1;
       info.pBindings = &guboBinding;
-      return DescriptorSetLayout(vkDevRef.get().logical(), info);
+      return DescriptorSetLayout(dev.logical(), info);
     })),
     pipeline(std::invoke([&]() {
       // Attributes:
@@ -73,7 +73,7 @@ VulkanObjectShader::VulkanObjectShader(VulkanDevice& dev,
 
       VulkanPipeline::CreateInfo pipeInfo{attributeDescriptions, descriptors,
                                           stageCreateInfo, false};
-      return VulkanPipeline(vkDevRef, pass, pipeInfo);
+      return VulkanPipeline(dev, pass, pipeInfo);
     })),
     globalDescriptorSets(std::invoke([&]() {
       vector<vk::DescriptorSetLayout> descs(globalPoolSize, *globalDescriptorSetLayout);
@@ -81,19 +81,20 @@ VulkanObjectShader::VulkanObjectShader(VulkanDevice& dev,
       vk::DescriptorSetAllocateInfo info{};
       info.descriptorPool = *globalDescriptorPool;
       info.setSetLayouts(descs);
-      return DescriptorSets(vkDevRef.get().logical(), info);
+      return DescriptorSets(dev.logical(), info);
     })),
-    gubo(vkDevRef, UNIFORM_USAGE_FLAGS, sizeof(guo), UNIFORM_MEM_FLAGS, true)
+    gubo(dev, UNIFORM_USAGE_FLAGS, sizeof(guo), UNIFORM_MEM_FLAGS, true)
 {
   log::dbg("Created object shader {}", name);
 }
 
-void VulkanObjectShader::use(VulkanCommandBuffer& buffer)
+void VulkanObjectShader::use(const VulkanCommandBuffer& buffer) const
 {
   pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
-void VulkanObjectShader::uploadGlobalState(VulkanCommandBuffer& buf, uint32_t imageIndex)
+void VulkanObjectShader::uploadGlobalState(const VulkanCommandBuffer& buf,
+                                           uint32_t imageIndex) const
 {
   auto& descriptor = globalDescriptorSets[imageIndex];
 
@@ -112,16 +113,15 @@ void VulkanObjectShader::uploadGlobalState(VulkanCommandBuffer& buf, uint32_t im
   descWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
   descWrite.descriptorCount = 1;
   descWrite.pBufferInfo = &bufferInfo;
-  vkDevRef.get().logical().updateDescriptorSets(descWrite, {});
+  vulkanDev->logical().updateDescriptorSets(descWrite, {});
 
   // Bind descriptor
-  buf.buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                  *pipeline.layout(),
-                                  0,
+  buf.buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *pipeline.layout(), 0,
                                   *descriptor, {});
 }
 
-void VulkanObjectShader::updateModelState(VulkanCommandBuffer& buf, glm::mat4 model)
+void VulkanObjectShader::updateModelState(const VulkanCommandBuffer& buf,
+                                          glm::mat4 model) const
 {
   buf.buffer().pushConstants<glm::mat4>(*pipeline.layout(),
                                         vk::ShaderStageFlagBits::eVertex, 0, model);

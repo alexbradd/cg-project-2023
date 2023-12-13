@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <seng/primitive_types.hpp>
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_pipeline.hpp>
@@ -29,8 +28,8 @@ class VulkanObjectShader {
  public:
   static const int STAGES = 2;
 
-  VulkanObjectShader(VulkanDevice& dev,
-                     VulkanRenderPass& pass,
+  VulkanObjectShader(const VulkanDevice& dev,
+                     const VulkanRenderPass& pass,
                      uint32_t globalPoolSize,
                      std::string name,
                      std::vector<std::shared_ptr<VulkanShaderStage>> stages);
@@ -41,25 +40,26 @@ class VulkanObjectShader {
   VulkanObjectShader& operator=(const VulkanObjectShader&) = delete;
   VulkanObjectShader& operator=(VulkanObjectShader&&) = default;
 
+  const GlobalUniformObject& globalUniformObject() const { return guo; }
   GlobalUniformObject& globalUniformObject() { return guo; }
 
   /**
    * Use the shader by binding the pipeline in the given command buffer
    */
-  void use(VulkanCommandBuffer& buffer);
+  void use(const VulkanCommandBuffer& buffer) const;
 
   /**
    * Push the values conntained in the global uniform object to the shader
    */
-  void uploadGlobalState(VulkanCommandBuffer& buf, uint32_t imageIndex);
+  void uploadGlobalState(const VulkanCommandBuffer& buf, uint32_t imageIndex) const;
 
   /**
    * Push the given model matrix to the shader
    */
-  void updateModelState(VulkanCommandBuffer& buf, glm::mat4 model);
+  void updateModelState(const VulkanCommandBuffer& buf, glm::mat4 model) const;
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice* vulkanDev;
   std::string name;
   std::vector<std::shared_ptr<VulkanShaderStage>> _stages;
 
