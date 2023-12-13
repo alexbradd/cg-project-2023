@@ -109,8 +109,6 @@ class VulkanRenderer {
   uint32_t imageIndex = 0;
   bool recreatingSwapchain = false;
 
-  ShaderLoader shaderLoader;  // FIXME: add dynamic loading
-
   // FIXME: Test Geometry
   std::array<Vertex, 4> verts;
   std::array<uint32_t, 6> indices;

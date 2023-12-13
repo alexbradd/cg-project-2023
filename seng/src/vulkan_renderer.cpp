@@ -77,13 +77,9 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &windo
 
     // Buffers
     vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
-    indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024),
-
-    // Shaders
-    shaderLoader(device, renderPass, swapchain.images().size(), config.shaderPath)
+    indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024)
 {
   log::info("Vulkan context is up and running!");
-  shaderLoader.loadShaders();
 
   // FIXME: Temporary geometry
   log::dbg("Loading test geometry");
@@ -207,36 +203,36 @@ void VulkanRenderer::beginFrame()
 // FIXME: start of stub
 void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) const
 {
-  auto &commandBuffer = graphicsCmdBufs[imageIndex];
-  auto shader = shaderLoader.getShader("default");
-
-  shader->globalUniformObject().projection = projection;
-  shader->globalUniformObject().view = view;
-
-  // TODO: add other properties
-
-  shader->uploadGlobalState(commandBuffer, imageIndex);
+  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
+  /* auto shader = shaderLoader.getShader("default"); */
+  /**/
+  /* shader->globalUniformObject().projection = projection; */
+  /* shader->globalUniformObject().view = view; */
+  /**/
+  /* // TODO: add other properties */
+  /**/
+  /* shader->uploadGlobalState(commandBuffer, imageIndex); */
 }
 
 void VulkanRenderer::updateModel(glm::mat4 model) const
 {
-  auto &commandBuffer = graphicsCmdBufs[imageIndex];
-  auto shader = shaderLoader.getShader("default");
-  shader->updateModelState(commandBuffer, model);
+  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
+  /* auto shader = shaderLoader.getShader("default"); */
+  /* shader->updateModelState(commandBuffer, model); */
 }
 
 void VulkanRenderer::draw() const
 {
-  auto &commandBuffer = graphicsCmdBufs[imageIndex];
-  auto shader = shaderLoader.getShader("default");
-
-  shader->use(commandBuffer);
-  commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
-  commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0,
-                                         vk::IndexType::eUint32);
-  commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0);
+  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
+  /* auto shader = shaderLoader.getShader("default"); */
+  /**/
+  /* shader->use(commandBuffer); */
+  /* commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0}); */
+  /* commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0, */
+  /*                                        vk::IndexType::eUint32); */
+  /* commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0); */
 }
-// FIXME: end if stub
+// FIXME: end of stub
 
 void VulkanRenderer::endFrame()
 {
