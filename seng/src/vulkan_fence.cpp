@@ -6,14 +6,14 @@ using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
-VulkanFence::VulkanFence(VulkanDevice &device, bool signaled) :
-    vkDevRef(device),
+VulkanFence::VulkanFence(const VulkanDevice &device, bool signaled) :
+    vulkanDev(std::addressof(device)),
     _signaled(signaled),
     // Create the handle
     _handle(std::invoke([&]() {
       vk::FenceCreateInfo info{};
       if (signaled) info.flags |= vk::FenceCreateFlagBits::eSignaled;
-      return Fence(vkDevRef.get().logical(), info);
+      return Fence(vulkanDev->logical(), info);
     }))
 {
 }
@@ -21,7 +21,7 @@ VulkanFence::VulkanFence(VulkanDevice &device, bool signaled) :
 void VulkanFence::wait(uint64_t timeout)
 {
   if (!_signaled) {
-    auto res = vkDevRef.get().logical().waitForFences(*_handle, true, timeout);
+    auto res = vulkanDev->logical().waitForFences(*_handle, true, timeout);
     string err;
     switch (res) {
       case vk::Result::eSuccess:
@@ -52,7 +52,7 @@ void VulkanFence::wait(uint64_t timeout)
 void VulkanFence::reset()
 {
   if (_signaled) {
-    vkDevRef.get().logical().resetFences(*_handle);
+    vulkanDev->logical().resetFences(*_handle);
     _signaled = false;
   }
 }

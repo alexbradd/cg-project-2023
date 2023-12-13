@@ -38,7 +38,7 @@ class VulkanFence {
    * Create and allocate a new fence. If `makeSignaled` is set, the fence will
    * be instatiated as singaled.
    */
-  VulkanFence(VulkanDevice& device, bool makeSignaled = false);
+  VulkanFence(const VulkanDevice& device, bool makeSignaled = false);
   VulkanFence(const VulkanFence&) = delete;
   VulkanFence(VulkanFence&&) = default;
 
@@ -57,11 +57,11 @@ class VulkanFence {
   void reset();
 
   // Accessors
-  vk::raii::Fence& handle() { return _handle; }
-  bool signaled() { return _signaled; }
+  const vk::raii::Fence& handle() const { return _handle; }
+  bool signaled() const { return _signaled; }
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice* vulkanDev;
   bool _signaled;
   vk::raii::Fence _handle;
 };
