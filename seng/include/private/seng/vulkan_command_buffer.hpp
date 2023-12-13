@@ -16,6 +16,9 @@ class VulkanDevice;
  */
 class VulkanCommandBuffer {
  public:
+  enum struct SingleUse : bool { eOn = true, eOff = false };
+  enum struct RenderPassContinue : bool { eOn = true, eOff = false };
+  enum struct SimultaneousUse : bool { eOn = true, eOff = false };
 
   /**
    * Create and allocate from the given pool a new CommandBuffer.
@@ -34,9 +37,9 @@ class VulkanCommandBuffer {
    * Start recording the command buffer. The arguments mirror the flags one can
    * insert into CommandBufferBeginInfo.
    */
-  void begin(bool singleUse = false,
-             bool renderPassContinue = false,
-             bool simultaneousUse = false);
+  void begin(SingleUse singleUse = SingleUse::eOff,
+             RenderPassContinue renderPassContinue = RenderPassContinue::eOff,
+             SimultaneousUse simultaneousUse = SimultaneousUse::eOff);
 
   /**
    * End recording the command buffer.

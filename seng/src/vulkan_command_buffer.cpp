@@ -6,6 +6,10 @@ using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
+using SingleUse = VulkanCommandBuffer::SingleUse;
+using RenderPassContinue = VulkanCommandBuffer::RenderPassContinue;
+using SimultanousUse = VulkanCommandBuffer::SimultaneousUse;
+
 static CommandBuffers allocateBuffers(Device &device,
                                       CommandPool &pool,
                                       uint32_t n,
@@ -49,16 +53,18 @@ vector<VulkanCommandBuffer> VulkanCommandBuffer::createMultiple(
   return ret;
 }
 
-void VulkanCommandBuffer::begin(bool singleUse,
-                                bool renderPassContinue,
-                                bool simultaneousUse)
+void VulkanCommandBuffer::begin(SingleUse single,
+                                RenderPassContinue passContinue,
+                                SimultaneousUse simultaneous)
 {
   vk::CommandBufferBeginInfo info{};
 
-  if (singleUse) info.flags |= vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-  if (renderPassContinue)
+  if (single == SingleUse::eOn)
+    info.flags |= vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+  if (passContinue == RenderPassContinue::eOn)
     info.flags |= vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-  if (simultaneousUse) info.flags |= vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+  if (simultaneous == SimultaneousUse::eOn)
+    info.flags |= vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
   buf.begin(info);
 }
@@ -74,7 +80,7 @@ void VulkanCommandBuffer::recordSingleUse(VulkanDevice &dev,
                                           function<void(VulkanCommandBuffer &)> usage)
 {
   VulkanCommandBuffer buf(dev, pool);
-  buf.begin(true);
+  buf.begin(SingleUse::eOn);
 
   usage(buf);
 
