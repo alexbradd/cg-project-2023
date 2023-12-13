@@ -100,9 +100,9 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
   indices[4] = 2;
   indices[5] = 3;
   uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer,
-           sizeof(Vertex) * 4, 0, verts);
+           sizeof(Vertex) * 4, 0, verts.data());
   uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer,
-           sizeof(uint32_t) * 6, 0, indices);
+           sizeof(uint32_t) * 6, 0, indices.data());
 }
 
 Instance createInstance(Context &context, GlfwWindow &window) {

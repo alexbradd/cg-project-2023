@@ -114,8 +114,8 @@ class VulkanRenderer {
   ShaderLoader shaderLoader;  // FIXME: add dynamic loading
 
   // FIXME: Test Geometry
-  Vertex verts[4];
-  uint32_t indices[6];
+  std::array<Vertex, 4> verts;
+  std::array<uint32_t, 6> indices;
 
   /**
    * Recreate the current swapchain and framebuffers
