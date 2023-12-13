@@ -13,14 +13,16 @@ static RenderPass createRenderPass(VulkanDevice &device,
                                    vk::Format colorFormat,
                                    vk::Format depthFormat);
 
-VulkanRenderPass::VulkanRenderPass(VulkanDevice &dev, VulkanSwapchain &swap)
-    : VulkanRenderPass(dev,
-                       swap.format().format,
-                       dev.depthFormat().format,
-                       {0, 0},
-                       swap.extent(),
-                       {0.0f, 0.0f, 1.0f, 0.0f},
-                       {1.0f, 0}) {}
+VulkanRenderPass::VulkanRenderPass(VulkanDevice &dev, VulkanSwapchain &swap) :
+    VulkanRenderPass(dev,
+                     swap.format().format,
+                     dev.depthFormat().format,
+                     {0, 0},
+                     swap.extent(),
+                     {0.0f, 0.0f, 1.0f, 0.0f},
+                     {1.0f, 0})
+{
+}
 
 VulkanRenderPass::VulkanRenderPass(VulkanDevice &device,
                                    vk::Format colorFormat,
@@ -28,17 +30,20 @@ VulkanRenderPass::VulkanRenderPass(VulkanDevice &device,
                                    vk::Offset2D offset,
                                    vk::Extent2D extent,
                                    vk::ClearColorValue clearColor,
-                                   vk::ClearDepthStencilValue clearDepth)
-    : vkDevRef(device),
-      _pass(createRenderPass(vkDevRef, colorFormat, depthFormat)),
-      offset(offset),
-      extent(extent),
-      clearColor(clearColor),
-      clearDepth(clearDepth) {}
+                                   vk::ClearDepthStencilValue clearDepth) :
+    vkDevRef(device),
+    _pass(createRenderPass(vkDevRef, colorFormat, depthFormat)),
+    offset(offset),
+    extent(extent),
+    clearColor(clearColor),
+    clearDepth(clearDepth)
+{
+}
 
 RenderPass createRenderPass(VulkanDevice &device,
                             vk::Format colorFormat,
-                            vk::Format depthFormat) {
+                            vk::Format depthFormat)
+{
   // Main subpass
   vk::SubpassDescription subpass{};
   subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
@@ -72,8 +77,7 @@ RenderPass createRenderPass(VulkanDevice &device,
   depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
   descriptions.push_back(depthAttachment);
 
-  vk::AttachmentReference depthRef{
-      1, vk::ImageLayout::eDepthStencilAttachmentOptimal};
+  vk::AttachmentReference depthRef{1, vk::ImageLayout::eDepthStencilAttachmentOptimal};
   subpass.setPDepthStencilAttachment(&depthRef);
 
   // TODO: other attachment types
@@ -103,7 +107,8 @@ RenderPass createRenderPass(VulkanDevice &device,
   return RenderPass(device.logical(), info);
 }
 
-void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb) {
+void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb)
+{
   vk::RenderPassBeginInfo renderPassInfo{};
   renderPassInfo.renderPass = *_pass;
   renderPassInfo.framebuffer = *fb.handle();
@@ -116,11 +121,13 @@ void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb) {
   buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void VulkanRenderPass::end(VulkanCommandBuffer &buf) {
+void VulkanRenderPass::end(VulkanCommandBuffer &buf)
+{
   buf.buffer().endRenderPass();
 }
 
-vk::Viewport VulkanRenderPass::fullViewport() {
+vk::Viewport VulkanRenderPass::fullViewport()
+{
   vk::Viewport viewport{};
   viewport.x = 0.0f;
   viewport.y = 0.0f;
@@ -131,18 +138,22 @@ vk::Viewport VulkanRenderPass::fullViewport() {
   return viewport;
 }
 
-vk::Rect2D VulkanRenderPass::fullScissor() {
+vk::Rect2D VulkanRenderPass::fullScissor()
+{
   return vk::Rect2D{{0, 0}, extent};
 }
 
-void VulkanRenderPass::updateOffset(vk::Offset2D offset) {
+void VulkanRenderPass::updateOffset(vk::Offset2D offset)
+{
   this->offset = offset;
 }
 
-void VulkanRenderPass::updateExtent(vk::Extent2D extent) {
+void VulkanRenderPass::updateExtent(vk::Extent2D extent)
+{
   this->extent = extent;
 }
 
-VulkanRenderPass::~VulkanRenderPass() {
+VulkanRenderPass::~VulkanRenderPass()
+{
   if (*_pass != vk::RenderPass{}) log::dbg("Destroying render pass");
 }
