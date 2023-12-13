@@ -23,13 +23,13 @@ static void uploadTo(const VulkanDevice &device,
                      const VulkanBuffer &to,
                      vk::DeviceSize size,
                      vk::DeviceSize offset,
-                     const void *data) {
-  vk::MemoryPropertyFlags hostVisible =
-      vk::MemoryPropertyFlagBits::eHostCoherent |
-      vk::MemoryPropertyFlagBits::eHostVisible;
+                     const void *data)
+{
+  vk::MemoryPropertyFlags hostVisible = vk::MemoryPropertyFlagBits::eHostCoherent |
+                                        vk::MemoryPropertyFlagBits::eHostVisible;
 
-  VulkanBuffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size,
-                    hostVisible, true);
+  VulkanBuffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size, hostVisible,
+                    true);
   temp.load(data, 0, size, {});
   temp.copy(to, {0, offset, size}, pool, queue);
 }
@@ -38,12 +38,10 @@ static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
 static constexpr vk::BufferUsageFlags vertexBufferUsage =
-    vk::BufferUsageFlagBits::eVertexBuffer |
-    vk::BufferUsageFlagBits::eTransferSrc |
+    vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 static constexpr vk::BufferUsageFlags indexBufferUsage =
-    vk::BufferUsageFlagBits::eIndexBuffer |
-    vk::BufferUsageFlagBits::eTransferSrc |
+    vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 
 const std::vector<const char *> VulkanRenderer::VALIDATION_LAYERS{
@@ -64,16 +62,16 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
     framebuffers(VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
 
     // Command pools and buffers
-    cmdPool(device.logical(), {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
-    graphicsCmdBufs(many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
+    cmdPool(device.logical(),
+            {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
+    graphicsCmdBufs(
+        many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
 
     // Sync objects
-    imageAvailableSems(many<Semaphore>(swapchain.images().size(),
-                                       device.logical(),
-                                       vk::SemaphoreCreateInfo{})),
-    queueCompleteSems(many<Semaphore>(swapchain.images().size(),
-                                      device.logical(),
-                                      vk::SemaphoreCreateInfo{})),
+    imageAvailableSems(many<Semaphore>(
+        swapchain.images().size(), device.logical(), vk::SemaphoreCreateInfo{})),
+    queueCompleteSems(many<Semaphore>(
+        swapchain.images().size(), device.logical(), vk::SemaphoreCreateInfo{})),
     inFlightFences(many<VulkanFence>(swapchain.images().size(), device, true)),
     imgsInFlight(swapchain.images().size()),
 
@@ -99,13 +97,14 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, GlfwWindow &window) :
   indices[3] = 0;
   indices[4] = 2;
   indices[5] = 3;
-  uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer,
-           sizeof(Vertex) * 4, 0, verts.data());
-  uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer,
-           sizeof(uint32_t) * 6, 0, indices.data());
+  uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer, sizeof(Vertex) * 4, 0,
+           verts.data());
+  uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer, sizeof(uint32_t) * 6, 0,
+           indices.data());
 }
 
-Instance createInstance(Context &context, GlfwWindow &window) {
+Instance createInstance(Context &context, GlfwWindow &window)
+{
   auto &LAYERS = VulkanRenderer::VALIDATION_LAYERS;
   auto &VALIDATE = VulkanRenderer::USE_VALIDATION;
 
@@ -123,8 +122,7 @@ Instance createInstance(Context &context, GlfwWindow &window) {
   vector<const char *> windowExtensions{window.extensions()};
 
   extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-  extensions.insert(extensions.end(),
-                    make_move_iterator(windowExtensions.begin()),
+  extensions.insert(extensions.end(), make_move_iterator(windowExtensions.begin()),
                     make_move_iterator(windowExtensions.end()));
   if (VALIDATE)
     // extension always present if validation layers are present
@@ -147,7 +145,8 @@ Instance createInstance(Context &context, GlfwWindow &window) {
   return Instance(context, ci);
 }
 
-bool supportsAllLayers(const vector<const char *> &l) {
+bool supportsAllLayers(const vector<const char *> &l)
+{
   const vector<vk::LayerProperties> a = vk::enumerateInstanceLayerProperties();
   return all_of(l.begin(), l.end(), [&](const char *name) {
     return any_of(a.begin(), a.end(), [&](const vk::LayerProperties &property) {
@@ -156,9 +155,13 @@ bool supportsAllLayers(const vector<const char *> &l) {
   });
 }
 
-void VulkanRenderer::signalResize() { fbGeneration++; }
+void VulkanRenderer::signalResize()
+{
+  fbGeneration++;
+}
 
-void VulkanRenderer::beginFrame() {
+void VulkanRenderer::beginFrame()
+{
   if (recreatingSwapchain) {
     device.logical().waitIdle();
     throw BeginFrameException("Already recreating swapchain, waiting...");
@@ -204,7 +207,7 @@ void VulkanRenderer::beginFrame() {
 // FIXME: start of stub
 void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view)
 {
-  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+  auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
 
   shader->globalUniformObject().projection = projection;
@@ -217,24 +220,26 @@ void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view)
 
 void VulkanRenderer::updateModel(glm::mat4 model)
 {
-  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+  auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
   shader->updateModelState(commandBuffer, model);
 }
 
 void VulkanRenderer::draw()
 {
-  auto& commandBuffer = graphicsCmdBufs[imageIndex];
+  auto &commandBuffer = graphicsCmdBufs[imageIndex];
   auto shader = shaderLoader.getShader("default");
 
   shader->use(commandBuffer);
   commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0});
-  commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0, vk::IndexType::eUint32);
+  commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0,
+                                         vk::IndexType::eUint32);
   commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0);
 }
 // FIXME: end if stub
 
-void VulkanRenderer::endFrame() {
+void VulkanRenderer::endFrame()
+{
   VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
 
   renderPass.end(curBuf);
@@ -264,12 +269,10 @@ void VulkanRenderer::endFrame() {
   // 1:1 ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents
   // subsequent colour attachment writes from executing until the semaphore
   // signals (i.e. one frame is presented at a time)
-  vk::PipelineStageFlags flags[1] = {
-      vk::PipelineStageFlagBits::eColorAttachmentOutput};
+  vk::PipelineStageFlags flags[1] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
   submit_info.pWaitDstStageMask = flags;
 
-  device.graphicsQueue().submit(submit_info,
-                                *inFlightFences[currentFrame].handle());
+  device.graphicsQueue().submit(submit_info, *inFlightFences[currentFrame].handle());
 
   try {
     swapchain.present(device.presentQueue(), device.graphicsQueue(),
@@ -282,7 +285,8 @@ void VulkanRenderer::endFrame() {
   currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanRenderer::recreateSwapchain() {
+void VulkanRenderer::recreateSwapchain()
+{
   // If already recreating, do nothing.
   if (recreatingSwapchain) return;
 
@@ -321,17 +325,17 @@ void VulkanRenderer::recreateSwapchain() {
   renderPass.updateExtent(swapchain.extent());
 
   // Create new framebuffers and command buffers
-  framebuffers =
-      VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain);
-  graphicsCmdBufs = VulkanCommandBuffer::createMultiple(
-      device, cmdPool, swapchain.images().size());
+  framebuffers = VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain);
+  graphicsCmdBufs =
+      VulkanCommandBuffer::createMultiple(device, cmdPool, swapchain.images().size());
 
   // Finish the recreation process
   recreatingSwapchain = false;
   log::info("Finished swapchain recreation");
 }
 
-VulkanRenderer::~VulkanRenderer() {
+VulkanRenderer::~VulkanRenderer()
+{
   // Just checking if the instance handle is valid is enough
   // since all objects are valid or none are.
   if (*instance != vk::Instance{}) {
