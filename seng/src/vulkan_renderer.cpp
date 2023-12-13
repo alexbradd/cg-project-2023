@@ -270,7 +270,6 @@ void VulkanRenderer::endFrame() {
 
   device.graphicsQueue().submit(submit_info,
                                 *inFlightFences[currentFrame].handle());
-  curBuf.setSubmitted();
 
   try {
     swapchain.present(device.presentQueue(), device.graphicsQueue(),

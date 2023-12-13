@@ -16,10 +16,6 @@ class VulkanDevice;
  */
 class VulkanCommandBuffer {
  public:
-  /**
-   * Possible states in which the command buffer may be.
-   */
-  enum struct State { eReady, eRecording, eInRenderPass, eRecordingEnded, eSubmitted };
 
   /**
    * Create and allocate from the given pool a new CommandBuffer.
@@ -52,11 +48,6 @@ class VulkanCommandBuffer {
    */
   void reset();
 
-  // State modifiers
-  void setRecording();
-  void setInRenderPass();
-  void setSubmitted();
-
   // Access the underlying handle
   vk::raii::CommandBuffer& buffer() { return buf; }
 
@@ -83,7 +74,6 @@ class VulkanCommandBuffer {
   VulkanCommandBuffer(vk::raii::CommandBuffer&& buf);
 
   vk::raii::CommandBuffer buf;
-  enum State state;
 };
 
 }  // namespace seng::rendering

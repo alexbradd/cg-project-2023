@@ -114,12 +114,10 @@ void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb) {
   renderPassInfo.setClearValues(clearValues);
 
   buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-  buf.setInRenderPass();
 }
 
 void VulkanRenderPass::end(VulkanCommandBuffer &buf) {
   buf.buffer().endRenderPass();
-  buf.setRecording();
 }
 
 vk::Viewport VulkanRenderPass::fullViewport() {

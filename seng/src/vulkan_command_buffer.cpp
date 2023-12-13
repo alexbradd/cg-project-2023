@@ -18,8 +18,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice &dev,
 {
 }
 
-VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b) :
-    buf(std::move(b)), state(VulkanCommandBuffer::State::eReady)
+VulkanCommandBuffer::VulkanCommandBuffer(CommandBuffer &&b) : buf(std::move(b))
 {
   log::dbg("Allocated command buffer");
 }
@@ -62,13 +61,11 @@ void VulkanCommandBuffer::begin(bool singleUse,
   if (simultaneousUse) info.flags |= vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
   buf.begin(info);
-  state = VulkanCommandBuffer::State::eRecording;
 }
 
 void VulkanCommandBuffer::end()
 {
   buf.end();
-  state = VulkanCommandBuffer::State::eRecordingEnded;
 }
 
 void VulkanCommandBuffer::recordSingleUse(VulkanDevice &dev,
@@ -92,23 +89,7 @@ void VulkanCommandBuffer::recordSingleUse(VulkanDevice &dev,
 
 void VulkanCommandBuffer::reset()
 {
-  state = VulkanCommandBuffer::State::eReady;
   buf.reset();
-}
-
-void VulkanCommandBuffer::setRecording()
-{
-  state = VulkanCommandBuffer::State::eRecording;
-}
-
-void VulkanCommandBuffer::setInRenderPass()
-{
-  state = VulkanCommandBuffer::State::eInRenderPass;
-}
-
-void VulkanCommandBuffer::setSubmitted()
-{
-  state = VulkanCommandBuffer::State::eSubmitted;
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
