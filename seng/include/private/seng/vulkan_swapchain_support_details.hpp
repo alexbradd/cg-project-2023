@@ -14,23 +14,23 @@ class SwapchainSupportDetails {
   /**
    * Acquire the details from the given reources.
    */
-  SwapchainSupportDetails(vk::raii::PhysicalDevice &device,
-                          vk::raii::SurfaceKHR &surface);
+  SwapchainSupportDetails(const vk::raii::PhysicalDevice &device,
+                          const vk::raii::SurfaceKHR &surface);
 
   /**
    * Choose the most optimal format.
    */
-  vk::SurfaceFormatKHR chooseFormat();
+  vk::SurfaceFormatKHR chooseFormat() const;
 
   /**
    * Chose the optimal swapchain extent.
    */
-  vk::Extent2D chooseSwapchainExtent(GlfwWindow &window);
+  vk::Extent2D chooseSwapchainExtent(const GlfwWindow &window) const;
 
   // Accessors
-  vk::SurfaceCapabilitiesKHR &capabilities() { return _capabilities; }
-  std::vector<vk::SurfaceFormatKHR> &formats() { return _formats; };
-  std::vector<vk::PresentModeKHR> &presentModes() { return _presentModes; };
+  const vk::SurfaceCapabilitiesKHR &capabilities() const { return _capabilities; }
+  const std::vector<vk::SurfaceFormatKHR> &formats() const { return _formats; };
+  const std::vector<vk::PresentModeKHR> &presentModes() const { return _presentModes; };
 
  private:
   vk::SurfaceCapabilitiesKHR _capabilities;

@@ -6,15 +6,15 @@ using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;
 
-SwapchainSupportDetails::SwapchainSupportDetails(PhysicalDevice &dev,
-                                                 SurfaceKHR &surface) :
+SwapchainSupportDetails::SwapchainSupportDetails(const PhysicalDevice &dev,
+                                                 const SurfaceKHR &surface) :
     _capabilities(dev.getSurfaceCapabilitiesKHR(*surface)),
     _formats(dev.getSurfaceFormatsKHR(*surface)),
     _presentModes(dev.getSurfacePresentModesKHR(*surface))
 {
 }
 
-vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat()
+vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat() const
 {
   for (const auto &f : _formats) {
     if (f.format == vk::Format::eB8G8R8A8Srgb &&
@@ -24,7 +24,8 @@ vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat()
   return _formats[0];
 }
 
-vk::Extent2D SwapchainSupportDetails::chooseSwapchainExtent(GlfwWindow &window)
+vk::Extent2D SwapchainSupportDetails::chooseSwapchainExtent(
+    const GlfwWindow &window) const
 {
   if (_capabilities.currentExtent.width != numeric_limits<uint32_t>::max()) {
     return _capabilities.currentExtent;
