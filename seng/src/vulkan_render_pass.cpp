@@ -9,11 +9,11 @@ using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
-static RenderPass createRenderPass(VulkanDevice &device,
+static RenderPass createRenderPass(const VulkanDevice &device,
                                    vk::Format colorFormat,
                                    vk::Format depthFormat);
 
-VulkanRenderPass::VulkanRenderPass(VulkanDevice &dev, VulkanSwapchain &swap) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice &dev, const VulkanSwapchain &swap) :
     VulkanRenderPass(dev,
                      swap.format().format,
                      dev.depthFormat().format,
@@ -24,15 +24,15 @@ VulkanRenderPass::VulkanRenderPass(VulkanDevice &dev, VulkanSwapchain &swap) :
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(VulkanDevice &device,
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice &device,
                                    vk::Format colorFormat,
                                    vk::Format depthFormat,
                                    vk::Offset2D offset,
                                    vk::Extent2D extent,
                                    vk::ClearColorValue clearColor,
                                    vk::ClearDepthStencilValue clearDepth) :
-    vkDevRef(device),
-    _pass(createRenderPass(vkDevRef, colorFormat, depthFormat)),
+    vulkanDev(std::addressof(device)),
+    _pass(createRenderPass(device, colorFormat, depthFormat)),
     offset(offset),
     extent(extent),
     clearColor(clearColor),
@@ -40,7 +40,7 @@ VulkanRenderPass::VulkanRenderPass(VulkanDevice &device,
 {
 }
 
-RenderPass createRenderPass(VulkanDevice &device,
+RenderPass createRenderPass(const VulkanDevice &device,
                             vk::Format colorFormat,
                             vk::Format depthFormat)
 {
@@ -107,7 +107,8 @@ RenderPass createRenderPass(VulkanDevice &device,
   return RenderPass(device.logical(), info);
 }
 
-void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb)
+void VulkanRenderPass::begin(const VulkanCommandBuffer &buf,
+                             const VulkanFramebuffer &fb) const
 {
   vk::RenderPassBeginInfo renderPassInfo{};
   renderPassInfo.renderPass = *_pass;
@@ -121,12 +122,12 @@ void VulkanRenderPass::begin(VulkanCommandBuffer &buf, VulkanFramebuffer &fb)
   buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void VulkanRenderPass::end(VulkanCommandBuffer &buf)
+void VulkanRenderPass::end(const VulkanCommandBuffer &buf) const
 {
   buf.buffer().endRenderPass();
 }
 
-vk::Viewport VulkanRenderPass::fullViewport()
+vk::Viewport VulkanRenderPass::fullViewport() const
 {
   vk::Viewport viewport{};
   viewport.x = 0.0f;
@@ -138,7 +139,7 @@ vk::Viewport VulkanRenderPass::fullViewport()
   return viewport;
 }
 
-vk::Rect2D VulkanRenderPass::fullScissor()
+vk::Rect2D VulkanRenderPass::fullScissor() const
 {
   return vk::Rect2D{{0, 0}, extent};
 }

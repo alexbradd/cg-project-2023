@@ -34,7 +34,7 @@ class VulkanFramebuffer {
   VulkanFramebuffer& operator=(VulkanFramebuffer&&) = default;
 
   // Accessors
-  vk::raii::Framebuffer& handle() { return _handle; }
+  const vk::raii::Framebuffer& handle() const { return _handle; }
 
   /**
    * Create and allocate a new framebuffers taking as attachments the views and

@@ -22,11 +22,11 @@ class VulkanRenderPass {
    * Create and allocate a new render pass with the format and extent of the
    * given swapchain.
    */
-  VulkanRenderPass(VulkanDevice& dev, VulkanSwapchain& swap);
+  VulkanRenderPass(const VulkanDevice& dev, const VulkanSwapchain& swap);
   /**
    * Create and allocate a new render pass with the specified parameters.
    */
-  VulkanRenderPass(VulkanDevice& device,
+  VulkanRenderPass(const VulkanDevice& device,
                    vk::Format colorFormat,
                    vk::Format depthFormat,
                    vk::Offset2D offset,
@@ -41,9 +41,9 @@ class VulkanRenderPass {
   VulkanRenderPass& operator=(VulkanRenderPass&&) = default;
 
   // Accessors
-  vk::raii::RenderPass& handle() { return _pass; }
-  vk::Viewport fullViewport();
-  vk::Rect2D fullScissor();
+  const vk::raii::RenderPass& handle() const { return _pass; }
+  vk::Viewport fullViewport() const;
+  vk::Rect2D fullScissor() const;
 
   // Update the offset and extent
   void updateOffset(vk::Offset2D offset);
@@ -52,15 +52,15 @@ class VulkanRenderPass {
   /**
    * Begin a render pass. The command buffer will be set to eInRenderPass
    */
-  void begin(VulkanCommandBuffer& buf, VulkanFramebuffer& fb);
+  void begin(const VulkanCommandBuffer& buf, const VulkanFramebuffer& fb) const;
 
   /**
    * End the render pass. The command buffer will be set to `eRecording`
    */
-  void end(VulkanCommandBuffer& buf);
+  void end(const VulkanCommandBuffer& buf) const;
 
  private:
-  std::reference_wrapper<VulkanDevice> vkDevRef;
+  const VulkanDevice* vulkanDev;
   vk::raii::RenderPass _pass;
   vk::Offset2D offset;
   vk::Extent2D extent;
