@@ -16,31 +16,30 @@ static Pipeline createPipeline(VulkanDevice& dev,
 
 VulkanPipeline::VulkanPipeline(VulkanDevice& device,
                                VulkanRenderPass& pass,
-                               CreateInfo info)
-    : vkDevRef(device),
-      vkRenderPassRef(pass),
-      pipelineLayout(std::invoke([&]() {
-        vector<vk::DescriptorSetLayout> layouts{};
-        layouts.reserve(info.descriptorSetLayouts.size());
-        for (const auto& l : info.descriptorSetLayouts)
-          layouts.emplace_back(*l.get());
+                               CreateInfo info) :
+    vkDevRef(device),
+    vkRenderPassRef(pass),
+    pipelineLayout(std::invoke([&]() {
+      vector<vk::DescriptorSetLayout> layouts{};
+      layouts.reserve(info.descriptorSetLayouts.size());
+      for (const auto& l : info.descriptorSetLayouts) layouts.emplace_back(*l.get());
 
-        vk::PipelineLayoutCreateInfo layoutInfo{};
+      vk::PipelineLayoutCreateInfo layoutInfo{};
 
-        // Push constants
-        vk::PushConstantRange pushConstant{};
-        pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
-        pushConstant.offset = sizeof(glm::mat4) * 0;
-        pushConstant.size = sizeof(glm::mat4) * 2; // So that we use the whole 128 byte
-                                                   // range
-        layoutInfo.setPushConstantRanges(pushConstant);
+      // Push constants
+      vk::PushConstantRange pushConstant{};
+      pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
+      pushConstant.offset = sizeof(glm::mat4) * 0;
+      pushConstant.size = sizeof(glm::mat4) * 2;  // So that we use the whole 128 byte
+                                                  // range
+      layoutInfo.setPushConstantRanges(pushConstant);
 
-        // Layouts
-        layoutInfo.setLayoutCount = 1;
-        layoutInfo.pSetLayouts = layouts.data();
-        return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
-      })),
-      pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info))
+      // Layouts
+      layoutInfo.setLayoutCount = 1;
+      layoutInfo.pSetLayouts = layouts.data();
+      return PipelineLayout(vkDevRef.get().logical(), layoutInfo);
+    })),
+    pipeline(createPipeline(vkDevRef, vkRenderPassRef, pipelineLayout, info))
 {
   log::dbg("Created pipeline");
 }
@@ -48,7 +47,8 @@ VulkanPipeline::VulkanPipeline(VulkanDevice& device,
 static Pipeline createPipeline(VulkanDevice& dev,
                                VulkanRenderPass& pass,
                                PipelineLayout& layout,
-                               VulkanPipeline::CreateInfo& info) {
+                               VulkanPipeline::CreateInfo& info)
+{
   // Fixed part of the pipeline
   vk::PipelineViewportStateCreateInfo viewportState{};
   viewportState.viewportCount = 1;  // We are sing dynamic states for this
@@ -132,8 +132,7 @@ static Pipeline createPipeline(VulkanDevice& dev,
   return Pipeline(dev.logical(), nullptr, pipelineInfo);
 }
 
-void VulkanPipeline::bind(VulkanCommandBuffer& buffer,
-                          vk::PipelineBindPoint bind)
+void VulkanPipeline::bind(VulkanCommandBuffer& buffer, vk::PipelineBindPoint bind)
 {
   buffer.buffer().bindPipeline(bind, *pipeline);
 }
