@@ -6,3 +6,4 @@ BinPackParameters: false
 BreakConstructorInitializers: AfterColon
 AllowShortFunctionsOnASingleLine: Inline
 BreakBeforeBraces: WebKit
+IncludeBlocks: Preserve
