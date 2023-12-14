@@ -13,12 +13,13 @@ constexpr int KEY_RANGE = toInt(KeyCode::eModMenu) - toInt(KeyCode::eSpace);
 static int intoRange(int code) { return code - toInt(KeyCode::eSpace); }
 static int intoRange(KeyCode code) { return intoRange(toInt(code)); }
 
-InputManager::InputManager(rendering::GlfwWindow& window) :
-    window(window),
+InputManager::InputManager(rendering::GlfwWindow* window) :
+    // window is initialized later
     dirty(false),
     staging(KEY_RANGE, false),
     stored(KEY_RANGE, false) {
-  this->window.get().onKeyEvent(
+  if (window == nullptr) throw std::runtime_error("Window should not be null");
+  window->onKeyEvent(
       [&](GLFWwindow*, int key, int, int action, int) {
         if (key == -1) return;
         if (action == toInt(KeyEvent::ePress)) {
@@ -29,6 +30,7 @@ InputManager::InputManager(rendering::GlfwWindow& window) :
           staging[intoRange(key)] = false;
         }
       });
+  this->window = window;
 }
 
 void InputManager::updateEvents() {
@@ -36,22 +38,22 @@ void InputManager::updateEvents() {
     stored.assign(staging.begin(), staging.end());
     dirty = false;
   }
-  window.get().poll();
+  window->poll();
 }
 
-bool InputManager::keyDown(KeyCode code) {
+bool InputManager::keyDown(KeyCode code) const {
   if (staging[intoRange(code)] == true && stored[intoRange(code)] == false)
     return true;
   return false;
 }
 
-bool InputManager::keyHold(KeyCode code) {
+bool InputManager::keyHold(KeyCode code) const {
   if (staging[intoRange(code)] == true && stored[intoRange(code)] == true)
     return true;
   return false;
 }
 
-bool InputManager::keyUp(seng::KeyCode code) {
+bool InputManager::keyUp(seng::KeyCode code) const {
   if (staging[intoRange(code)] == false && stored[intoRange(code)] == true)
     return true;
   return false;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <functional>
+#include <vector>
+
 namespace seng {
 
 // Forward declarations
@@ -32,7 +33,7 @@ class InputManager {
 
  public:
   /// Construct a new InputManager
-  InputManager(rendering::GlfwWindow &window);
+  InputManager(rendering::GlfwWindow *window);
   InputManager(InputManager &&) = delete;
   InputManager(const InputManager &) = delete;
 
@@ -43,21 +44,21 @@ class InputManager {
    * Returns true if during this frame the user has begun pressing the key
    * indicated with the given KeyCode.
    */
-  bool keyDown(KeyCode key);
+  bool keyDown(KeyCode key) const;
 
   /**
    * Returns true if during this frame the user has released the key
    * indicated with the given KeyCode.
    */
-  bool keyUp(KeyCode key);
+  bool keyUp(KeyCode key) const;
 
   /**
    * Returns true for all frames between a key's pressing and release.
    */
-  bool keyHold(KeyCode key);
+  bool keyHold(KeyCode key) const;
 
  private:
-  std::reference_wrapper<rendering::GlfwWindow> window;
+  const rendering::GlfwWindow *window;
   bool dirty;  // used for avoiding useless copying
   std::vector<bool> staging, stored;
 
