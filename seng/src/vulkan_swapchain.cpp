@@ -1,5 +1,4 @@
 #include <seng/log.hpp>
-#include <seng/vulkan_debug.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_fence.hpp>
 #include <seng/vulkan_swapchain.hpp>
@@ -120,7 +119,7 @@ uint32_t VulkanSwapchain::nextImageIndex(const Semaphore &imgAvailable,
       throw InadequateSwapchainException("Out of date swapchain", res->first);
     default:
       string s = string("Failed to present swapchain image! Error: ") +
-                 resultToString(res->first);
+                 vk::to_string(res->first);
       throw runtime_error(s);
   }
 }
@@ -147,7 +146,7 @@ void VulkanSwapchain::present(const Queue &presentQueue,
       throw InadequateSwapchainException("Out of date swapchain", res);
     default:
       string s =
-          string("Failed to present swapchain image! Error: ") + resultToString(res);
+          string("Failed to present swapchain image! Error: ") + vk::to_string(res);
       throw runtime_error(s);
   }
 }
