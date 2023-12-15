@@ -22,25 +22,25 @@ add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
-    ./src/glfw_window.cpp
+    ./src/rendering/glfw_window.cpp
     ./src/input_manager.cpp
     ./src/utils.cpp
     ./src/log.cpp
-    ./src/vulkan_renderer.cpp
-    ./src/vulkan_swapchain.cpp
-    ./src/vulkan_swapchain_support_details.cpp
-    ./src/vulkan_queue_family_indices.cpp
-    ./src/vulkan_debug_messenger.cpp
-    ./src/vulkan_image.cpp
-    ./src/vulkan_device.cpp
-    ./src/vulkan_render_pass.cpp
-    ./src/vulkan_command_buffer.cpp
-    ./src/vulkan_framebuffer.cpp
-    ./src/vulkan_fence.cpp
-    ./src/vulkan_object_shader.cpp
-    ./src/vulkan_shader_stage.cpp
-    ./src/vulkan_pipeline.cpp
-    ./src/vulkan_buffer.cpp
+    ./src/rendering/renderer.cpp
+    ./src/rendering/swapchain.cpp
+    ./src/rendering/swapchain_support_details.cpp
+    ./src/rendering/queue_family_indices.cpp
+    ./src/rendering/debug_messenger.cpp
+    ./src/rendering/image.cpp
+    ./src/rendering/device.cpp
+    ./src/rendering/render_pass.cpp
+    ./src/rendering/command_buffer.cpp
+    ./src/rendering/framebuffer.cpp
+    ./src/rendering/fence.cpp
+    ./src/rendering/object_shader.cpp
+    ./src/rendering/shader_stage.cpp
+    ./src/rendering/pipeline.cpp
+    ./src/rendering/buffer.cpp
     ./src/transform.cpp
     ./src/camera.cpp
 )

@@ -1,5 +1,5 @@
 #include <seng/log.hpp>
-#include <seng/vulkan_debug_messenger.hpp>
+#include <seng/rendering/debug_messenger.hpp>
 
 #include <memory>
 #include <string>

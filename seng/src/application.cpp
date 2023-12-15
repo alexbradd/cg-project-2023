@@ -1,11 +1,11 @@
 #include <seng/application.hpp>
 #include <seng/camera.hpp>
 #include <seng/game_context.hpp>
-#include <seng/glfw_window.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
+#include <seng/rendering/glfw_window.hpp>
+#include <seng/rendering/renderer.hpp>
 #include <seng/transform.hpp>
-#include <seng/vulkan_renderer.hpp>
 
 #include <chrono>
 #include <exception>

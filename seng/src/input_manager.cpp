@@ -1,5 +1,5 @@
-#include <seng/glfw_window.hpp>
 #include <seng/input_manager.hpp>
+#include <seng/rendering/glfw_window.hpp>
 
 #include <functional>
 #include <stdexcept>

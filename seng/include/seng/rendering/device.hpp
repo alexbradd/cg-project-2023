@@ -1,7 +1,7 @@
 #pragma once
 
-#include <seng/vulkan_queue_family_indices.hpp>
-#include <seng/vulkan_swapchain_support_details.hpp>
+#include <seng/rendering/queue_family_indices.hpp>
+#include <seng/rendering/swapchain_support_details.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

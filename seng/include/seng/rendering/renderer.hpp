@@ -2,14 +2,14 @@
 
 #include <seng/application_config.hpp>
 #include <seng/primitive_types.hpp>
-#include <seng/vulkan_buffer.hpp>
-#include <seng/vulkan_command_buffer.hpp>
-#include <seng/vulkan_debug_messenger.hpp>
-#include <seng/vulkan_device.hpp>
-#include <seng/vulkan_fence.hpp>
-#include <seng/vulkan_framebuffer.hpp>
-#include <seng/vulkan_render_pass.hpp>
-#include <seng/vulkan_swapchain.hpp>
+#include <seng/rendering/buffer.hpp>
+#include <seng/rendering/command_buffer.hpp>
+#include <seng/rendering/debug_messenger.hpp>
+#include <seng/rendering/device.hpp>
+#include <seng/rendering/fence.hpp>
+#include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/render_pass.hpp>
+#include <seng/rendering/swapchain.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>

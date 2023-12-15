@@ -1,9 +1,9 @@
 #include <seng/log.hpp>
-#include <seng/vulkan_command_buffer.hpp>
-#include <seng/vulkan_device.hpp>
-#include <seng/vulkan_framebuffer.hpp>
-#include <seng/vulkan_render_pass.hpp>
-#include <seng/vulkan_swapchain.hpp>
+#include <seng/rendering/command_buffer.hpp>
+#include <seng/rendering/device.hpp>
+#include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/render_pass.hpp>
+#include <seng/rendering/swapchain.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

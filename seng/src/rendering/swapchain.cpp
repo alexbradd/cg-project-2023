@@ -1,7 +1,7 @@
 #include <seng/log.hpp>
-#include <seng/vulkan_device.hpp>
-#include <seng/vulkan_fence.hpp>
-#include <seng/vulkan_swapchain.hpp>
+#include <seng/rendering/device.hpp>
+#include <seng/rendering/fence.hpp>
+#include <seng/rendering/swapchain.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

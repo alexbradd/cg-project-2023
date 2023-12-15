@@ -1,5 +1,5 @@
-#include <seng/glfw_window.hpp>
-#include <seng/vulkan_swapchain_support_details.hpp>
+#include <seng/rendering/glfw_window.hpp>
+#include <seng/rendering/swapchain_support_details.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

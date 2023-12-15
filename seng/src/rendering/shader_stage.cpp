@@ -1,7 +1,7 @@
 #include <seng/log.hpp>
+#include <seng/rendering/device.hpp>
+#include <seng/rendering/shader_stage.hpp>
 #include <seng/utils.hpp>
-#include <seng/vulkan_device.hpp>
-#include <seng/vulkan_shader_stage.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

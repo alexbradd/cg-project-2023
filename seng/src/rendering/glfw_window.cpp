@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-#include <seng/glfw_window.hpp>
+#include <seng/rendering/glfw_window.hpp>
 
 #include <cstdint>
 #include <functional>

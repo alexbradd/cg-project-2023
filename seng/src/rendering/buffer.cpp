@@ -1,7 +1,7 @@
 #include <seng/log.hpp>
-#include <seng/vulkan_buffer.hpp>
-#include <seng/vulkan_command_buffer.hpp>
-#include <seng/vulkan_device.hpp>
+#include <seng/rendering/buffer.hpp>
+#include <seng/rendering/command_buffer.hpp>
+#include <seng/rendering/device.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 

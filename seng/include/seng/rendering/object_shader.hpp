@@ -1,8 +1,8 @@
 #pragma once
 
 #include <seng/primitive_types.hpp>
-#include <seng/vulkan_buffer.hpp>
-#include <seng/vulkan_pipeline.hpp>
+#include <seng/rendering/buffer.hpp>
+#include <seng/rendering/pipeline.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>

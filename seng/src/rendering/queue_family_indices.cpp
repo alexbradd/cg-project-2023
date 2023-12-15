@@ -1,4 +1,4 @@
-#include <seng/vulkan_queue_family_indices.hpp>
+#include <seng/rendering/queue_family_indices.hpp>
 
 using namespace vk::raii;
 using namespace seng::rendering;
