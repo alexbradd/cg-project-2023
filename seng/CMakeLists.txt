@@ -39,7 +39,6 @@ target_sources(${PROJECT_NAME}
     ./src/vulkan_fence.cpp
     ./src/vulkan_object_shader.cpp
     ./src/vulkan_shader_stage.cpp
-    ./src/shader_loader.cpp
     ./src/vulkan_pipeline.cpp
     ./src/vulkan_buffer.cpp
     ./src/transform.cpp

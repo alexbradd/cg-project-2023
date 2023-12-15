@@ -2,7 +2,6 @@
 
 #include <seng/application_config.hpp>
 #include <seng/primitive_types.hpp>
-#include <seng/shader_loader.hpp>
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
