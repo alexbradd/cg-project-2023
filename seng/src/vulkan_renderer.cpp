@@ -1,4 +1,3 @@
-#include <iterator>
 #include <seng/application_config.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
@@ -21,9 +20,9 @@
 #include <string.h>   // for strcmp
 #include <algorithm>  // for all_of, any_of
 #include <array>      // for array
-#include <cstddef>
 #include <cstdint>    // for uint32_t
 #include <exception>  // for exception
+#include <iterator>
 #include <optional>   // for optional
 #include <stdexcept>  // for runtime_error
 #include <string>     // for basic_string, allocator
@@ -57,6 +56,30 @@ static void uploadTo(const VulkanDevice &device,
   temp.copy(to, {0, offset, size}, pool, queue);
 }
 
+// Definitions for Frame
+VulkanRenderer::Frame::Frame(const VulkanDevice &device,
+                             const vk::raii::CommandPool &pool) :
+    commandBuffer(device, pool, true),
+    imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
+    queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
+    inFlightFence(device, true),
+    imageIndex(-1)
+{
+  log::info("Allocated resources for a frame");
+}
+
+// Definitions for FrameHandle
+bool FrameHandle::invalid(size_t maxValue) const
+{
+  return frameIndex == -1 || frameIndex >= static_cast<ssize_t>(maxValue);
+}
+
+void FrameHandle::invalidate()
+{
+  frameIndex = -1;
+}
+
+// Defintions for renderer
 static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
@@ -84,19 +107,12 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &windo
     renderPass(device, swapchain),
     framebuffers(VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
 
-    // Command pools and buffers
+    // Command pool
     cmdPool(device.logical(),
             {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily()}),
-    graphicsCmdBufs(
-        many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
 
-    // Sync objects
-    imageAvailableSems(many<Semaphore>(
-        swapchain.images().size(), device.logical(), vk::SemaphoreCreateInfo{})),
-    queueCompleteSems(many<Semaphore>(
-        swapchain.images().size(), device.logical(), vk::SemaphoreCreateInfo{})),
-    inFlightFences(many<VulkanFence>(swapchain.images().size(), device, true)),
-    imgsInFlight(swapchain.images().size()),
+    // Frames
+    frames(many<VulkanRenderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool)),
 
     // Buffers
     vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
@@ -179,7 +195,7 @@ void VulkanRenderer::signalResize()
   fbGeneration++;
 }
 
-void VulkanRenderer::beginFrame()
+FrameHandle VulkanRenderer::beginFrame()
 {
   if (recreatingSwapchain) {
     device.logical().waitIdle();
@@ -192,12 +208,13 @@ void VulkanRenderer::beginFrame()
     throw BeginFrameException("Frambuffer changed, aborting...");
   }
 
+  auto &frame = frames[currentFrame];
   try {
-    inFlightFences[currentFrame].wait();
-    imageIndex = swapchain.nextImageIndex(imageAvailableSems[currentFrame]);
+    frame.inFlightFence.wait();
+    frame.imageIndex = swapchain.nextImageIndex(frame.imageAvailableSem);
 
-    VulkanFramebuffer &curFb = framebuffers[imageIndex];
-    VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
+    VulkanFramebuffer &curFb = framebuffers[frame.imageIndex];
+    VulkanCommandBuffer &curBuf = frame.commandBuffer;
     curBuf.reset();
     curBuf.begin();
 
@@ -217,6 +234,7 @@ void VulkanRenderer::beginFrame()
     vk::Rect2D scissor{{0, 0}, swapchain.extent()};
     curBuf.buffer().setScissor(0, scissor);
 
+    return {currentFrame};
   } catch (const exception &e) {
     log::warning("Caught exception: {}", e.what());
     throw BeginFrameException("Caught exception while starting recording...");
@@ -257,50 +275,54 @@ void VulkanRenderer::draw() const
 }
 // FIXME: end of stub
 
-void VulkanRenderer::endFrame()
+void VulkanRenderer::endFrame(FrameHandle &handle)
 {
-  VulkanCommandBuffer &curBuf = graphicsCmdBufs[imageIndex];
+  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
 
-  renderPass.end(curBuf);
-  curBuf.end();
+  auto &frame = frames[handle.frameIndex];
 
-  // Make sure the previous frame is not using this image
-  if (imgsInFlight[imageIndex] != nullptr) imgsInFlight[imageIndex]->wait();
-  // Then mark the image fence as in-use by this frame
-  imgsInFlight[imageIndex] = &inFlightFences.data()[currentFrame];
+  renderPass.end(frame.commandBuffer);
+  frame.commandBuffer.end();
+
   // Reset the fence for use on the next frame
-  inFlightFences[currentFrame].reset();
+  frame.inFlightFence.reset();
 
-  vk::SubmitInfo submit_info{};
-  submit_info.commandBufferCount = 1;
-  submit_info.pCommandBuffers = &(*curBuf.buffer());
+  // Start submitting to queue
+  vk::SubmitInfo submitInfo{};
+  std::array<vk::CommandBuffer, 1> commandBuffers{*frame.commandBuffer.buffer()};
+  std::array<vk::Semaphore, 1> queueCompleteSems{*frame.queueCompleteSem};
+  std::array<vk::Semaphore, 1> imageAvailableSems{*frame.imageAvailableSem};
+
+  submitInfo.setCommandBuffers(commandBuffers);
 
   // The semaphore(s) to be signaled when the queue is complete.
-  submit_info.signalSemaphoreCount = 1;
-  submit_info.pSignalSemaphores = &(*queueCompleteSems[currentFrame]);
+  submitInfo.setSignalSemaphores(queueCompleteSems);
 
-  // Wait semaphore ensures that the operation cannot begin until the image is
-  // available
-  submit_info.waitSemaphoreCount = 1;
-  submit_info.pWaitSemaphores = &(*imageAvailableSems[currentFrame]);
+  // Wait semaphore ensures that the operation cannot begin until the image is available
+  submitInfo.setWaitSemaphores(imageAvailableSems);
 
   // Each semaphore waits on the corresponding pipeline stage to complete.
   // 1:1 ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents
   // subsequent colour attachment writes from executing until the semaphore
   // signals (i.e. one frame is presented at a time)
-  vk::PipelineStageFlags flags[1] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-  submit_info.pWaitDstStageMask = flags;
+  array<vk::PipelineStageFlags, 1> flags{
+      vk::PipelineStageFlagBits::eColorAttachmentOutput};
+  submitInfo.setWaitDstStageMask(flags);
 
-  device.graphicsQueue().submit(submit_info, *inFlightFences[currentFrame].handle());
+  device.graphicsQueue().submit(submitInfo, *frame.inFlightFence.handle());
 
   try {
     swapchain.present(device.presentQueue(), device.graphicsQueue(),
-                      queueCompleteSems[currentFrame], imageIndex);
+                      frame.queueCompleteSem, frame.imageIndex);
   } catch (const InadequateSwapchainException &e) {
     log::info("Error while presenting: swapchain out of date. Recreating...");
     recreateSwapchain();
   }
 
+  frame.imageIndex = -1;  // Forget the image
+  handle.invalidate();
+
+  // Advance cyclical iterator
   currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -322,7 +344,6 @@ void VulkanRenderer::recreateSwapchain()
 
   // Wait for any pending work to finish and flush out temporary data
   device.logical().waitIdle();
-  for (size_t i = 0; i < imgsInFlight.size(); i++) imgsInFlight[i] = nullptr;
 
   // Requery swapchain support data (it might have changed)
   device.requerySupport();
@@ -335,18 +356,15 @@ void VulkanRenderer::recreateSwapchain()
   // Sync framebuffer generation
   lastFbGeneration = fbGeneration;
 
-  // Clear old command buffers and framebuffers
-  graphicsCmdBufs.clear();
+  // Clear old framebuffers
   framebuffers.clear();
 
   // Update the render pass dimesions
   renderPass.updateOffset({0, 0});
   renderPass.updateExtent(swapchain.extent());
 
-  // Create new framebuffers and command buffers
+  // Create new framebuffers
   framebuffers = VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain);
-  graphicsCmdBufs =
-      VulkanCommandBuffer::createMultiple(device, cmdPool, swapchain.images().size());
 
   // Finish the recreation process
   recreatingSwapchain = false;

@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <exception>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace seng::rendering {
@@ -37,6 +36,23 @@ class BeginFrameException : public std::exception {
 
  private:
   std::string err{};
+};
+
+/**
+ * A handle referring to an in-construction frame
+ */
+class FrameHandle {
+  friend class VulkanRenderer;
+
+ public:
+  FrameHandle() = default;
+
+  bool invalid(size_t maxValue) const;
+  void invalidate();
+
+ private:
+  FrameHandle(ssize_t value) : frameIndex(value) {}
+  ssize_t frameIndex = -1;
 };
 
 /**
@@ -74,18 +90,20 @@ class VulkanRenderer {
   void signalResize();
 
   /**
-   * Starts recording a frame. If recording cannot be started, raise a
-   * `BeginFrameException`.
+   * Starts recording a frame and returns a handle to it. If recording cannot be
+   * started, raise a `BeginFrameException`.
    */
-  void beginFrame();
+  FrameHandle beginFrame();
 
   void updateGlobalState(glm::mat4 projection, glm::mat4 view) const;
   void updateModel(glm::mat4 model) const;
 
   /**
-   * Finishes recording a frame.
+   * Finishes recording the frame referred by the given handle. The handle is
+   * invalidated after the call. If an invalid handle is passed, throw a
+   * runtime_error.
    */
-  void endFrame();
+  void endFrame(FrameHandle &frame);
 
   /**
    * Draws a frame.
@@ -93,6 +111,20 @@ class VulkanRenderer {
   void draw() const;
 
  private:
+  /**
+   * A frame is where the resources for drawing an image reside. Usually the
+   * renderer will keep many frames, so that it can minimize waiting time.
+   */
+  struct Frame {
+    VulkanCommandBuffer commandBuffer;
+    vk::raii::Semaphore imageAvailableSem;
+    vk::raii::Semaphore queueCompleteSem;
+    VulkanFence inFlightFence;
+    ssize_t imageIndex;
+
+    Frame(const VulkanDevice &device, const vk::raii::CommandPool &commandPool);
+  };
+
   const GlfwWindow *window;
   vk::raii::Context context;
   vk::raii::Instance instance;
@@ -103,17 +135,12 @@ class VulkanRenderer {
   VulkanRenderPass renderPass;
   std::vector<VulkanFramebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;
-  std::vector<VulkanCommandBuffer> graphicsCmdBufs;
-  std::vector<vk::raii::Semaphore> imageAvailableSems;
-  std::vector<vk::raii::Semaphore> queueCompleteSems;
-  std::vector<VulkanFence> inFlightFences;
-  std::vector<VulkanFence *> imgsInFlight;
+  std::vector<Frame> frames;
 
   VulkanBuffer vertexBuffer, indexBuffer;
 
   uint64_t fbGeneration = 0, lastFbGeneration = 0;
   uint32_t currentFrame = 0;
-  uint32_t imageIndex = 0;
   bool recreatingSwapchain = false;
 
   // FIXME: Test Geometry
