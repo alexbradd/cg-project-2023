@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <vector>
+
 namespace seng::rendering {
 
 class VulkanCommandBuffer;

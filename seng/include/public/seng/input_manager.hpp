@@ -1,5 +1,7 @@
 #pragma once
 
+#include <seng/input_enums.hpp>
+
 #include <vector>
 
 namespace seng {
@@ -8,7 +10,6 @@ namespace seng {
 namespace rendering {
 class GlfwWindow;
 }  // namespace rendering
-enum struct KeyCode;
 
 /**
  * Simple class that monitors keyboard output for events.

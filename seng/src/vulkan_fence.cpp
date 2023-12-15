@@ -2,6 +2,12 @@
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_fence.hpp>
 
+#include <vulkan/vulkan_raii.hpp>
+
+#include <cstdint>
+#include <functional>
+#include <string>
+
 using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;

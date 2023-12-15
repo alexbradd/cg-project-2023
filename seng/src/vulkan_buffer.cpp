@@ -2,7 +2,13 @@
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
-#include <vulkan/vulkan_enums.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
+#include <string.h>  // for memcpy
+#include <functional>
+#include <string>
+#include <utility>
 
 using namespace std;
 using namespace vk::raii;

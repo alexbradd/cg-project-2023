@@ -4,6 +4,13 @@
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
 
+#include <vulkan/vulkan_raii.hpp>
+
+#include <functional>
+#include <optional>
+#include <string>
+#include <vector>
+
 using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;

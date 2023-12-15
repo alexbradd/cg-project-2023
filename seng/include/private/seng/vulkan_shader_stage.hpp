@@ -2,6 +2,9 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <string>
+#include <vector>
+
 namespace seng::rendering {
 
 class VulkanDevice;

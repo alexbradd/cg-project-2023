@@ -5,6 +5,14 @@
 #include <seng/vulkan_pipeline.hpp>
 #include <seng/vulkan_render_pass.hpp>
 
+#include <glm/mat4x4.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
+#include <array>
+#include <functional>
+#include <string>
+#include <vector>
+
 using namespace seng::rendering;
 using namespace vk::raii;
 using namespace std;

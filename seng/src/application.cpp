@@ -1,5 +1,3 @@
-#include <chrono>
-#include <memory>
 #include <seng/application.hpp>
 #include <seng/camera.hpp>
 #include <seng/game_context.hpp>
@@ -8,6 +6,13 @@
 #include <seng/log.hpp>
 #include <seng/transform.hpp>
 #include <seng/vulkan_renderer.hpp>
+
+#include <chrono>
+#include <exception>
+#include <functional>
+#include <memory>
+#include <string>
+#include <utility>
 
 using namespace std;
 using namespace seng;
@@ -33,7 +38,6 @@ void Application::run(unsigned int width,
 
   ctx = make_shared<GameContext>(camera);
   ctx->_inputManager = make_shared<InputManager>(*window);
-
 
   // The main applcation loop goes like this:
   //

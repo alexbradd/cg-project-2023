@@ -1,12 +1,19 @@
-#include <cstdint>
-#include <functional>
-#include <optional>
 #include <seng/log.hpp>
 #include <seng/vulkan_debug.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_fence.hpp>
 #include <seng/vulkan_swapchain.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <optional>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace std;
 using namespace seng::rendering;

@@ -1,10 +1,22 @@
-#include <cstdint>
 #include <seng/log.hpp>
 #include <seng/primitive_types.hpp>
+#include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_command_buffer.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_object_shader.hpp>
+#include <seng/vulkan_pipeline.hpp>
 #include <seng/vulkan_shader_stage.hpp>
+
+#include <glm/mat4x4.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
+#include <stddef.h>
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace seng::rendering;
 using namespace std;

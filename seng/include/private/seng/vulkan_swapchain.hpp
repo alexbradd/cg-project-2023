@@ -1,10 +1,13 @@
 #pragma once
 
+#include <seng/vulkan_image.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
 #include <cstdint>
 #include <exception>
 #include <limits>
-#include <seng/vulkan_image.hpp>
-#include <vulkan/vulkan_raii.hpp>
+#include <vector>
 
 namespace seng::rendering {
 

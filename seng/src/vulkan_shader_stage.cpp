@@ -1,9 +1,16 @@
-#include <cstdint>
-#include <filesystem>
 #include <seng/log.hpp>
 #include <seng/utils.hpp>
 #include <seng/vulkan_device.hpp>
 #include <seng/vulkan_shader_stage.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
+#include <cstdint>
+#include <filesystem>
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace seng::rendering;
 using namespace std;

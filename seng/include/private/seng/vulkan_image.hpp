@@ -1,7 +1,9 @@
 #pragma once
 
-#include <optional>
 #include <vulkan/vulkan_raii.hpp>
+
+#include <cstdint>
+#include <optional>
 
 namespace seng::rendering {
 

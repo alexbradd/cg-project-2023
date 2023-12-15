@@ -1,6 +1,8 @@
-#include <memory>
 #include <seng/log.hpp>
 #include <seng/vulkan_debug_messenger.hpp>
+
+#include <memory>
+#include <string>
 
 using namespace std;
 using namespace seng::rendering;

@@ -3,11 +3,15 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-#include <cstdint>
 #include <seng/glfw_window.hpp>
-#include <seng/input_enums.hpp>
-#include <seng/log.hpp>
+
+#include <cstdint>
+#include <functional>
+#include <optional>
+#include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 using namespace std;
 using namespace seng;

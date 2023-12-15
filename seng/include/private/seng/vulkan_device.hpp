@@ -1,9 +1,12 @@
 #pragma once
 
-#include <functional>
 #include <seng/vulkan_queue_family_indices.hpp>
 #include <seng/vulkan_swapchain_support_details.hpp>
+
 #include <vulkan/vulkan_raii.hpp>
+
+#include <cstdint>
+#include <vector>
 
 namespace seng::rendering {
 

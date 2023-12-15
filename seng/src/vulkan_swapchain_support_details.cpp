@@ -1,6 +1,12 @@
-#include <limits>
 #include <seng/glfw_window.hpp>
 #include <seng/vulkan_swapchain_support_details.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <vector>
 
 using namespace seng::rendering;
 using namespace vk::raii;

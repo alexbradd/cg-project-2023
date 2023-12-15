@@ -1,8 +1,19 @@
 #include <seng/log.hpp>
 #include <seng/vulkan_device.hpp>
+#include <seng/vulkan_queue_family_indices.hpp>
+#include <seng/vulkan_swapchain_support_details.hpp>
+
+#include <vulkan/vulkan_raii.hpp>
+
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <optional>
 #include <set>
 #include <stdexcept>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
 using namespace std;
 using namespace seng::rendering;

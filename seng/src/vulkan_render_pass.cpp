@@ -5,6 +5,12 @@
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
 
+#include <vulkan/vulkan_raii.hpp>
+
+#include <array>
+#include <string>
+#include <vector>
+
 using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;

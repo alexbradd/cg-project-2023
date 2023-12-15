@@ -1,7 +1,9 @@
 #include <seng/glfw_window.hpp>
-#include <seng/input_enums.hpp>
 #include <seng/input_manager.hpp>
-#include <seng/log.hpp>
+
+#include <functional>
+#include <stdexcept>
+#include <vector>
 
 using namespace seng;
 

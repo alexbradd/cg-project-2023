@@ -1,11 +1,34 @@
-#include <cstddef>
 #include <iterator>
+#include <seng/application_config.hpp>
 #include <seng/glfw_window.hpp>
 #include <seng/log.hpp>
-#include <seng/primitive_types.hpp>
 #include <seng/utils.hpp>
+#include <seng/vulkan_buffer.hpp>
+#include <seng/vulkan_debug_messenger.hpp>
+#include <seng/vulkan_device.hpp>
+#include <seng/vulkan_framebuffer.hpp>
 #include <seng/vulkan_object_shader.hpp>
+#include <seng/vulkan_queue_family_indices.hpp>
+#include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_renderer.hpp>
+#include <seng/vulkan_shader_stage.hpp>
+#include <seng/vulkan_swapchain.hpp>
+
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
+#include <string.h>   // for strcmp
+#include <algorithm>  // for all_of, any_of
+#include <array>      // for array
+#include <cstddef>
+#include <cstdint>    // for uint32_t
+#include <exception>  // for exception
+#include <optional>   // for optional
+#include <stdexcept>  // for runtime_error
+#include <string>     // for basic_string, allocator
+#include <utility>    // for pair, addressof
+#include <vector>     // for vector
 
 using namespace seng::rendering;
 using namespace seng::internal;

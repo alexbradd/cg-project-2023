@@ -1,17 +1,18 @@
 #pragma once
 
-#include <functional>
-#include <memory>
 #include <seng/application_config.hpp>
 
+#include <functional>
+#include <memory>
+
 namespace seng {
+
+class GameContext;
 
 namespace rendering {
 class GlfwWindow;
 class VulkanRenderer;
 }  // namespace rendering
-
-class GameContext;
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and

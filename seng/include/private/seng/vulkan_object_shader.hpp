@@ -3,7 +3,13 @@
 #include <seng/primitive_types.hpp>
 #include <seng/vulkan_buffer.hpp>
 #include <seng/vulkan_pipeline.hpp>
+
+#include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
+
+#include <cstdint>
+#include <string>
+#include <vector>
 
 #define ATTRIBUTE_COUNT 1
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
 #include <seng/application_config.hpp>
 #include <seng/primitive_types.hpp>
 #include <seng/shader_loader.hpp>
@@ -13,7 +11,17 @@
 #include <seng/vulkan_framebuffer.hpp>
 #include <seng/vulkan_render_pass.hpp>
 #include <seng/vulkan_swapchain.hpp>
+
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
+
+#include <array>
+#include <cstdint>
+#include <exception>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace seng::rendering {
 
