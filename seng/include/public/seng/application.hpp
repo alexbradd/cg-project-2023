@@ -43,7 +43,7 @@ class Application {
    */
   void run(unsigned int width,
            unsigned int height,
-           std::function<void(std::shared_ptr<GameContext>)> cb);
+           std::function<void(const GameContext *)> cb);
 
   const ApplicationConfig &config() const;
 

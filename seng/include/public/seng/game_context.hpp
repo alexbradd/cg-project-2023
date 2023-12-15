@@ -20,12 +20,12 @@ class GameContext {
   GameContext& operator=(const GameContext&) = delete;
   GameContext& operator=(GameContext&&) = default;
 
-  std::shared_ptr<InputManager> inputManager() const { return _inputManager; }
+  const InputManager* inputManager() const { return _inputManager.get(); }
   std::chrono::duration<float> deltaTime() const { return _deltaTime; }
   Camera& currentCamera() const { return _currentCamera; }
 
  private:
-  std::shared_ptr<InputManager> _inputManager;
+  std::unique_ptr<InputManager> _inputManager;
   std::chrono::duration<float> _deltaTime;
   std::reference_wrapper<Camera> _currentCamera;
 };

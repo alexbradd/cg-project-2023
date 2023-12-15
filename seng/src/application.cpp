@@ -28,7 +28,7 @@ Application::~Application()
 
 void Application::run(unsigned int width,
                       unsigned int height,
-                      function<void(shared_ptr<GameContext>)> cb)
+                      function<void(const GameContext*)> cb)
 {
   makeWindow(width, height);
 
@@ -36,8 +36,8 @@ void Application::run(unsigned int width,
   camera.transform().setPos(0.0, 0.0, 2.0f);
   Transform model;
 
-  ctx = make_shared<GameContext>(camera);
-  ctx->_inputManager = make_shared<InputManager>(*window);
+  ctx = make_unique<GameContext>(camera);
+  ctx->_inputManager = make_unique<InputManager>(window.get());
 
   // The main applcation loop goes like this:
   //
@@ -68,7 +68,7 @@ void Application::run(unsigned int width,
 
     ctx->_inputManager->updateEvents();
 
-    cb(ctx);  // TODO: to be substituted with gamobject Update
+    cb(ctx.get());  // TODO: to be substituted with gamobject Update
   }
 
   destroyWindow();
@@ -77,7 +77,7 @@ void Application::run(unsigned int width,
 
 void Application::makeWindow(unsigned int width, unsigned int height)
 {
-  window = make_shared<GlfwWindow>(conf.appName, width, height);
+  window = make_unique<GlfwWindow>(conf.appName, width, height);
   vulkan = make_unique<VulkanRenderer>(conf, *window);
 
   window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
