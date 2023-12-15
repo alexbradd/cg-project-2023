@@ -51,7 +51,7 @@ class VulkanSwapchain {
   VulkanSwapchain &operator=(const VulkanSwapchain &) = delete;
   VulkanSwapchain &operator=(VulkanSwapchain &&) = default;
 
-  static const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
+  static constexpr uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
   /**
    * Acquire the next image index in the swapchain. The given semaphore and
