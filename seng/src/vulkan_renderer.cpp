@@ -86,7 +86,7 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &windo
 
     // Command pools and buffers
     cmdPool(device.logical(),
-            {cmdPoolFlags, *device.queueFamiliyIndices().graphicsFamily()}),
+            {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily()}),
     graphicsCmdBufs(
         many<VulkanCommandBuffer>(swapchain.images().size(), device, cmdPool)),
 

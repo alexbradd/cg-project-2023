@@ -26,7 +26,7 @@ VulkanSwapchain::VulkanSwapchain(const VulkanDevice &dev,
     _extent(dev.swapchainSupportDetails().chooseSwapchainExtent(window)),
     // === Create swapchain
     _swapchain(std::invoke([&]() {
-      QueueFamilyIndices indices(dev.queueFamiliyIndices());
+      QueueFamilyIndices indices(dev.queueFamilyIndices());
       vk::SurfaceCapabilitiesKHR capabilities(
           dev.swapchainSupportDetails().capabilities());
 

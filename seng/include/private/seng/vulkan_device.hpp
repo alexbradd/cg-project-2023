@@ -45,7 +45,7 @@ class VulkanDevice {
   vk::SurfaceFormatKHR depthFormat() const { return _depthFormat; }
 
   // Accessors to the support details
-  const QueueFamilyIndices &queueFamiliyIndices() const { return _queueIndices; }
+  const QueueFamilyIndices &queueFamilyIndices() const { return _queueIndices; }
   const SwapchainSupportDetails &swapchainSupportDetails() const
   {
     return _swapchainDetails;
