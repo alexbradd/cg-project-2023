@@ -35,6 +35,7 @@ using namespace std;
 // Intializer functions
 static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
+static Image createDepthBuffer(const Device &, const Swapchain &);
 
 // Stub geometry uploading
 static void uploadTo(const Device &device,
@@ -100,8 +101,9 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     // Device, swapchain and framebuffers
     device(instance, surface),
     swapchain(device, surface, window),
+    depthBuffer(createDepthBuffer(device, swapchain)),
     renderPass(device, swapchain),
-    framebuffers(Framebuffer::fromSwapchain(device, renderPass, swapchain)),
+    framebuffers(Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer)),
 
     // Command pool
     cmdPool(device.logical(),
@@ -185,6 +187,19 @@ bool supportsAllLayers(const vector<const char *> &l)
       return strcmp(property.layerName, name) == 0;
     });
   });
+}
+
+Image createDepthBuffer(const Device &device, const Swapchain &swapchain)
+{
+  Image::CreateInfo info{vk::ImageType::e2D,
+                         swapchain.extent(),
+                         device.depthFormat().format,
+                         vk::ImageTiling::eOptimal,
+                         vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                         vk::MemoryPropertyFlagBits::eDeviceLocal,
+                         vk::ImageAspectFlagBits::eDepth,
+                         true};
+  return Image(device, info);
 }
 
 void Renderer::signalResize()
@@ -291,10 +306,8 @@ void Renderer::endFrame(FrameHandle &handle)
   std::array<vk::Semaphore, 1> imageAvailableSems{*frame.imageAvailableSem};
 
   submitInfo.setCommandBuffers(commandBuffers);
-
   // The semaphore(s) to be signaled when the queue is complete.
   submitInfo.setSignalSemaphores(queueCompleteSems);
-
   // Wait semaphore ensures that the operation cannot begin until the image is available
   submitInfo.setWaitSemaphores(imageAvailableSems);
 
@@ -356,12 +369,15 @@ void Renderer::recreateSwapchain()
   // Clear old framebuffers
   framebuffers.clear();
 
+  // Recreate the depth buffer
+  depthBuffer = createDepthBuffer(device, swapchain);
+
   // Update the render pass dimesions
   renderPass.updateOffset({0, 0});
   renderPass.updateExtent(swapchain.extent());
 
   // Create new framebuffers
-  framebuffers = Framebuffer::fromSwapchain(device, renderPass, swapchain);
+  framebuffers = Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer);
 
   // Finish the recreation process
   recreatingSwapchain = false;

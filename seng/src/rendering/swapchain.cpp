@@ -81,18 +81,6 @@ Swapchain::Swapchain(const Device &dev,
         ret.emplace_back(dev.logical(), ci);
       }
       return ret;
-    })),
-    // === Create depth buffer
-    _depthBufferImage(std::invoke([&]() {
-      Image::CreateInfo ci{vk::ImageType::e2D,
-                           _extent,
-                           dev.depthFormat().format,
-                           vk::ImageTiling::eOptimal,
-                           vk::ImageUsageFlagBits::eDepthStencilAttachment,
-                           vk::MemoryPropertyFlagBits::eDeviceLocal,
-                           vk::ImageAspectFlagBits::eDepth,
-                           true};
-      return Image(dev, ci);
     }))
 {
   log::dbg("Swapchain created with extent {}x{}", _extent.width, _extent.height);

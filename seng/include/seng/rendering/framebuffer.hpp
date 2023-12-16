@@ -8,6 +8,7 @@ namespace seng::rendering {
 class Device;
 class RenderPass;
 class Swapchain;
+class Image;
 
 /**
  * Wrapper for a Vulkan framebuffer. It implements the RAII pattern, meaning
@@ -36,12 +37,13 @@ class Framebuffer {
   const vk::raii::Framebuffer& handle() const { return _handle; }
 
   /**
-   * Create and allocate a new framebuffers taking as attachments the views and
-   * depth buffer from the given swapchain
+   * Create and allocate a new framebuffers taking as attachments the views from the
+   * given swapchain and depth buffer
    */
   static std::vector<Framebuffer> fromSwapchain(const Device& device,
                                                 const RenderPass& pass,
-                                                const Swapchain& chain);
+                                                const Swapchain& chain,
+                                                const Image& depthBuffer);
 
  private:
   const Device* vulkanDev;

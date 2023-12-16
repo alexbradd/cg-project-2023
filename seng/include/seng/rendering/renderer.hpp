@@ -8,6 +8,7 @@
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 
@@ -132,6 +133,7 @@ class Renderer {
   vk::raii::SurfaceKHR surface;
   Device device;
   Swapchain swapchain;
+  Image depthBuffer;
   RenderPass renderPass;
   std::vector<Framebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;

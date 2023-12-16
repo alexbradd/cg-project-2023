@@ -1,6 +1,7 @@
 #include <seng/log.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 
@@ -37,7 +38,8 @@ Framebuffer::Framebuffer(const Device &dev,
 
 vector<Framebuffer> Framebuffer::fromSwapchain(const Device &dev,
                                                const RenderPass &pass,
-                                               const Swapchain &swap)
+                                               const Swapchain &swap,
+                                               const Image &depthBuffer)
 {
   vector<Framebuffer> fbs{};
   fbs.reserve(swap.images().size());
@@ -45,7 +47,7 @@ vector<Framebuffer> Framebuffer::fromSwapchain(const Device &dev,
   for (auto &img : swap.images()) {
     vector<vk::ImageView> attachments(2);  // TODO: make configurable
     attachments[0] = *img;
-    attachments[1] = **swap.depthBuffer().imageView();
+    attachments[1] = **depthBuffer.imageView();
     fbs.emplace_back(dev, pass, swap.extent(), attachments);
   }
   return fbs;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <seng/rendering/image.hpp>
-
 #include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
@@ -79,7 +77,6 @@ class Swapchain {
   const std::vector<vk::raii::ImageView> &images() const { return _imageViews; }
   const vk::SurfaceFormatKHR &format() const { return _format; }
   const vk::Extent2D &extent() const { return _extent; }
-  const Image &depthBuffer() const { return _depthBufferImage; }
 
  private:
   const Device *vulkanDev;
@@ -88,7 +85,6 @@ class Swapchain {
   vk::raii::SwapchainKHR _swapchain;
   std::vector<vk::Image> _images;
   std::vector<vk::raii::ImageView> _imageViews;
-  Image _depthBufferImage;
 };
 
 }  // namespace seng::rendering
