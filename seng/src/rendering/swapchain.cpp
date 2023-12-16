@@ -85,8 +85,7 @@ Swapchain::Swapchain(const Device &dev,
     // === Create depth buffer
     _depthBufferImage(std::invoke([&]() {
       Image::CreateInfo ci{vk::ImageType::e2D,
-                           _extent.width,
-                           _extent.height,
+                           _extent,
                            dev.depthFormat().format,
                            vk::ImageTiling::eOptimal,
                            vk::ImageUsageFlagBits::eDepthStencilAttachment,

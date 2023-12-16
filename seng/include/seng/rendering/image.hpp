@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
-#include <cstdint>
 #include <optional>
 
 namespace seng::rendering {
@@ -21,8 +20,7 @@ class Image {
    */
   struct CreateInfo {
     vk::ImageType type;
-    uint32_t width;
-    uint32_t height;
+    vk::Extent2D extent;
     vk::Format format;
     vk::ImageTiling tiling;
     vk::ImageUsageFlags usage;
@@ -56,7 +54,6 @@ class Image {
  private:
   CreateInfo info;
   const Device *vulkanDev;
-  uint32_t width, height;
   vk::raii::Image handle;
   vk::raii::DeviceMemory memory;
   std::optional<vk::raii::ImageView> view;

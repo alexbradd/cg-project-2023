@@ -32,13 +32,11 @@ static vk::raii::ImageView createView(const vk::raii::Device &device,
 Image::Image(const Device &dev, const Image::CreateInfo &info) :
     info(info),
     vulkanDev(std::addressof(dev)),
-    width(info.width),
-    height(info.height),
     // Create image handle
     handle(std::invoke([&]() {
       vk::ImageCreateInfo ci{};
       ci.imageType = vk::ImageType::e2D;
-      ci.extent = vk::Extent3D{info.width, info.height, 1};
+      ci.extent = vk::Extent3D{info.extent, 1};
       ci.mipLevels = 4;
       ci.arrayLayers = 1;
       ci.format = info.format;
