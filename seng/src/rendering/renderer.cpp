@@ -6,7 +6,6 @@
 #include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/object_shader.hpp>
-#include <seng/rendering/queue_family_indices.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/renderer.hpp>
 #include <seng/rendering/shader_stage.hpp>
@@ -106,7 +105,7 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
 
     // Command pool
     cmdPool(device.logical(),
-            {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily()}),
+            {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily}),
 
     // Frames
     frames(many<Renderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool)),

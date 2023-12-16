@@ -28,8 +28,6 @@ target_sources(${PROJECT_NAME}
     ./src/log.cpp
     ./src/rendering/renderer.cpp
     ./src/rendering/swapchain.cpp
-    ./src/rendering/swapchain_support_details.cpp
-    ./src/rendering/queue_family_indices.cpp
     ./src/rendering/debug_messenger.cpp
     ./src/rendering/image.cpp
     ./src/rendering/device.cpp

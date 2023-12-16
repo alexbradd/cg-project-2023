@@ -1,14 +1,12 @@
 #include <seng/log.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/queue_family_indices.hpp>
-#include <seng/rendering/swapchain_support_details.hpp>
+#include <seng/rendering/glfw_window.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
-#include <optional>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -17,6 +15,62 @@
 
 using namespace std;
 using namespace seng::rendering;
+
+// QueueFamilyIndices
+QueueFamilyIndices::QueueFamilyIndices(const vk::raii::PhysicalDevice &dev,
+                                       const vk::raii::SurfaceKHR &surface)
+{
+  vector<vk::QueueFamilyProperties> queueFamilies = dev.getQueueFamilyProperties();
+
+  int i = 0;
+  for (const auto &familyProperties : queueFamilies) {
+    if (familyProperties.queueFlags & vk::QueueFlagBits::eGraphics) graphicsFamily = i;
+    if (dev.getSurfaceSupportKHR(i, *surface)) presentFamily = i;
+    if (isComplete()) break;
+    ++i;
+  }
+}
+
+bool QueueFamilyIndices::isComplete() const
+{
+  return graphicsFamily.has_value() && presentFamily.has_value();
+}
+
+// SwapchainSupportDetails
+SwapchainSupportDetails::SwapchainSupportDetails(const vk::raii::PhysicalDevice &dev,
+                                                 const vk::raii::SurfaceKHR &surface) :
+    capabilities(dev.getSurfaceCapabilitiesKHR(*surface)),
+    formats(dev.getSurfaceFormatsKHR(*surface)),
+    presentModes(dev.getSurfacePresentModesKHR(*surface))
+{
+}
+
+vk::SurfaceFormatKHR SwapchainSupportDetails::chooseFormat() const
+{
+  for (const auto &f : formats) {
+    if (f.format == vk::Format::eB8G8R8A8Srgb &&
+        f.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+      return f;
+  }
+  return formats[0];
+}
+
+vk::Extent2D SwapchainSupportDetails::chooseExtent(const GlfwWindow &window) const
+{
+  if (capabilities.currentExtent.width != numeric_limits<uint32_t>::max()) {
+    return capabilities.currentExtent;
+  } else {
+    auto size = window.framebufferSize();
+
+    vk::Extent2D actual = {static_cast<uint32_t>(size.first),
+                           static_cast<uint32_t>(size.second)};
+    actual.width = clamp(actual.width, capabilities.minImageExtent.width,
+                         capabilities.maxImageExtent.width);
+    actual.height = clamp(actual.height, capabilities.minImageExtent.height,
+                          capabilities.maxImageExtent.height);
+    return actual;
+  }
+}
 
 const vector<const char *> Device::REQUIRED_EXT{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
@@ -36,8 +90,8 @@ Device::Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &s
     _queueIndices(_physical, surface),
     _swapchainDetails(_physical, surface),
     _logical(createLogicalDevice(_physical, _queueIndices)),
-    _presentQueue(_logical, *_queueIndices.presentFamily(), 0),
-    _graphicsQueue(_logical, *_queueIndices.graphicsFamily(), 0),
+    _presentQueue(_logical, *_queueIndices.presentFamily, 0),
+    _graphicsQueue(_logical, *_queueIndices.graphicsFamily, 0),
     _depthFormat(detectDepthFormat(_physical))
 {
   log::dbg("Device has beeen created successfully");
@@ -72,7 +126,7 @@ bool checkSwapchain(const vk::raii::PhysicalDevice &dev,
                     const vk::raii::SurfaceKHR &surface)
 {
   SwapchainSupportDetails details(dev, surface);
-  return !details.formats().empty() && !details.presentModes().empty();
+  return !details.formats.empty() && !details.presentModes.empty();
 }
 
 vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &phy,
@@ -81,7 +135,7 @@ vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &phy,
   float queuePrio = 1.0f;
 
   vector<vk::DeviceQueueCreateInfo> qcis;
-  set<uint32_t> uniqueQueueFamilies{*indices.graphicsFamily(), *indices.presentFamily()};
+  set<uint32_t> uniqueQueueFamilies{*indices.graphicsFamily, *indices.presentFamily};
   for (auto queueFamily : uniqueQueueFamilies) {
     vk::DeviceQueueCreateInfo qci{};
     qci.queueFamilyIndex = queueFamily;

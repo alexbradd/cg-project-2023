@@ -22,12 +22,11 @@ Swapchain::Swapchain(const Device &dev,
                      const GlfwWindow &window) :
     vulkanDev(std::addressof(dev)),
     _format(dev.swapchainSupportDetails().chooseFormat()),
-    _extent(dev.swapchainSupportDetails().chooseSwapchainExtent(window)),
+    _extent(dev.swapchainSupportDetails().chooseExtent(window)),
     // === Create swapchain
     _swapchain(std::invoke([&]() {
       QueueFamilyIndices indices(dev.queueFamilyIndices());
-      vk::SurfaceCapabilitiesKHR capabilities(
-          dev.swapchainSupportDetails().capabilities());
+      vk::SurfaceCapabilitiesKHR capabilities(dev.swapchainSupportDetails().capabilities);
 
       vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
       uint32_t imageCount = capabilities.minImageCount + 1;
@@ -48,9 +47,9 @@ Swapchain::Swapchain(const Device &dev,
       sci.clipped = true;
       sci.oldSwapchain = VK_NULL_HANDLE;
 
-      if (indices.graphicsFamily() != indices.presentFamily()) {
-        array<uint32_t, 2> queueFamilyIndices{*indices.graphicsFamily(),
-                                              *indices.presentFamily()};
+      if (indices.graphicsFamily != indices.presentFamily) {
+        array<uint32_t, 2> queueFamilyIndices{*indices.graphicsFamily,
+                                              *indices.presentFamily};
         sci.imageSharingMode = vk::SharingMode::eConcurrent;
         sci.setQueueFamilyIndices(queueFamilyIndices);
       } else {

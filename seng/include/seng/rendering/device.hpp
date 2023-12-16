@@ -1,14 +1,59 @@
 #pragma once
 
-#include <seng/rendering/queue_family_indices.hpp>
-#include <seng/rendering/swapchain_support_details.hpp>
-
 #include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 namespace seng::rendering {
+
+class GlfwWindow;
+
+/**
+ * The graphics/presentation queue family indexes for a given
+ * PhysicalDevice/Surface pair.
+ */
+struct QueueFamilyIndices {
+  std::optional<uint32_t> graphicsFamily;
+  std::optional<uint32_t> presentFamily;
+
+  /**
+   * Query given device and surface for support.
+   */
+  QueueFamilyIndices(const vk::raii::PhysicalDevice &device,
+                     const vk::raii::SurfaceKHR &surface);
+
+  /**
+   * Return true if both graphics and presentation indices have been found
+   */
+  bool isComplete() const;
+};
+
+/**
+ * The supported capabilities/formats for a swapchain.
+ */
+struct SwapchainSupportDetails {
+  vk::SurfaceCapabilitiesKHR capabilities;
+  std::vector<vk::SurfaceFormatKHR> formats;
+  std::vector<vk::PresentModeKHR> presentModes;
+
+  /**
+   * Query the devices for the parameters of usable swapchains.
+   */
+  SwapchainSupportDetails(const vk::raii::PhysicalDevice &device,
+                          const vk::raii::SurfaceKHR &surface);
+
+  /**
+   * Choose the optimal swapchain format.
+   */
+  vk::SurfaceFormatKHR chooseFormat() const;
+
+  /**
+   * Chose the optimal swapchain extent.
+   */
+  vk::Extent2D chooseExtent(const GlfwWindow &window) const;
+};
 
 /**
  * The rendering device we are going to use. It holds references to the physical
@@ -76,6 +121,16 @@ class Device {
   vk::raii::Queue _presentQueue;
   vk::raii::Queue _graphicsQueue;
   vk::SurfaceFormatKHR _depthFormat;
+
+  /**
+   * Choose the optimal swapchain format.
+   */
+  vk::SurfaceFormatKHR chooseSwapchainFormat() const;
+
+  /**
+   * Chose the optimal swapchain extent.
+   */
+  vk::Extent2D chooseSwapchainExtent(const GlfwWindow &window) const;
 };
 
 }  // namespace seng::rendering
