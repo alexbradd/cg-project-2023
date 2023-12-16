@@ -41,7 +41,10 @@ class InadequateSwapchainException : public std::exception {
  */
 class Swapchain {
  public:
-  Swapchain(const Device &, const vk::raii::SurfaceKHR &, const GlfwWindow &);
+  Swapchain(const Device &dev,
+            const vk::raii::SurfaceKHR &surface,
+            const GlfwWindow &window,
+            const vk::raii::SwapchainKHR &old = vk::raii::SwapchainKHR{nullptr});
   Swapchain(const Swapchain &) = delete;
   Swapchain(Swapchain &&) = default;
   ~Swapchain();

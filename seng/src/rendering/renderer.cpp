@@ -360,7 +360,7 @@ void Renderer::recreateSwapchain()
   device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  swapchain = Swapchain(device, surface, *window);
+  swapchain = Swapchain(device, surface, *window, swapchain.swapchain());
   currentFrame = 0;
 
   // Sync framebuffer generation

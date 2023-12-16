@@ -19,7 +19,8 @@ using namespace seng::rendering;
 
 Swapchain::Swapchain(const Device &dev,
                      const vk::raii::SurfaceKHR &surface,
-                     const GlfwWindow &window) :
+                     const GlfwWindow &window,
+                     const vk::raii::SwapchainKHR &old) :
     vulkanDev(std::addressof(dev)),
     _format(dev.swapchainSupportDetails().chooseFormat()),
     _extent(dev.swapchainSupportDetails().chooseExtent(window)),
@@ -45,7 +46,7 @@ Swapchain::Swapchain(const Device &dev,
       sci.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
       sci.presentMode = presentMode;
       sci.clipped = true;
-      sci.oldSwapchain = VK_NULL_HANDLE;
+      sci.oldSwapchain = *old;
 
       if (indices.graphicsFamily != indices.presentFamily) {
         array<uint32_t, 2> queueFamilyIndices{*indices.graphicsFamily,
