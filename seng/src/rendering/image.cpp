@@ -12,6 +12,23 @@
 using namespace std;
 using namespace seng::rendering;
 
+static vk::raii::ImageView createView(const vk::raii::Device &device,
+                                      const vk::raii::Image &image,
+                                      vk::Format fmt,
+                                      vk::ImageAspectFlags aspect)
+{
+  vk::ImageViewCreateInfo ci{};
+  ci.image = *image;
+  ci.viewType = vk::ImageViewType::e2D;
+  ci.format = fmt;
+  ci.subresourceRange.aspectMask = aspect;
+  ci.subresourceRange.baseMipLevel = 0;
+  ci.subresourceRange.levelCount = 1;
+  ci.subresourceRange.baseArrayLayer = 0;
+  ci.subresourceRange.layerCount = 1;
+  return vk::raii::ImageView(device, ci);
+}
+
 Image::Image(const Device &dev, const Image::CreateInfo &info) :
     info(info),
     vulkanDev(std::addressof(dev)),
@@ -48,36 +65,17 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
       return ret;
     })),
     // Create the view if told to do so
-    view(std::invoke([&]() -> optional<vk::raii::ImageView> {
-      if (!info.createView) return nullopt;
-      vk::ImageViewCreateInfo ci{};
-      ci.image = *handle;
-      ci.viewType = vk::ImageViewType::e2D;
-      ci.format = info.format;
-      ci.subresourceRange.aspectMask = info.aspectFlags;
-      ci.subresourceRange.baseMipLevel = 0;
-      ci.subresourceRange.levelCount = 1;
-      ci.subresourceRange.baseArrayLayer = 0;
-      ci.subresourceRange.layerCount = 1;
-      return vk::raii::ImageView(dev.logical(), ci);
-    }))
+    view()
 {
+  if (info.createView)
+    view = ::createView(dev.logical(), handle, info.format, info.aspectFlags);
   log::dbg("Created new image {}", info.createView ? "with view" : "without view");
 }
 
 void Image::createView()
 {
   if (view.has_value()) return;
-
-  vk::ImageViewCreateInfo ci;
-  ci.image = *handle;
-  ci.viewType = vk::ImageViewType::e2D;
-  ci.subresourceRange.aspectMask = info.aspectFlags;
-  ci.subresourceRange.baseMipLevel = 0;
-  ci.subresourceRange.levelCount = 1;
-  ci.subresourceRange.baseArrayLayer = 0;
-  ci.subresourceRange.layerCount = 1;
-  view = vk::raii::ImageView(vulkanDev->logical(), ci);
+  view = ::createView(vulkanDev->logical(), handle, info.format, info.aspectFlags);
 }
 
 Image::~Image()
