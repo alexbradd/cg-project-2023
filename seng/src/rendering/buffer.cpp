@@ -11,18 +11,18 @@
 #include <utility>
 
 using namespace std;
-using namespace vk::raii;
 using namespace seng::rendering;
 
-VulkanBuffer::VulkanBuffer(const VulkanDevice &dev,
-                           vk::BufferUsageFlags usage,
-                           vk::DeviceSize size,
-                           vk::MemoryPropertyFlags memFlags,
-                           bool bind) :
+Buffer::Buffer(const Device &dev,
+               vk::BufferUsageFlags usage,
+               vk::DeviceSize size,
+               vk::MemoryPropertyFlags memFlags,
+               bool bind) :
     vulkanDev(std::addressof(dev)),
     usage(usage),
     size(size),
-    handle(Buffer(dev.logical(), {{}, size, usage, vk::SharingMode::eExclusive})),
+    handle(
+        vk::raii::Buffer(dev.logical(), {{}, size, usage, vk::SharingMode::eExclusive})),
     memRequirements(handle.getMemoryRequirements()),
     memIndex(dev.findMemoryIndex(memRequirements.memoryTypeBits, memFlags)),
     memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex})
@@ -31,23 +31,23 @@ VulkanBuffer::VulkanBuffer(const VulkanDevice &dev,
   if (bind) this->bind(0);
 }
 
-void VulkanBuffer::bind(vk::DeviceSize offset) const
+void Buffer::bind(vk::DeviceSize offset) const
 {
   handle.bindMemory(*memory, offset);
 }
 
-void VulkanBuffer::resize(vk::DeviceSize size,
-                          const Queue &queue,
-                          const CommandPool &pool)
+void Buffer::resize(vk::DeviceSize size,
+                    const vk::raii::Queue &queue,
+                    const vk::raii::CommandPool &pool)
 {
   // Create new buffer
   vk::BufferCreateInfo newInfo{{}, size, usage, vk::SharingMode::eExclusive};
-  Buffer newBuffer(vulkanDev->logical(), newInfo);
+  vk::raii::Buffer newBuffer(vulkanDev->logical(), newInfo);
 
   // Allocate new buffer
   vk::MemoryRequirements newMemRequirements(newBuffer.getMemoryRequirements());
   vk::MemoryAllocateInfo newAllocateInfo{newMemRequirements.size, memIndex};
-  DeviceMemory newMemory(vulkanDev->logical(), newAllocateInfo);
+  vk::raii::DeviceMemory newMemory(vulkanDev->logical(), newAllocateInfo);
   newBuffer.bindMemory(*newMemory, 0);
 
   // Copy old contents to new buffer
@@ -61,50 +61,50 @@ void VulkanBuffer::resize(vk::DeviceSize size,
   this->handle = std::move(newBuffer);
 }
 
-void *VulkanBuffer::lockMemory(vk::DeviceSize offset,
-                               vk::DeviceSize size,
-                               vk::MemoryMapFlags flags) const
+void *Buffer::lockMemory(vk::DeviceSize offset,
+                         vk::DeviceSize size,
+                         vk::MemoryMapFlags flags) const
 {
   return memory.mapMemory(offset, size, flags);
 }
 
-void VulkanBuffer::unlockMemory() const
+void Buffer::unlockMemory() const
 {
   memory.unmapMemory();
 }
 
-void VulkanBuffer::load(const void *data,
-                        vk::DeviceSize offset,
-                        vk::DeviceSize size,
-                        vk::MemoryMapFlags flags) const
+void Buffer::load(const void *data,
+                  vk::DeviceSize offset,
+                  vk::DeviceSize size,
+                  vk::MemoryMapFlags flags) const
 {
   void *mem = lockMemory(offset, size, flags);
   memcpy(mem, data, size);
   unlockMemory();
 }
 
-void VulkanBuffer::rawCopy(const Buffer &dest,
-                           vk::BufferCopy copyRegion,
-                           const CommandPool &pool,
-                           const Queue &queue,
-                           [[maybe_unused]] const Fence *fence) const
+void Buffer::rawCopy(const vk::raii::Buffer &dest,
+                     vk::BufferCopy copyRegion,
+                     const vk::raii::CommandPool &pool,
+                     const vk::raii::Queue &queue,
+                     [[maybe_unused]] const vk::raii::Fence *fence) const
 {
   queue.waitIdle();
-  VulkanCommandBuffer::recordSingleUse(*vulkanDev, pool, queue, [&](auto &buf) {
+  CommandBuffer::recordSingleUse(*vulkanDev, pool, queue, [&](auto &buf) {
     buf.buffer().copyBuffer(*handle, *dest, copyRegion);
   });
 }
 
-void VulkanBuffer::copy(const VulkanBuffer &dest,
-                        vk::BufferCopy copyRegion,
-                        const CommandPool &pool,
-                        const Queue &queue,
-                        const Fence *fence) const
+void Buffer::copy(const Buffer &dest,
+                  vk::BufferCopy copyRegion,
+                  const vk::raii::CommandPool &pool,
+                  const vk::raii::Queue &queue,
+                  const vk::raii::Fence *fence) const
 {
   rawCopy(dest.handle, copyRegion, pool, queue, fence);
 }
 
-VulkanBuffer::~VulkanBuffer()
+Buffer::~Buffer()
 {
   if (*handle != vk::Buffer{}) log::dbg("Destroying buffer");
 }

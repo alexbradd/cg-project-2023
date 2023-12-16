@@ -7,14 +7,14 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
+class Device;
 
 /**
  * A vulkan image, bundled with its underlying memory and (if present) view.
  * It implements the RAII pattern, meaning that instantiating the class
  * allocates, all resources, while destruction of the class deallocate them.
  */
-class VulkanImage {
+class Image {
  public:
   /**
    * Struct to hold all paparameters used during creation.
@@ -35,13 +35,13 @@ class VulkanImage {
    * Create and allocate an image. If CreateInfo.createView is set, then the
    * corresponding view will also be allocated.
    */
-  VulkanImage(const VulkanDevice &dev, const CreateInfo &info);
-  VulkanImage(const VulkanImage &) = delete;
-  VulkanImage(VulkanImage &&) = default;
-  ~VulkanImage();
+  Image(const Device &dev, const CreateInfo &info);
+  Image(const Image &) = delete;
+  Image(Image &&) = default;
+  ~Image();
 
-  VulkanImage &operator=(const VulkanImage &) = delete;
-  VulkanImage &operator=(VulkanImage &&) = default;
+  Image &operator=(const Image &) = delete;
+  Image &operator=(Image &&) = default;
 
   // Accessors
   const vk::raii::Image &image() const { return handle; }
@@ -55,7 +55,7 @@ class VulkanImage {
 
  private:
   CreateInfo info;
-  const VulkanDevice *vulkanDev;
+  const Device *vulkanDev;
   uint32_t width, height;
   vk::raii::Image handle;
   vk::raii::DeviceMemory memory;

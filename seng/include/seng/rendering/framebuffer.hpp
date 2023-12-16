@@ -5,9 +5,9 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
-class VulkanRenderPass;
-class VulkanSwapchain;
+class Device;
+class RenderPass;
+class Swapchain;
 
 /**
  * Wrapper for a Vulkan framebuffer. It implements the RAII pattern, meaning
@@ -16,21 +16,21 @@ class VulkanSwapchain;
  *
  * It is movable, not copyable
  */
-class VulkanFramebuffer {
+class Framebuffer {
  public:
   /**
    * Create and allocate a new framebuffer.
    */
-  VulkanFramebuffer(const VulkanDevice& dev,
-                    const VulkanRenderPass& pass,
-                    vk::Extent2D size,
-                    const std::vector<vk::ImageView>& attachments);
-  VulkanFramebuffer(const VulkanFramebuffer&) = delete;
-  VulkanFramebuffer(VulkanFramebuffer&&) = default;
-  ~VulkanFramebuffer();
+  Framebuffer(const Device& dev,
+              const RenderPass& pass,
+              vk::Extent2D size,
+              const std::vector<vk::ImageView>& attachments);
+  Framebuffer(const Framebuffer&) = delete;
+  Framebuffer(Framebuffer&&) = default;
+  ~Framebuffer();
 
-  VulkanFramebuffer& operator=(const VulkanFramebuffer&) = delete;
-  VulkanFramebuffer& operator=(VulkanFramebuffer&&) = default;
+  Framebuffer& operator=(const Framebuffer&) = delete;
+  Framebuffer& operator=(Framebuffer&&) = default;
 
   // Accessors
   const vk::raii::Framebuffer& handle() const { return _handle; }
@@ -39,13 +39,13 @@ class VulkanFramebuffer {
    * Create and allocate a new framebuffers taking as attachments the views and
    * depth buffer from the given swapchain
    */
-  static std::vector<VulkanFramebuffer> fromSwapchain(const VulkanDevice& device,
-                                                      const VulkanRenderPass& pass,
-                                                      const VulkanSwapchain& chain);
+  static std::vector<Framebuffer> fromSwapchain(const Device& device,
+                                                const RenderPass& pass,
+                                                const Swapchain& chain);
 
  private:
-  const VulkanDevice* vulkanDev;
-  const VulkanRenderPass* vulkanRenderPass;
+  const Device* vulkanDev;
+  const RenderPass* vulkanRenderPass;
   std::vector<vk::ImageView> attachments;
   vk::raii::Framebuffer _handle;
 };

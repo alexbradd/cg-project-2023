@@ -78,7 +78,7 @@ void Application::run(unsigned int width,
 void Application::makeWindow(unsigned int width, unsigned int height)
 {
   window = make_unique<GlfwWindow>(conf.appName, width, height);
-  vulkan = make_unique<VulkanRenderer>(conf, *window);
+  vulkan = make_unique<Renderer>(conf, *window);
 
   window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
     if (vulkan != nullptr) vulkan->signalResize();

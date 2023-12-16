@@ -14,17 +14,14 @@
 #include <vector>
 
 using namespace seng::rendering;
-using namespace vk::raii;
 using namespace std;
 
-static Pipeline createPipeline(const VulkanDevice& dev,
-                               const VulkanRenderPass& pass,
-                               const PipelineLayout& layout,
-                               const VulkanPipeline::CreateInfo& info);
+static vk::raii::Pipeline createPipeline(const Device& dev,
+                                         const RenderPass& pass,
+                                         const vk::raii::PipelineLayout& layout,
+                                         const Pipeline::CreateInfo& info);
 
-VulkanPipeline::VulkanPipeline(const VulkanDevice& device,
-                               const VulkanRenderPass& pass,
-                               CreateInfo info) :
+Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info) :
     vulkanDevice(std::addressof(device)),
     vulkanRenderPass(std::addressof(pass)),
     pipelineLayout(std::invoke([&]() {
@@ -41,17 +38,17 @@ VulkanPipeline::VulkanPipeline(const VulkanDevice& device,
       // Layouts
       layoutInfo.setLayoutCount = 1;
       layoutInfo.pSetLayouts = info.descriptorSetLayouts.data();
-      return PipelineLayout(device.logical(), layoutInfo);
+      return vk::raii::PipelineLayout(device.logical(), layoutInfo);
     })),
     pipeline(createPipeline(device, pass, pipelineLayout, info))
 {
   log::dbg("Created pipeline");
 }
 
-static Pipeline createPipeline(const VulkanDevice& dev,
-                               const VulkanRenderPass& pass,
-                               const PipelineLayout& layout,
-                               const VulkanPipeline::CreateInfo& info)
+static vk::raii::Pipeline createPipeline(const Device& dev,
+                                         const RenderPass& pass,
+                                         const vk::raii::PipelineLayout& layout,
+                                         const Pipeline::CreateInfo& info)
 {
   // Fixed part of the pipeline
   vk::PipelineViewportStateCreateInfo viewportState{};
@@ -133,16 +130,15 @@ static Pipeline createPipeline(const VulkanDevice& dev,
   pipelineInfo.renderPass = *pass.handle();
   pipelineInfo.subpass = 0;
 
-  return Pipeline(dev.logical(), nullptr, pipelineInfo);
+  return vk::raii::Pipeline(dev.logical(), nullptr, pipelineInfo);
 }
 
-void VulkanPipeline::bind(const VulkanCommandBuffer& buffer,
-                          vk::PipelineBindPoint bind) const
+void Pipeline::bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const
 {
   buffer.buffer().bindPipeline(bind, *pipeline);
 }
 
-VulkanPipeline::~VulkanPipeline()
+Pipeline::~Pipeline()
 {
   if (*pipeline != vk::Pipeline{}) log::dbg("Destroying pipeline");
 }

@@ -42,7 +42,7 @@ class BeginFrameException : public std::exception {
  * A handle referring to an in-construction frame
  */
 class FrameHandle {
-  friend class VulkanRenderer;
+  friend class Renderer;
 
  public:
   FrameHandle() = default;
@@ -62,18 +62,18 @@ class FrameHandle {
  *
  * It is movable, but non-copyable.
  */
-class VulkanRenderer {
+class Renderer {
  public:
   /**
    * Boot up the vulkan renderer and draw into the given window.
    */
-  VulkanRenderer(ApplicationConfig config, const GlfwWindow &window);
-  VulkanRenderer(const VulkanRenderer &) = delete;
-  VulkanRenderer(VulkanRenderer &&) = default;
-  ~VulkanRenderer();
+  Renderer(ApplicationConfig config, const GlfwWindow &window);
+  Renderer(const Renderer &) = delete;
+  Renderer(Renderer &&) = default;
+  ~Renderer();
 
-  VulkanRenderer &operator=(const VulkanRenderer &) = delete;
-  VulkanRenderer &operator=(VulkanRenderer &&) = default;
+  Renderer &operator=(const Renderer &) = delete;
+  Renderer &operator=(Renderer &&) = default;
 
   static const std::vector<const char *> VALIDATION_LAYERS;
 
@@ -116,13 +116,13 @@ class VulkanRenderer {
    * renderer will keep many frames, so that it can minimize waiting time.
    */
   struct Frame {
-    VulkanCommandBuffer commandBuffer;
+    CommandBuffer commandBuffer;
     vk::raii::Semaphore imageAvailableSem;
     vk::raii::Semaphore queueCompleteSem;
-    VulkanFence inFlightFence;
+    Fence inFlightFence;
     ssize_t imageIndex;
 
-    Frame(const VulkanDevice &device, const vk::raii::CommandPool &commandPool);
+    Frame(const Device &device, const vk::raii::CommandPool &commandPool);
   };
 
   const GlfwWindow *window;
@@ -130,14 +130,14 @@ class VulkanRenderer {
   vk::raii::Instance instance;
   DebugMessenger debugMessenger;
   vk::raii::SurfaceKHR surface;
-  VulkanDevice device;
-  VulkanSwapchain swapchain;
-  VulkanRenderPass renderPass;
-  std::vector<VulkanFramebuffer> framebuffers;
+  Device device;
+  Swapchain swapchain;
+  RenderPass renderPass;
+  std::vector<Framebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;
   std::vector<Frame> frames;
 
-  VulkanBuffer vertexBuffer, indexBuffer;
+  Buffer vertexBuffer, indexBuffer;
 
   uint64_t fbGeneration = 0, lastFbGeneration = 0;
   uint32_t currentFrame = 0;

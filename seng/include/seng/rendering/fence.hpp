@@ -8,7 +8,7 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
+class Device;
 
 /**
  * Exception signaling an error occurred while waiting for a fence. It carries
@@ -33,18 +33,18 @@ class FenceWaitException : std::exception {
  *
  * It is not copyable, only movable.
  */
-class VulkanFence {
+class Fence {
  public:
   /**
    * Create and allocate a new fence. If `makeSignaled` is set, the fence will
    * be instatiated as singaled.
    */
-  VulkanFence(const VulkanDevice& device, bool makeSignaled = false);
-  VulkanFence(const VulkanFence&) = delete;
-  VulkanFence(VulkanFence&&) = default;
+  Fence(const Device& device, bool makeSignaled = false);
+  Fence(const Fence&) = delete;
+  Fence(Fence&&) = default;
 
-  VulkanFence& operator=(const VulkanFence&) = delete;
-  VulkanFence& operator=(VulkanFence&&) = default;
+  Fence& operator=(const Fence&) = delete;
+  Fence& operator=(Fence&&) = default;
 
   /**
    * Wait on this fence until the timeout is reached. If an error occurs while
@@ -62,7 +62,7 @@ class VulkanFence {
   bool signaled() const { return _signaled; }
 
  private:
-  const VulkanDevice* vulkanDev;
+  const Device* vulkanDev;
   bool _signaled;
   vk::raii::Fence _handle;
 };

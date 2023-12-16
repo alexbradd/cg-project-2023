@@ -28,11 +28,11 @@ static const vk::MemoryPropertyFlags UNIFORM_MEM_FLAGS =
     vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible |
     vk::MemoryPropertyFlagBits::eHostCoherent;
 
-VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
-                                       const VulkanRenderPass& pass,
-                                       uint32_t globalPoolSize,
-                                       string name,
-                                       vector<const VulkanShaderStage*> stages) :
+ObjectShader::ObjectShader(const Device& dev,
+                           const RenderPass& pass,
+                           uint32_t globalPoolSize,
+                           string name,
+                           vector<const ShaderStage*> stages) :
     vulkanDev(std::addressof(dev)),
     name(std::move(name)),
     _stages(std::move(stages)),
@@ -79,13 +79,13 @@ VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
 
       // Stages
       vector<vk::PipelineShaderStageCreateInfo> stageCreateInfo;
-      for (size_t i = 0; i < VulkanObjectShader::STAGES; i++) {
+      for (size_t i = 0; i < ObjectShader::STAGES; i++) {
         stageCreateInfo.emplace_back(stages[i]->createInfo());
       }
 
-      VulkanPipeline::CreateInfo pipeInfo{attributeDescriptions, descriptors,
-                                          stageCreateInfo, false};
-      return VulkanPipeline(dev, pass, pipeInfo);
+      Pipeline::CreateInfo pipeInfo{attributeDescriptions, descriptors, stageCreateInfo,
+                                    false};
+      return Pipeline(dev, pass, pipeInfo);
     })),
     globalDescriptorSets(std::invoke([&]() {
       vector<vk::DescriptorSetLayout> descs(globalPoolSize, *globalDescriptorSetLayout);
@@ -100,13 +100,12 @@ VulkanObjectShader::VulkanObjectShader(const VulkanDevice& dev,
   log::dbg("Created object shader {}", name);
 }
 
-void VulkanObjectShader::use(const VulkanCommandBuffer& buffer) const
+void ObjectShader::use(const CommandBuffer& buffer) const
 {
   pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
-void VulkanObjectShader::uploadGlobalState(const VulkanCommandBuffer& buf,
-                                           uint32_t imageIndex) const
+void ObjectShader::uploadGlobalState(const CommandBuffer& buf, uint32_t imageIndex) const
 {
   auto& descriptor = globalDescriptorSets[imageIndex];
 
@@ -132,14 +131,13 @@ void VulkanObjectShader::uploadGlobalState(const VulkanCommandBuffer& buf,
                                   *descriptor, {});
 }
 
-void VulkanObjectShader::updateModelState(const VulkanCommandBuffer& buf,
-                                          glm::mat4 model) const
+void ObjectShader::updateModelState(const CommandBuffer& buf, glm::mat4 model) const
 {
   buf.buffer().pushConstants<glm::mat4>(*pipeline.layout(),
                                         vk::ShaderStageFlagBits::eVertex, 0, model);
 }
 
-VulkanObjectShader::~VulkanObjectShader()
+ObjectShader::~ObjectShader()
 {
   // Since all handles are either all valid or all invalid, we simply check one
   // of them to see if we have been moved from

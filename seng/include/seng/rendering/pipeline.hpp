@@ -6,15 +6,15 @@
 
 namespace seng::rendering {
 
-class VulkanCommandBuffer;
-class VulkanDevice;
-class VulkanRenderPass;
+class CommandBuffer;
+class Device;
+class RenderPass;
 
 /**
  * Wrapper around a vulkan pipline. It implements the RAII pattern, meaning that
  * instantiation allocates a new pipline, while destruction deallocates it.
  */
-class VulkanPipeline {
+class Pipeline {
  public:
   /**
    * A small helper that contains information useful for pipeline createion.
@@ -30,15 +30,13 @@ class VulkanPipeline {
    * Create a new pipeline that will draw to the give render pass using the
    * details specified in the given creation info
    */
-  VulkanPipeline(const VulkanDevice& device,
-                 const VulkanRenderPass& pass,
-                 CreateInfo info);
-  VulkanPipeline(const VulkanPipeline&) = delete;
-  VulkanPipeline(VulkanPipeline&&) = default;
-  ~VulkanPipeline();
+  Pipeline(const Device& device, const RenderPass& pass, CreateInfo info);
+  Pipeline(const Pipeline&) = delete;
+  Pipeline(Pipeline&&) = default;
+  ~Pipeline();
 
-  VulkanPipeline& operator=(const VulkanPipeline&) = delete;
-  VulkanPipeline& operator=(VulkanPipeline&&) = default;
+  Pipeline& operator=(const Pipeline&) = delete;
+  Pipeline& operator=(Pipeline&&) = default;
 
   const vk::raii::Pipeline& handle() const { return pipeline; }
   const vk::raii::PipelineLayout& layout() const { return pipelineLayout; }
@@ -46,11 +44,11 @@ class VulkanPipeline {
   /**
    * Bind the pipeline at the given bind point on the given command buffer
    */
-  void bind(const VulkanCommandBuffer& buffer, vk::PipelineBindPoint bind) const;
+  void bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const;
 
  private:
-  const VulkanDevice* vulkanDevice;
-  const VulkanRenderPass* vulkanRenderPass;
+  const Device* vulkanDevice;
+  const RenderPass* vulkanRenderPass;
   vk::raii::PipelineLayout pipelineLayout;
   vk::raii::Pipeline pipeline;
 };

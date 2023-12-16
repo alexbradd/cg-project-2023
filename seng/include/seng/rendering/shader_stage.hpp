@@ -7,7 +7,7 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
+class Device;
 
 /**
  * Shader stages are basically wrappers for ShaderModules. They are part of
@@ -18,26 +18,26 @@ class VulkanDevice;
  *
  * It is move-able but not copyable.
  */
-class VulkanShaderStage {
+class ShaderStage {
  public:
   enum struct Type { eVertex, eFragment };
 
-  VulkanShaderStage(const VulkanDevice& device,
-                    const std::string& shaderLoadPath,
-                    std::string name,
-                    Type type);
-  VulkanShaderStage(const VulkanShaderStage&) = delete;
-  VulkanShaderStage(VulkanShaderStage&&) = default;
-  ~VulkanShaderStage();
+  ShaderStage(const Device& device,
+              const std::string& shaderLoadPath,
+              std::string name,
+              Type type);
+  ShaderStage(const ShaderStage&) = delete;
+  ShaderStage(ShaderStage&&) = default;
+  ~ShaderStage();
 
-  VulkanShaderStage& operator=(const VulkanShaderStage&) = delete;
-  VulkanShaderStage& operator=(VulkanShaderStage&&) = default;
+  ShaderStage& operator=(const ShaderStage&) = delete;
+  ShaderStage& operator=(ShaderStage&&) = default;
 
   // Accessors
   const vk::PipelineShaderStageCreateInfo& createInfo() const { return stageCreateInfo; }
 
  private:
-  const VulkanDevice* vulkanDev;
+  const Device* vulkanDev;
   Type typ;
   std::string name;
   std::vector<char> code;

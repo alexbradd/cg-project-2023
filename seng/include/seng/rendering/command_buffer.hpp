@@ -5,7 +5,7 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
+class Device;
 
 /**
  * Wrapper around a Vulkan CommandBuffer. It implements the RAII pattern,
@@ -14,7 +14,7 @@ class VulkanDevice;
  *
  * It is not copyable, only movable.
  */
-class VulkanCommandBuffer {
+class CommandBuffer {
  public:
   enum struct SingleUse : bool { eOn = true, eOff = false };
   enum struct RenderPassContinue : bool { eOn = true, eOff = false };
@@ -23,15 +23,15 @@ class VulkanCommandBuffer {
   /**
    * Create and allocate from the given pool a new CommandBuffer.
    */
-  VulkanCommandBuffer(const VulkanDevice& dev,
-                      const vk::raii::CommandPool& pool,
-                      bool primary = true);
-  VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
-  VulkanCommandBuffer(VulkanCommandBuffer&&) = default;
-  ~VulkanCommandBuffer();
+  CommandBuffer(const Device& dev,
+                const vk::raii::CommandPool& pool,
+                bool primary = true);
+  CommandBuffer(const CommandBuffer&) = delete;
+  CommandBuffer(CommandBuffer&&) = default;
+  ~CommandBuffer();
 
-  VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
-  VulkanCommandBuffer& operator=(VulkanCommandBuffer&&) = default;
+  CommandBuffer& operator=(const CommandBuffer&) = delete;
+  CommandBuffer& operator=(CommandBuffer&&) = default;
 
   /**
    * Start recording the command buffer. The arguments mirror the flags one can
@@ -57,11 +57,10 @@ class VulkanCommandBuffer {
   /**
    * Factory method for allocating multiple command buffers with one call.
    */
-  static std::vector<VulkanCommandBuffer> createMultiple(
-      const VulkanDevice& dev,
-      const vk::raii::CommandPool& pool,
-      uint32_t n,
-      bool primary = true);
+  static std::vector<CommandBuffer> createMultiple(const Device& dev,
+                                                   const vk::raii::CommandPool& pool,
+                                                   uint32_t n,
+                                                   bool primary = true);
 
   /**
    * Allocate a throwaway single-use buffer and start recording it. Then execute
@@ -69,13 +68,13 @@ class VulkanCommandBuffer {
    *
    * The lambda will receive a reference to the temporary VulkanBuffer.
    */
-  static void recordSingleUse(const VulkanDevice& dev,
+  static void recordSingleUse(const Device& dev,
                               const vk::raii::CommandPool& pool,
                               const vk::raii::Queue& queue,
-                              std::function<void(VulkanCommandBuffer&)> usage);
+                              std::function<void(CommandBuffer&)> usage);
 
  private:
-  VulkanCommandBuffer(vk::raii::CommandBuffer&& buf);
+  CommandBuffer(vk::raii::CommandBuffer&& buf);
   vk::raii::CommandBuffer buf;
 };
 

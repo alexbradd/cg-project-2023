@@ -4,10 +4,10 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
-class VulkanSwapchain;
-class VulkanCommandBuffer;
-class VulkanFramebuffer;
+class Device;
+class Swapchain;
+class CommandBuffer;
+class Framebuffer;
 
 /**
  * Wrapper around a render pass. It implements the RAII pattern so
@@ -16,29 +16,29 @@ class VulkanFramebuffer;
  *
  * It is movable but not copyable.
  */
-class VulkanRenderPass {
+class RenderPass {
  public:
   /**
    * Create and allocate a new render pass with the format and extent of the
    * given swapchain.
    */
-  VulkanRenderPass(const VulkanDevice& dev, const VulkanSwapchain& swap);
+  RenderPass(const Device& dev, const Swapchain& swap);
   /**
    * Create and allocate a new render pass with the specified parameters.
    */
-  VulkanRenderPass(const VulkanDevice& device,
-                   vk::Format colorFormat,
-                   vk::Format depthFormat,
-                   vk::Offset2D offset,
-                   vk::Extent2D extent,
-                   vk::ClearColorValue clearColor,
-                   vk::ClearDepthStencilValue clearDepth);
-  VulkanRenderPass(const VulkanRenderPass&) = delete;
-  VulkanRenderPass(VulkanRenderPass&&) = default;
-  ~VulkanRenderPass();
+  RenderPass(const Device& device,
+             vk::Format colorFormat,
+             vk::Format depthFormat,
+             vk::Offset2D offset,
+             vk::Extent2D extent,
+             vk::ClearColorValue clearColor,
+             vk::ClearDepthStencilValue clearDepth);
+  RenderPass(const RenderPass&) = delete;
+  RenderPass(RenderPass&&) = default;
+  ~RenderPass();
 
-  VulkanRenderPass& operator=(const VulkanRenderPass&) = delete;
-  VulkanRenderPass& operator=(VulkanRenderPass&&) = default;
+  RenderPass& operator=(const RenderPass&) = delete;
+  RenderPass& operator=(RenderPass&&) = default;
 
   // Accessors
   const vk::raii::RenderPass& handle() const { return _pass; }
@@ -52,15 +52,15 @@ class VulkanRenderPass {
   /**
    * Begin a render pass. The command buffer will be set to eInRenderPass
    */
-  void begin(const VulkanCommandBuffer& buf, const VulkanFramebuffer& fb) const;
+  void begin(const CommandBuffer& buf, const Framebuffer& fb) const;
 
   /**
    * End the render pass. The command buffer will be set to `eRecording`
    */
-  void end(const VulkanCommandBuffer& buf) const;
+  void end(const CommandBuffer& buf) const;
 
  private:
-  const VulkanDevice* vulkanDev;
+  const Device* vulkanDev;
   vk::raii::RenderPass _pass;
   vk::Offset2D offset;
   vk::Extent2D extent;

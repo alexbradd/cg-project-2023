@@ -14,15 +14,14 @@
 
 using namespace seng::rendering;
 using namespace std;
-using namespace vk::raii;
 
 static constexpr char VERT_SUFFIX[] = ".vert.spv";
 static constexpr char FRAG_SUFFIX[] = ".frag.spv";
 
-VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
-                                     const string &shaderLoadPath,
-                                     string name,
-                                     VulkanShaderStage::Type type) :
+ShaderStage::ShaderStage(const Device &dev,
+                         const string &shaderLoadPath,
+                         string name,
+                         ShaderStage::Type type) :
     vulkanDev(std::addressof(dev)),
     typ(type),
     name(std::move(name)),
@@ -33,10 +32,10 @@ VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
       const char *suffix;
       string filename;
       switch (typ) {
-        case VulkanShaderStage::Type::eVertex:
+        case ShaderStage::Type::eVertex:
           suffix = VERT_SUFFIX;
           break;
-        case VulkanShaderStage::Type::eFragment:
+        case ShaderStage::Type::eFragment:
           suffix = FRAG_SUFFIX;
           break;
       }
@@ -49,10 +48,10 @@ VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
     stageCreateInfo(std::invoke([&]() {
       vk::ShaderStageFlagBits flags{};
       switch (type) {
-        case VulkanShaderStage::Type::eVertex:
+        case ShaderStage::Type::eVertex:
           flags = vk::ShaderStageFlagBits::eVertex;
           break;
-        case VulkanShaderStage::Type::eFragment:
+        case ShaderStage::Type::eFragment:
           flags = vk::ShaderStageFlagBits::eFragment;
           break;
       }
@@ -60,16 +59,16 @@ VulkanShaderStage::VulkanShaderStage(const VulkanDevice &dev,
     }))
 {
   switch (type) {
-    case VulkanShaderStage::Type::eVertex:
+    case ShaderStage::Type::eVertex:
       log::dbg("Loaded vertex shader named {}", name);
       break;
-    case VulkanShaderStage::Type::eFragment:
+    case ShaderStage::Type::eFragment:
       log::dbg("Loaded fragment shader named {}", name);
       break;
   }
 }
 
-VulkanShaderStage::~VulkanShaderStage()
+ShaderStage::~ShaderStage()
 {
   if (*module != vk::ShaderModule{}) log::dbg("Destroying shader module");
 }

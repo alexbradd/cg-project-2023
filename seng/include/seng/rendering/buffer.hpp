@@ -6,7 +6,7 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
+class Device;
 
 /**
  * Wrapper class around a generic vulkan buffer. It implements the RAII pattern,
@@ -15,23 +15,23 @@ class VulkanDevice;
  *
  * It is movable, not copyable.
  */
-class VulkanBuffer {
+class Buffer {
  public:
   /**
    * Allocate a new buffer, also bind it if instructed to do so.
    */
-  VulkanBuffer(
-      const VulkanDevice &dev,
+  Buffer(
+      const Device &dev,
       vk::BufferUsageFlags usage,
       vk::DeviceSize size,
       vk::MemoryPropertyFlags memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal,
       bool bind = true);
-  VulkanBuffer(const VulkanBuffer &) = delete;
-  VulkanBuffer(VulkanBuffer &&) = default;
-  ~VulkanBuffer();
+  Buffer(const Buffer &) = delete;
+  Buffer(Buffer &&) = default;
+  ~Buffer();
 
-  VulkanBuffer &operator=(const VulkanBuffer &) = delete;
-  VulkanBuffer &operator=(VulkanBuffer &&) = default;
+  Buffer &operator=(const Buffer &) = delete;
+  Buffer &operator=(Buffer &&) = default;
 
   const vk::raii::Buffer &buffer() const { return handle; }
 
@@ -71,14 +71,14 @@ class VulkanBuffer {
   /**
    * Copy a region of this buffer into one of the destination buffer.
    */
-  void copy(const VulkanBuffer &dest,
+  void copy(const Buffer &dest,
             vk::BufferCopy copyRegion,
             const vk::raii::CommandPool &pool,
             const vk::raii::Queue &queue,
             const vk::raii::Fence *fence = nullptr) const;
 
  private:
-  const VulkanDevice *vulkanDev;
+  const Device *vulkanDev;
   vk::BufferUsageFlags usage;
   vk::DeviceSize size;
   vk::raii::Buffer handle;

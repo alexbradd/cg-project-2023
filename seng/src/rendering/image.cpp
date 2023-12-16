@@ -11,9 +11,8 @@
 
 using namespace std;
 using namespace seng::rendering;
-using namespace vk::raii;
 
-VulkanImage::VulkanImage(const VulkanDevice &dev, const VulkanImage::CreateInfo &info) :
+Image::Image(const Device &dev, const Image::CreateInfo &info) :
     info(info),
     vulkanDev(std::addressof(dev)),
     width(info.width),
@@ -31,7 +30,7 @@ VulkanImage::VulkanImage(const VulkanDevice &dev, const VulkanImage::CreateInfo 
       ci.usage = info.usage;
       ci.samples = vk::SampleCountFlagBits::e1;
       ci.sharingMode = vk::SharingMode::eExclusive;
-      return Image(dev.logical(), ci);
+      return vk::raii::Image(dev.logical(), ci);
     })),
     // Allocate memory
     memory(std::invoke([&]() {
@@ -43,13 +42,13 @@ VulkanImage::VulkanImage(const VulkanDevice &dev, const VulkanImage::CreateInfo 
       ai.allocationSize = requirements.size;
       ai.memoryTypeIndex = memoryIndex;
 
-      DeviceMemory ret(dev.logical(), ai);
+      vk::raii::DeviceMemory ret(dev.logical(), ai);
       handle.bindMemory(*ret, 0);
 
       return ret;
     })),
     // Create the view if told to do so
-    view(std::invoke([&]() -> optional<ImageView> {
+    view(std::invoke([&]() -> optional<vk::raii::ImageView> {
       if (!info.createView) return nullopt;
       vk::ImageViewCreateInfo ci{};
       ci.image = *handle;
@@ -60,13 +59,13 @@ VulkanImage::VulkanImage(const VulkanDevice &dev, const VulkanImage::CreateInfo 
       ci.subresourceRange.levelCount = 1;
       ci.subresourceRange.baseArrayLayer = 0;
       ci.subresourceRange.layerCount = 1;
-      return ImageView(dev.logical(), ci);
+      return vk::raii::ImageView(dev.logical(), ci);
     }))
 {
   log::dbg("Created new image {}", info.createView ? "with view" : "without view");
 }
 
-void VulkanImage::createView()
+void Image::createView()
 {
   if (view.has_value()) return;
 
@@ -78,10 +77,10 @@ void VulkanImage::createView()
   ci.subresourceRange.levelCount = 1;
   ci.subresourceRange.baseArrayLayer = 0;
   ci.subresourceRange.layerCount = 1;
-  view = ImageView(vulkanDev->logical(), ci);
+  view = vk::raii::ImageView(vulkanDev->logical(), ci);
 }
 
-VulkanImage::~VulkanImage()
+Image::~Image()
 {
   // Just checking if the device handle is valid is enough
   // since all or none handles are valid

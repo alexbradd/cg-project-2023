@@ -20,20 +20,20 @@ namespace seng::rendering {
  *
  * It can only be moved, not copied.
  */
-class VulkanDevice {
+class Device {
  public:
   /**
    * Pick a suitable physical device, instatiate the relative logical one and
    * create the queues. If no suitable device can be found/costructed throw a
    * runtime_error().
    */
-  VulkanDevice(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surf);
-  VulkanDevice(const VulkanDevice &) = delete;
-  VulkanDevice(VulkanDevice &&) = default;
-  ~VulkanDevice();
+  Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surf);
+  Device(const Device &) = delete;
+  Device(Device &&) = default;
+  ~Device();
 
-  VulkanDevice &operator=(const VulkanDevice &) = delete;
-  VulkanDevice &operator=(VulkanDevice &&) = default;
+  Device &operator=(const Device &) = delete;
+  Device &operator=(Device &&) = default;
 
   static const std::vector<const char *> REQUIRED_EXT;
 

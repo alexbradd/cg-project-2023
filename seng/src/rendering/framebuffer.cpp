@@ -12,13 +12,12 @@
 #include <vector>
 
 using namespace seng::rendering;
-using namespace vk::raii;
 using namespace std;
 
-VulkanFramebuffer::VulkanFramebuffer(const VulkanDevice &dev,
-                                     const VulkanRenderPass &pass,
-                                     vk::Extent2D size,
-                                     const vector<vk::ImageView> &attachments) :
+Framebuffer::Framebuffer(const Device &dev,
+                         const RenderPass &pass,
+                         vk::Extent2D size,
+                         const vector<vk::ImageView> &attachments) :
     vulkanDev(std::addressof(dev)),
     vulkanRenderPass(std::addressof(pass)),
     attachments(attachments),
@@ -30,17 +29,17 @@ VulkanFramebuffer::VulkanFramebuffer(const VulkanDevice &dev,
       info.height = size.height;
       info.layers = 1;
 
-      return Framebuffer(dev.logical(), info);
+      return vk::raii::Framebuffer(dev.logical(), info);
     }))
 {
   log::dbg("Framebuffer created with size {}x{}", size.width, size.height);
 }
 
-vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(const VulkanDevice &dev,
-                                                           const VulkanRenderPass &pass,
-                                                           const VulkanSwapchain &swap)
+vector<Framebuffer> Framebuffer::fromSwapchain(const Device &dev,
+                                               const RenderPass &pass,
+                                               const Swapchain &swap)
 {
-  vector<VulkanFramebuffer> fbs{};
+  vector<Framebuffer> fbs{};
   fbs.reserve(swap.images().size());
 
   for (auto &img : swap.images()) {
@@ -52,7 +51,7 @@ vector<VulkanFramebuffer> VulkanFramebuffer::fromSwapchain(const VulkanDevice &d
   return fbs;
 }
 
-VulkanFramebuffer::~VulkanFramebuffer()
+Framebuffer::~Framebuffer()
 {
   if (*_handle != vk::Framebuffer{}) log::dbg("Destroying framebuffer");
 }

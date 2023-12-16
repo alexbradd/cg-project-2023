@@ -32,17 +32,16 @@
 using namespace seng::rendering;
 using namespace seng::internal;
 using namespace std;
-using namespace vk::raii;
 
 // Intializer functions
-static Instance createInstance(const Context &, const GlfwWindow &);
+static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
 
 // Stub geometry uploading
-static void uploadTo(const VulkanDevice &device,
-                     const CommandPool &pool,
-                     const Queue &queue,
-                     const VulkanBuffer &to,
+static void uploadTo(const Device &device,
+                     const vk::raii::CommandPool &pool,
+                     const vk::raii::Queue &queue,
+                     const Buffer &to,
                      vk::DeviceSize size,
                      vk::DeviceSize offset,
                      const void *data)
@@ -50,15 +49,13 @@ static void uploadTo(const VulkanDevice &device,
   vk::MemoryPropertyFlags hostVisible = vk::MemoryPropertyFlagBits::eHostCoherent |
                                         vk::MemoryPropertyFlagBits::eHostVisible;
 
-  VulkanBuffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size, hostVisible,
-                    true);
+  Buffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size, hostVisible, true);
   temp.load(data, 0, size, {});
   temp.copy(to, {0, offset, size}, pool, queue);
 }
 
 // Definitions for Frame
-VulkanRenderer::Frame::Frame(const VulkanDevice &device,
-                             const vk::raii::CommandPool &pool) :
+Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
     commandBuffer(device, pool, true),
     imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
     queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
@@ -90,10 +87,10 @@ static constexpr vk::BufferUsageFlags indexBufferUsage =
     vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
 
-const std::vector<const char *> VulkanRenderer::VALIDATION_LAYERS{
+const std::vector<const char *> Renderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
 
-VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &window) :
+Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     window(std::addressof(window)),
     context(),
     // Instance creation
@@ -105,14 +102,14 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &windo
     device(instance, surface),
     swapchain(device, surface, window),
     renderPass(device, swapchain),
-    framebuffers(VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain)),
+    framebuffers(Framebuffer::fromSwapchain(device, renderPass, swapchain)),
 
     // Command pool
     cmdPool(device.logical(),
             {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily()}),
 
     // Frames
-    frames(many<VulkanRenderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool)),
+    frames(many<Renderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool)),
 
     // Buffers
     vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
@@ -138,10 +135,11 @@ VulkanRenderer::VulkanRenderer(ApplicationConfig config, const GlfwWindow &windo
            indices.data());
 }
 
-Instance createInstance(const Context &context, const GlfwWindow &window)
+vk::raii::Instance createInstance(const vk::raii::Context &context,
+                                  const GlfwWindow &window)
 {
-  auto &LAYERS = VulkanRenderer::VALIDATION_LAYERS;
-  auto &VALIDATE = VulkanRenderer::USE_VALIDATION;
+  auto &LAYERS = Renderer::VALIDATION_LAYERS;
+  auto &VALIDATE = Renderer::USE_VALIDATION;
 
   vk::ApplicationInfo ai{};
   ai.pApplicationName = window.appName().c_str();
@@ -177,7 +175,7 @@ Instance createInstance(const Context &context, const GlfwWindow &window)
     ci.pNext = nullptr;
   }
 
-  return Instance(context, ci);
+  return vk::raii::Instance(context, ci);
 }
 
 bool supportsAllLayers(const vector<const char *> &l)
@@ -190,12 +188,12 @@ bool supportsAllLayers(const vector<const char *> &l)
   });
 }
 
-void VulkanRenderer::signalResize()
+void Renderer::signalResize()
 {
   fbGeneration++;
 }
 
-FrameHandle VulkanRenderer::beginFrame()
+FrameHandle Renderer::beginFrame()
 {
   if (recreatingSwapchain) {
     device.logical().waitIdle();
@@ -213,8 +211,8 @@ FrameHandle VulkanRenderer::beginFrame()
     frame.inFlightFence.wait();
     frame.imageIndex = swapchain.nextImageIndex(frame.imageAvailableSem);
 
-    VulkanFramebuffer &curFb = framebuffers[frame.imageIndex];
-    VulkanCommandBuffer &curBuf = frame.commandBuffer;
+    Framebuffer &curFb = framebuffers[frame.imageIndex];
+    CommandBuffer &curBuf = frame.commandBuffer;
     curBuf.reset();
     curBuf.begin();
 
@@ -242,7 +240,7 @@ FrameHandle VulkanRenderer::beginFrame()
 }
 
 // FIXME: start of stub
-void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) const
+void Renderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) const
 {
   /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
   /* auto shader = shaderLoader.getShader("default"); */
@@ -255,14 +253,14 @@ void VulkanRenderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) con
   /* shader->uploadGlobalState(commandBuffer, imageIndex); */
 }
 
-void VulkanRenderer::updateModel(glm::mat4 model) const
+void Renderer::updateModel(glm::mat4 model) const
 {
   /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
   /* auto shader = shaderLoader.getShader("default"); */
   /* shader->updateModelState(commandBuffer, model); */
 }
 
-void VulkanRenderer::draw() const
+void Renderer::draw() const
 {
   /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
   /* auto shader = shaderLoader.getShader("default"); */
@@ -275,7 +273,7 @@ void VulkanRenderer::draw() const
 }
 // FIXME: end of stub
 
-void VulkanRenderer::endFrame(FrameHandle &handle)
+void Renderer::endFrame(FrameHandle &handle)
 {
   if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
 
@@ -326,7 +324,7 @@ void VulkanRenderer::endFrame(FrameHandle &handle)
   currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanRenderer::recreateSwapchain()
+void Renderer::recreateSwapchain()
 {
   // If already recreating, do nothing.
   if (recreatingSwapchain) return;
@@ -350,7 +348,7 @@ void VulkanRenderer::recreateSwapchain()
   device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  swapchain = VulkanSwapchain(device, surface, *window);
+  swapchain = Swapchain(device, surface, *window);
   currentFrame = 0;
 
   // Sync framebuffer generation
@@ -364,14 +362,14 @@ void VulkanRenderer::recreateSwapchain()
   renderPass.updateExtent(swapchain.extent());
 
   // Create new framebuffers
-  framebuffers = VulkanFramebuffer::fromSwapchain(device, renderPass, swapchain);
+  framebuffers = Framebuffer::fromSwapchain(device, renderPass, swapchain);
 
   // Finish the recreation process
   recreatingSwapchain = false;
   log::info("Finished swapchain recreation");
 }
 
-VulkanRenderer::~VulkanRenderer()
+Renderer::~Renderer()
 {
   // Just checking if the instance handle is valid is enough
   // since all objects are valid or none are.

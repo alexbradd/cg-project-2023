@@ -11,8 +11,8 @@
 
 namespace seng::rendering {
 
-class VulkanDevice;
-class VulkanFence;
+class Device;
+class Fence;
 class GlfwWindow;
 
 /**
@@ -41,15 +41,15 @@ class InadequateSwapchainException : public std::exception {
  *
  * It non-copyable but movable.
  */
-class VulkanSwapchain {
+class Swapchain {
  public:
-  VulkanSwapchain(const VulkanDevice &, const vk::raii::SurfaceKHR &, const GlfwWindow &);
-  VulkanSwapchain(const VulkanSwapchain &) = delete;
-  VulkanSwapchain(VulkanSwapchain &&) = default;
-  ~VulkanSwapchain();
+  Swapchain(const Device &, const vk::raii::SurfaceKHR &, const GlfwWindow &);
+  Swapchain(const Swapchain &) = delete;
+  Swapchain(Swapchain &&) = default;
+  ~Swapchain();
 
-  VulkanSwapchain &operator=(const VulkanSwapchain &) = delete;
-  VulkanSwapchain &operator=(VulkanSwapchain &&) = default;
+  Swapchain &operator=(const Swapchain &) = delete;
+  Swapchain &operator=(Swapchain &&) = default;
 
   static constexpr uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -61,7 +61,7 @@ class VulkanSwapchain {
    * `InadequateSwapchainException` is thrown.
    */
   uint32_t nextImageIndex(const vk::raii::Semaphore &imgAvailable,
-                          const VulkanFence *fence = nullptr,
+                          const Fence *fence = nullptr,
                           uint64_t timeout = std::numeric_limits<uint64_t>::max()) const;
 
   /**
@@ -79,16 +79,16 @@ class VulkanSwapchain {
   const std::vector<vk::raii::ImageView> &images() const { return _imageViews; }
   const vk::SurfaceFormatKHR &format() const { return _format; }
   const vk::Extent2D &extent() const { return _extent; }
-  const VulkanImage &depthBuffer() const { return _depthBufferImage; }
+  const Image &depthBuffer() const { return _depthBufferImage; }
 
  private:
-  const VulkanDevice *vulkanDev;
+  const Device *vulkanDev;
   vk::SurfaceFormatKHR _format;
   vk::Extent2D _extent;
   vk::raii::SwapchainKHR _swapchain;
   std::vector<vk::Image> _images;
   std::vector<vk::raii::ImageView> _imageViews;
-  VulkanImage _depthBufferImage;
+  Image _depthBufferImage;
 };
 
 }  // namespace seng::rendering

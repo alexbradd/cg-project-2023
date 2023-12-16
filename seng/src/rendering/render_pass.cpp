@@ -13,30 +13,29 @@
 
 using namespace std;
 using namespace seng::rendering;
-using namespace vk::raii;
 
-static RenderPass createRenderPass(const VulkanDevice &device,
-                                   vk::Format colorFormat,
-                                   vk::Format depthFormat);
+static vk::raii::RenderPass createRenderPass(const Device &device,
+                                             vk::Format colorFormat,
+                                             vk::Format depthFormat);
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice &dev, const VulkanSwapchain &swap) :
-    VulkanRenderPass(dev,
-                     swap.format().format,
-                     dev.depthFormat().format,
-                     {0, 0},
-                     swap.extent(),
-                     {0.0f, 0.0f, 1.0f, 0.0f},
-                     {1.0f, 0})
+RenderPass::RenderPass(const Device &dev, const Swapchain &swap) :
+    RenderPass(dev,
+               swap.format().format,
+               dev.depthFormat().format,
+               {0, 0},
+               swap.extent(),
+               {0.0f, 0.0f, 1.0f, 0.0f},
+               {1.0f, 0})
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice &device,
-                                   vk::Format colorFormat,
-                                   vk::Format depthFormat,
-                                   vk::Offset2D offset,
-                                   vk::Extent2D extent,
-                                   vk::ClearColorValue clearColor,
-                                   vk::ClearDepthStencilValue clearDepth) :
+RenderPass::RenderPass(const Device &device,
+                       vk::Format colorFormat,
+                       vk::Format depthFormat,
+                       vk::Offset2D offset,
+                       vk::Extent2D extent,
+                       vk::ClearColorValue clearColor,
+                       vk::ClearDepthStencilValue clearDepth) :
     vulkanDev(std::addressof(device)),
     _pass(createRenderPass(device, colorFormat, depthFormat)),
     offset(offset),
@@ -46,9 +45,9 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice &device,
 {
 }
 
-RenderPass createRenderPass(const VulkanDevice &device,
-                            vk::Format colorFormat,
-                            vk::Format depthFormat)
+vk::raii::RenderPass createRenderPass(const Device &device,
+                                      vk::Format colorFormat,
+                                      vk::Format depthFormat)
 {
   // Main subpass
   vk::SubpassDescription subpass{};
@@ -110,11 +109,10 @@ RenderPass createRenderPass(const VulkanDevice &device,
   info.pSubpasses = &subpass;
   info.dependencyCount = 1;
   info.pDependencies = &dep;
-  return RenderPass(device.logical(), info);
+  return vk::raii::RenderPass(device.logical(), info);
 }
 
-void VulkanRenderPass::begin(const VulkanCommandBuffer &buf,
-                             const VulkanFramebuffer &fb) const
+void RenderPass::begin(const CommandBuffer &buf, const Framebuffer &fb) const
 {
   vk::RenderPassBeginInfo renderPassInfo{};
   renderPassInfo.renderPass = *_pass;
@@ -128,12 +126,12 @@ void VulkanRenderPass::begin(const VulkanCommandBuffer &buf,
   buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 }
 
-void VulkanRenderPass::end(const VulkanCommandBuffer &buf) const
+void RenderPass::end(const CommandBuffer &buf) const
 {
   buf.buffer().endRenderPass();
 }
 
-vk::Viewport VulkanRenderPass::fullViewport() const
+vk::Viewport RenderPass::fullViewport() const
 {
   vk::Viewport viewport{};
   viewport.x = 0.0f;
@@ -145,22 +143,22 @@ vk::Viewport VulkanRenderPass::fullViewport() const
   return viewport;
 }
 
-vk::Rect2D VulkanRenderPass::fullScissor() const
+vk::Rect2D RenderPass::fullScissor() const
 {
   return vk::Rect2D{{0, 0}, extent};
 }
 
-void VulkanRenderPass::updateOffset(vk::Offset2D offset)
+void RenderPass::updateOffset(vk::Offset2D offset)
 {
   this->offset = offset;
 }
 
-void VulkanRenderPass::updateExtent(vk::Extent2D extent)
+void RenderPass::updateExtent(vk::Extent2D extent)
 {
   this->extent = extent;
 }
 
-VulkanRenderPass::~VulkanRenderPass()
+RenderPass::~RenderPass()
 {
   if (*_pass != vk::RenderPass{}) log::dbg("Destroying render pass");
 }
