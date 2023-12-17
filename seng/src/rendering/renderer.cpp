@@ -35,7 +35,6 @@ using namespace std;
 // Intializer functions
 static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
-static Image createDepthBuffer(const Device &, const Swapchain &);
 
 // Stub geometry uploading
 static void uploadTo(const Device &device,
@@ -52,6 +51,31 @@ static void uploadTo(const Device &device,
   Buffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size, hostVisible, true);
   temp.load(data, 0, size, {});
   temp.copy(to, {0, offset, size}, pool, queue);
+}
+
+// Definitions for RenderTarget
+Renderer::RenderTarget::RenderTarget(const Device &device,
+                                     const vk::ImageView swapchainImage,
+                                     vk::Extent2D extent,
+                                     const RenderPass &pass) :
+    swapchainImage(swapchainImage),
+    depthBuffer(createDepthBuffer(device, extent)),
+    framebuffer(device, pass, extent, {swapchainImage, **depthBuffer.imageView()})
+{
+  log::info("Allocated render target");
+}
+
+Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent2D extent)
+{
+  Image::CreateInfo info{vk::ImageType::e2D,
+                         extent,
+                         device.depthFormat().format,
+                         vk::ImageTiling::eOptimal,
+                         vk::ImageUsageFlagBits::eDepthStencilAttachment,
+                         vk::MemoryPropertyFlagBits::eDeviceLocal,
+                         vk::ImageAspectFlagBits::eDepth,
+                         true};
+  return Image(device, info);
 }
 
 // Definitions for Frame
@@ -98,10 +122,9 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     debugMessenger(instance, USE_VALIDATION),
     surface(window.createVulkanSurface(instance)),
 
-    // Device, swapchain
+    // Device and swapchain
     device(instance, surface),
     swapchain(device, surface, window),
-    depthBuffer(createDepthBuffer(device, swapchain)),
 
     // Renderpass
     attachments{
@@ -121,20 +144,21 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
           vk::ClearDepthStencilValue{1.0f, 0}}}},
     renderPass(device, attachments),
 
-    // Framebuffers
-    framebuffers(Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer)),
-
-    // Command pool
+    // Pools
     cmdPool(device.logical(),
             {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily}),
-
-    // Frames
-    frames(many<Renderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool)),
 
     // Buffers
     vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
     indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024)
 {
+  // Targets and frames
+  for (auto &img : swapchain.images())
+    targets.emplace_back(device, *img, swapchain.extent(), renderPass);
+
+  frames = many<Renderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool);
+  targets.reserve(swapchain.images().size());
+
   log::info("Vulkan context is up and running!");
 
   // FIXME: Temporary geometry
@@ -208,19 +232,6 @@ bool supportsAllLayers(const vector<const char *> &l)
   });
 }
 
-Image createDepthBuffer(const Device &device, const Swapchain &swapchain)
-{
-  Image::CreateInfo info{vk::ImageType::e2D,
-                         swapchain.extent(),
-                         device.depthFormat().format,
-                         vk::ImageTiling::eOptimal,
-                         vk::ImageUsageFlagBits::eDepthStencilAttachment,
-                         vk::MemoryPropertyFlagBits::eDeviceLocal,
-                         vk::ImageAspectFlagBits::eDepth,
-                         true};
-  return Image(device, info);
-}
-
 void Renderer::signalResize()
 {
   fbGeneration++;
@@ -236,7 +247,7 @@ FrameHandle Renderer::beginFrame()
   if (lastFbGeneration != fbGeneration) {
     device.logical().waitIdle();
     recreateSwapchain();
-    throw BeginFrameException("Frambuffer changed, aborting...");
+    throw BeginFrameException("Framebuffer changed, aborting...");
   }
 
   auto &frame = frames[currentFrame];
@@ -244,7 +255,7 @@ FrameHandle Renderer::beginFrame()
     frame.inFlightFence.wait();
     frame.imageIndex = swapchain.nextImageIndex(frame.imageAvailableSem);
 
-    Framebuffer &curFb = framebuffers[frame.imageIndex];
+    Framebuffer &curFb = targets[frame.imageIndex].framebuffer;
     CommandBuffer &curBuf = frame.commandBuffer;
     curBuf.reset();
     curBuf.begin();
@@ -385,14 +396,10 @@ void Renderer::recreateSwapchain()
   // Sync framebuffer generation
   lastFbGeneration = fbGeneration;
 
-  // Clear old framebuffers
-  framebuffers.clear();
-
-  // Recreate the depth buffer
-  depthBuffer = createDepthBuffer(device, swapchain);
-
-  // Create new framebuffers
-  framebuffers = Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer);
+  // Recreate render targets
+  targets.clear();
+  for (auto &img : swapchain.images())
+    targets.emplace_back(device, *img, swapchain.extent(), renderPass);
 
   // Finish the recreation process
   recreatingSwapchain = false;

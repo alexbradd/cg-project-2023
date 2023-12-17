@@ -113,6 +113,23 @@ class Renderer {
 
  private:
   /**
+   * A render target is basically something that can be drawn to. In our specific
+   * case the targets coincide with the swapchain images.
+   */
+  struct RenderTarget {
+    vk::ImageView swapchainImage;
+    Image depthBuffer;
+    Framebuffer framebuffer;
+
+    RenderTarget(const Device &device,
+                 const vk::ImageView swapchainImage,
+                 vk::Extent2D extent,
+                 const RenderPass &pass);
+
+    static Image createDepthBuffer(const Device &device, vk::Extent2D extent);
+  };
+
+  /**
    * A frame is where the resources for drawing an image reside. Usually the
    * renderer will keep many frames, so that it can minimize waiting time.
    */
@@ -133,11 +150,10 @@ class Renderer {
   vk::raii::SurfaceKHR surface;
   Device device;
   Swapchain swapchain;
-  Image depthBuffer;
   std::vector<Attachment> attachments;
   RenderPass renderPass;
-  std::vector<Framebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;
+  std::vector<RenderTarget> targets;
   std::vector<Frame> frames;
 
   Buffer vertexBuffer, indexBuffer;
