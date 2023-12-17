@@ -10,6 +10,23 @@ class CommandBuffer;
 class Framebuffer;
 
 /**
+ * Description of an attachment It basically contains all fields of
+ * vk::AttachmentDescription plus some extra stuff like usage layout and clear value
+ */
+struct Attachment {
+  vk::Format format;
+  vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
+  vk::AttachmentLoadOp loadOp;
+  vk::AttachmentStoreOp storeOp;
+  vk::AttachmentLoadOp stencilLoadOp;
+  vk::AttachmentStoreOp stencilStoreOp;
+  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined;
+  vk::ImageLayout finalLayout;
+  vk::ImageLayout usage;
+  vk::ClearValue clearValue;
+};
+
+/**
  * Wrapper around a render pass. It implements the RAII pattern so
  * allocation means creation of a new renderpass and destruction means
  * deallocation.
@@ -19,20 +36,9 @@ class Framebuffer;
 class RenderPass {
  public:
   /**
-   * Create and allocate a new render pass with the format and extent of the
-   * given swapchain.
+   * Create and allocate a new render pass that uses the given renderpass
    */
-  RenderPass(const Device& dev, const Swapchain& swap);
-  /**
-   * Create and allocate a new render pass with the specified parameters.
-   */
-  RenderPass(const Device& device,
-             vk::Format colorFormat,
-             vk::Format depthFormat,
-             vk::Offset2D offset,
-             vk::Extent2D extent,
-             vk::ClearColorValue clearColor,
-             vk::ClearDepthStencilValue clearDepth);
+  RenderPass(const Device& device, std::vector<Attachment> attachments);
   RenderPass(const RenderPass&) = delete;
   RenderPass(RenderPass&&) = default;
   ~RenderPass();
@@ -42,30 +48,24 @@ class RenderPass {
 
   // Accessors
   const vk::raii::RenderPass& handle() const { return _pass; }
-  vk::Viewport fullViewport() const;
-  vk::Rect2D fullScissor() const;
-
-  // Update the offset and extent
-  void updateOffset(vk::Offset2D offset);
-  void updateExtent(vk::Extent2D extent);
 
   /**
-   * Begin a render pass. The command buffer will be set to eInRenderPass
+   * Begin a render pass one the given extent and offeset.
    */
-  void begin(const CommandBuffer& buf, const Framebuffer& fb) const;
+  void begin(const CommandBuffer& buf,
+             const Framebuffer& fb,
+             vk::Extent2D extent,
+             vk::Offset2D offset) const;
 
   /**
-   * End the render pass. The command buffer will be set to `eRecording`
+   * End the render pass.
    */
   void end(const CommandBuffer& buf) const;
 
  private:
   const Device* vulkanDev;
+  std::vector<Attachment> attachments;
   vk::raii::RenderPass _pass;
-  vk::Offset2D offset;
-  vk::Extent2D extent;
-  vk::ClearColorValue clearColor;
-  vk::ClearDepthStencilValue clearDepth;
 };
 
 }  // namespace seng::rendering

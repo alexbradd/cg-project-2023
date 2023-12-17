@@ -15,85 +15,57 @@ using namespace std;
 using namespace seng::rendering;
 
 static vk::raii::RenderPass createRenderPass(const Device &device,
-                                             vk::Format colorFormat,
-                                             vk::Format depthFormat);
+                                             const vector<Attachment> &attachments);
 
-RenderPass::RenderPass(const Device &dev, const Swapchain &swap) :
-    RenderPass(dev,
-               swap.format().format,
-               dev.depthFormat().format,
-               {0, 0},
-               swap.extent(),
-               {0.0f, 0.0f, 1.0f, 0.0f},
-               {1.0f, 0})
-{
-}
-
-RenderPass::RenderPass(const Device &device,
-                       vk::Format colorFormat,
-                       vk::Format depthFormat,
-                       vk::Offset2D offset,
-                       vk::Extent2D extent,
-                       vk::ClearColorValue clearColor,
-                       vk::ClearDepthStencilValue clearDepth) :
+RenderPass::RenderPass(const Device &device, std::vector<Attachment> attachments) :
     vulkanDev(std::addressof(device)),
-    _pass(createRenderPass(device, colorFormat, depthFormat)),
-    offset(offset),
-    extent(extent),
-    clearColor(clearColor),
-    clearDepth(clearDepth)
+    attachments(std::move(attachments)),
+    _pass(createRenderPass(device, this->attachments))
 {
 }
 
 vk::raii::RenderPass createRenderPass(const Device &device,
-                                      vk::Format colorFormat,
-                                      vk::Format depthFormat)
+                                      const vector<Attachment> &attachments)
 {
+  array<vk::SubpassDescription, 1> subpasses;
+
   // Main subpass
-  vk::SubpassDescription subpass{};
+  auto &subpass = subpasses[0];
   subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 
   vector<vk::AttachmentDescription> descriptions;
+  descriptions.reserve(attachments.size());
+
+  vector<vk::AttachmentReference> colorAttachments;
+  optional<vk::AttachmentReference> depthAttachment;
+  // TODO: other types of attachments
+
+  for (size_t i = 0; i < attachments.size(); i++) {
+    auto &a = attachments[i];
+    descriptions.emplace_back(vk::AttachmentDescriptionFlags{}, a.format, a.samples,
+                              a.loadOp, a.storeOp, a.stencilLoadOp, a.stencilStoreOp,
+                              a.initialLayout, a.finalLayout);
+    switch (a.usage) {
+      case vk::ImageLayout::eColorAttachmentOptimal:
+        colorAttachments.emplace_back(i, vk::ImageLayout::eColorAttachmentOptimal);
+        break;
+      case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+        depthAttachment =
+            vk::AttachmentReference(i, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+        break;
+      default:
+        seng::log::warning("Attachment type not supported");
+    }
+  }
 
   // Color attachment
-  vk::AttachmentDescription colorAttachment{};
-  colorAttachment.format = colorFormat,
-  colorAttachment.samples = vk::SampleCountFlagBits::e1;
-  colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-  colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-  colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-  colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-  colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-  colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-  descriptions.push_back(colorAttachment);
-
-  vk::AttachmentReference colorRef{0, vk::ImageLayout::eColorAttachmentOptimal};
-  subpass.setColorAttachments(colorRef);
-
-  // Depth attachment
-  vk::AttachmentDescription depthAttachment{};
-  depthAttachment.format = depthFormat,
-  depthAttachment.samples = vk::SampleCountFlagBits::e1;
-  depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-  depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
-  depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-  depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-  depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
-  depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-  descriptions.push_back(depthAttachment);
-
-  vk::AttachmentReference depthRef{1, vk::ImageLayout::eDepthStencilAttachmentOptimal};
-  subpass.setPDepthStencilAttachment(&depthRef);
-
+  subpass.setColorAttachments(colorAttachments);
+  if (depthAttachment.has_value())
+    subpass.setPDepthStencilAttachment(&(*depthAttachment));
   // TODO: other attachment types
 
-  subpass.inputAttachmentCount = 0;
-  subpass.pInputAttachments = nullptr;
-  subpass.pResolveAttachments = nullptr;
-  subpass.preserveAttachmentCount = 0;
-  subpass.pPreserveAttachments = nullptr;
-
-  vk::SubpassDependency dep{};
+  array<vk::SubpassDependency, 1> dependencies;
+  auto &dep = dependencies[0];
   dep.srcSubpass = VK_SUBPASS_EXTERNAL;
   dep.dstSubpass = 0;
   dep.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -103,16 +75,14 @@ vk::raii::RenderPass createRenderPass(const Device &device,
                       vk::AccessFlagBits::eColorAttachmentWrite;
 
   vk::RenderPassCreateInfo info{};
-  info.attachmentCount = descriptions.size();
-  info.pAttachments = descriptions.data();
-  info.subpassCount = 1;
-  info.pSubpasses = &subpass;
-  info.dependencyCount = 1;
-  info.pDependencies = &dep;
+  info.setAttachments(descriptions).setSubpasses(subpasses).setDependencies(dependencies);
   return vk::raii::RenderPass(device.logical(), info);
 }
 
-void RenderPass::begin(const CommandBuffer &buf, const Framebuffer &fb) const
+void RenderPass::begin(const CommandBuffer &buf,
+                       const Framebuffer &fb,
+                       vk::Extent2D extent,
+                       vk::Offset2D offset) const
 {
   vk::RenderPassBeginInfo renderPassInfo{};
   renderPassInfo.renderPass = *_pass;
@@ -120,7 +90,9 @@ void RenderPass::begin(const CommandBuffer &buf, const Framebuffer &fb) const
   renderPassInfo.renderArea.offset = offset;
   renderPassInfo.renderArea.extent = extent;
 
-  array<vk::ClearValue, 2> clearValues{clearColor, clearDepth};
+  std::vector<vk::ClearValue> clearValues(attachments.size());
+  std::transform(attachments.begin(), attachments.end(), clearValues.begin(),
+                 [](auto &a) { return a.clearValue; });
   renderPassInfo.setClearValues(clearValues);
 
   buf.buffer().beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
@@ -129,33 +101,6 @@ void RenderPass::begin(const CommandBuffer &buf, const Framebuffer &fb) const
 void RenderPass::end(const CommandBuffer &buf) const
 {
   buf.buffer().endRenderPass();
-}
-
-vk::Viewport RenderPass::fullViewport() const
-{
-  vk::Viewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = static_cast<float>(extent.width);
-  viewport.height = static_cast<float>(extent.height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-  return viewport;
-}
-
-vk::Rect2D RenderPass::fullScissor() const
-{
-  return vk::Rect2D{{0, 0}, extent};
-}
-
-void RenderPass::updateOffset(vk::Offset2D offset)
-{
-  this->offset = offset;
-}
-
-void RenderPass::updateExtent(vk::Extent2D extent)
-{
-  this->extent = extent;
 }
 
 RenderPass::~RenderPass()

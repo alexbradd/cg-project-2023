@@ -134,6 +134,7 @@ class Renderer {
   Device device;
   Swapchain swapchain;
   Image depthBuffer;
+  std::vector<Attachment> attachments;
   RenderPass renderPass;
   std::vector<Framebuffer> framebuffers;
   vk::raii::CommandPool cmdPool;

@@ -98,11 +98,30 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     debugMessenger(instance, USE_VALIDATION),
     surface(window.createVulkanSurface(instance)),
 
-    // Device, swapchain and framebuffers
+    // Device, swapchain
     device(instance, surface),
     swapchain(device, surface, window),
     depthBuffer(createDepthBuffer(device, swapchain)),
-    renderPass(device, swapchain),
+
+    // Renderpass
+    attachments{
+        // Color attachment
+        {{swapchain.format().format, vk::SampleCountFlagBits::e1,
+          vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+          vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+          vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR,
+          vk::ImageLayout::eColorAttachmentOptimal,
+          vk::ClearColorValue{0.0f, 0.0f, 1.0f, 0.0f}},
+         // Depth attachment
+         {device.depthFormat().format, vk::SampleCountFlagBits::e1,
+          vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
+          vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+          vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal,
+          vk::ImageLayout::eDepthStencilAttachmentOptimal,
+          vk::ClearDepthStencilValue{1.0f, 0}}}},
+    renderPass(device, attachments),
+
+    // Framebuffers
     framebuffers(Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer)),
 
     // Command pool
@@ -231,7 +250,7 @@ FrameHandle Renderer::beginFrame()
     curBuf.begin();
 
     // Begin the render pass
-    renderPass.begin(curBuf, curFb);
+    renderPass.begin(curBuf, curFb, swapchain.extent(), {0, 0});
 
     // Dynamic states
     vk::Viewport viewport{};
@@ -371,10 +390,6 @@ void Renderer::recreateSwapchain()
 
   // Recreate the depth buffer
   depthBuffer = createDepthBuffer(device, swapchain);
-
-  // Update the render pass dimesions
-  renderPass.updateOffset({0, 0});
-  renderPass.updateExtent(swapchain.extent());
 
   // Create new framebuffers
   framebuffers = Framebuffer::fromSwapchain(device, renderPass, swapchain, depthBuffer);
