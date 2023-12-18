@@ -79,11 +79,13 @@ Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent
 }
 
 // Definitions for Frame
+
 Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
     commandBuffer(device, pool, true),
     imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
     queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
     inFlightFence(device, true),
+    descriptorSets(),
     imageIndex(-1)
 {
   log::info("Allocated resources for a frame");
@@ -104,6 +106,9 @@ void FrameHandle::invalidate()
 static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
+static constexpr vk::DescriptorPoolCreateFlags descriptorPoolFlags =
+    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+
 static constexpr vk::BufferUsageFlags vertexBufferUsage =
     vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
@@ -113,6 +118,11 @@ static constexpr vk::BufferUsageFlags indexBufferUsage =
 
 const std::vector<const char *> Renderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
+
+// TODO: add other sizes
+const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES{{
+    {vk::DescriptorType::eUniformBuffer, 1024},
+}};
 
 Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     window(std::addressof(window)),
@@ -147,6 +157,13 @@ Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
     // Pools
     cmdPool(device.logical(),
             {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily}),
+    descriptorPool(std::invoke([&]() {
+      vk::DescriptorPoolCreateInfo info{};
+      info.flags = descriptorPoolFlags;
+      info.maxSets = 1024;  // FIXME: not really sure about this
+      info.setPoolSizes(Renderer::POOL_SIZES);
+      return vk::raii::DescriptorPool(device.logical(), info);
+    })),
 
     // Buffers
     vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
@@ -237,6 +254,40 @@ void Renderer::signalResize()
   fbGeneration++;
 }
 
+void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
+{
+  // Check if any of the frames do not have the layout registered.
+  // We can also "optimize" and check only one since we always keep them in sync,
+  // but just to be safe from inconsistent states.
+  bool notFound = false;
+  for (auto &f : frames) {
+    auto iter = f.descriptorSets.find(layout);
+    if (iter == f.descriptorSets.end()) {
+      notFound = true;
+      break;
+    }
+  }
+  // If the descriptor layout has not been founmd in some frames, allocate the
+  // map entries
+  if (notFound) {
+    for (auto &f : frames) {
+      array<vk::DescriptorSetLayout, 1> descs{layout};
+
+      vk::DescriptorSetAllocateInfo info{};
+      info.descriptorPool = *descriptorPool;
+      info.setSetLayouts(descs);
+      auto sets = vk::raii::DescriptorSets(device.logical(), info);
+      f.descriptorSets.emplace(layout, std::move(sets[0]));
+    }
+  }
+}
+
+void Renderer::clearDescriptorSets()
+{
+  for (auto &f : frames) f.descriptorSets.clear();
+  descriptorPool.reset();
+}
+
 optional<FrameHandle> Renderer::beginFrame()
 {
   if (recreatingSwapchain) {
@@ -283,6 +334,13 @@ optional<FrameHandle> Renderer::beginFrame()
     log::warning("Caught exception: {}", e.what());
     return nullopt;
   }
+}
+
+const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
+    const FrameHandle &handle, vk::DescriptorSetLayout layout) const
+{
+  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
+  return frames[handle.frameIndex].descriptorSets.at(layout);
 }
 
 // FIXME: start of stub

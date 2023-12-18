@@ -11,6 +11,7 @@
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
+#include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
@@ -18,7 +19,22 @@
 
 #include <array>
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
+
+// Copied from Vulkan-Samples. Needed so that we can put a DescriptorSetLayout handle in a
+// hashmap
+namespace std {
+template <>
+struct hash<vk::DescriptorSetLayout> {
+  std::size_t operator()(const vk::DescriptorSetLayout &descriptorSetLayout) const
+  {
+    std::size_t result = 0;
+    seng::internal::hashCombine(result, descriptorSetLayout);
+    return result;
+  }
+};
+}  // namespace std
 
 namespace seng::rendering {
 
@@ -77,10 +93,30 @@ class Renderer {
   void signalResize();
 
   /**
+   * Allocate a new descriptor set with the given layout from the pool.
+   */
+  void requestDescriptorSet(vk::DescriptorSetLayout layout);
+
+  /**
+   * Destroy all allocated descriptor sets and clear the pool.
+   */
+  void clearDescriptorSets();
+
+  /**
    * Starts recording a frame and returns a handle to it. If recording cannot be
    * started, return an empty optional.
    */
   std::optional<FrameHandle> beginFrame();
+
+  /**
+   * Fetches a descriptor set with the given layout usable during the current in-progress
+   * frame.
+   *
+   * Note: the layout must have been previously registered with a call to
+   * registerDescriptorLayout().
+   */
+  const vk::raii::DescriptorSet &getDescriptorSet(const FrameHandle &frame,
+                                                  vk::DescriptorSetLayout layout) const;
 
   void updateGlobalState(glm::mat4 projection, glm::mat4 view) const;
   void updateModel(glm::mat4 model) const;
@@ -124,10 +160,13 @@ class Renderer {
     vk::raii::Semaphore imageAvailableSem;
     vk::raii::Semaphore queueCompleteSem;
     Fence inFlightFence;
+    std::unordered_map<vk::DescriptorSetLayout, vk::raii::DescriptorSet> descriptorSets;
     ssize_t imageIndex;
 
     Frame(const Device &device, const vk::raii::CommandPool &commandPool);
   };
+
+  static const std::array<vk::DescriptorPoolSize, 1> POOL_SIZES;
 
   const GlfwWindow *window;
   vk::raii::Context context;
@@ -139,6 +178,8 @@ class Renderer {
   std::vector<Attachment> attachments;
   RenderPass renderPass;
   vk::raii::CommandPool cmdPool;
+  vk::raii::DescriptorPool descriptorPool;
+
   std::vector<RenderTarget> targets;
   std::vector<Frame> frames;
 
