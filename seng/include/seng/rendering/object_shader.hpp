@@ -32,7 +32,7 @@ class Buffer;
  */
 class ObjectShader {
  public:
-  static const int STAGES = 2;
+  static constexpr int STAGES = 2;
 
   ObjectShader(const Device& dev,
                const RenderPass& pass,
