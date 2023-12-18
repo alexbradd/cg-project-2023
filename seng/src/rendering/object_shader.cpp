@@ -11,7 +11,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <stddef.h>
-#include <array>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -57,20 +56,8 @@ ObjectShader::ObjectShader(const Device& dev,
       return DescriptorSetLayout(dev.logical(), info);
     })),
     pipeline(std::invoke([&]() {
-      // Attributes:
-      // 0. Position at location 0
-      uint32_t offset = 0;
-      vector<vk::VertexInputAttributeDescription> attributeDescriptions{ATTRIBUTE_COUNT};
-      array<vk::Format, ATTRIBUTE_COUNT> formats{vk::Format::eR32G32B32Sfloat};
-      array<uint64_t, ATTRIBUTE_COUNT> sizes{sizeof(Vertex)};
-
-      for (uint32_t i = 0; i < ATTRIBUTE_COUNT; i++) {
-        attributeDescriptions[i].binding = 0;
-        attributeDescriptions[i].location = i;
-        attributeDescriptions[i].format = formats[i];
-        attributeDescriptions[i].offset = offset;
-        offset += sizes[i];
-      }
+      // Attributes
+      AttributeDescriptions attributes{Vertex::attributeDescriptions()};
 
       // Descriptor layouts
       vector<vk::DescriptorSetLayout> descriptors;
@@ -83,8 +70,7 @@ ObjectShader::ObjectShader(const Device& dev,
         stageCreateInfo.emplace_back(stages[i]->createInfo());
       }
 
-      Pipeline::CreateInfo pipeInfo{attributeDescriptions, descriptors, stageCreateInfo,
-                                    false};
+      Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
       return Pipeline(dev, pass, pipeInfo);
     })),
     globalDescriptorSets(std::invoke([&]() {

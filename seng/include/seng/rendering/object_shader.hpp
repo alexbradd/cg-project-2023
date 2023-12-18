@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#define ATTRIBUTE_COUNT 1
-
 namespace seng::rendering {
 
 class Device;

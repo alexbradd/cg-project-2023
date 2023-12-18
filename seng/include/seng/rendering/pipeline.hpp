@@ -1,5 +1,7 @@
 #pragma once
 
+#include <seng/rendering/primitive_types.hpp>
+
 #include <vulkan/vulkan_raii.hpp>
 
 #include <vector>
@@ -20,7 +22,7 @@ class Pipeline {
    * A small helper that contains information useful for pipeline createion.
    */
   struct CreateInfo {
-    std::vector<vk::VertexInputAttributeDescription>& attributes;
+    AttributeDescriptions& attributes;
     std::vector<vk::DescriptorSetLayout>& descriptorSetLayouts;
     std::vector<vk::PipelineShaderStageCreateInfo>& stages;
     bool wireframe = false;
