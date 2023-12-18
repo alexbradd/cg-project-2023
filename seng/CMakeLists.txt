@@ -15,7 +15,11 @@ FetchContent_Declare(tinyobjloader
   GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader
   GIT_TAG v1.0.6
 )
-FetchContent_MakeAvailable(fmt glm tinyobjloader)
+FetchContent_declare(yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+  GIT_TAG 0.8.0
+)
+FetchContent_MakeAvailable(fmt glm tinyobjloader yaml-cpp)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
@@ -71,6 +75,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     glfw
     tinyobjloader
+    yaml-cpp
     Vulkan::Vulkan
     Vulkan::Headers
 )
