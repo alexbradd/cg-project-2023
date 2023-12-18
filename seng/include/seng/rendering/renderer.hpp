@@ -86,6 +86,9 @@ class Renderer {
   static constexpr bool USE_VALIDATION{false};
 #endif  // !NDEBUG
 
+  // Accessors
+  const Device &getDevice() const { return device; }
+
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
    * to be regenerated.
