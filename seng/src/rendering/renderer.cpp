@@ -124,7 +124,7 @@ const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES{{
     {vk::DescriptorType::eUniformBuffer, 1024},
 }};
 
-Renderer::Renderer(ApplicationConfig config, const GlfwWindow &window) :
+Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &window) :
     window(std::addressof(window)),
     context(),
     // Instance creation
