@@ -72,10 +72,10 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     fmt::fmt
     glm::glm
+    Vulkan::Vulkan
+    Vulkan::Headers
   PRIVATE
     glfw
     tinyobjloader
     yaml-cpp
-    Vulkan::Vulkan
-    Vulkan::Headers
 )
