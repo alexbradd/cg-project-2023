@@ -1,8 +1,8 @@
 #include <seng/log.hpp>
-#include <seng/primitive_types.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/pipeline.hpp>
+#include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/render_pass.hpp>
 
 #include <glm/mat4x4.hpp>

@@ -1,10 +1,10 @@
 #include <seng/log.hpp>
-#include <seng/primitive_types.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/pipeline.hpp>
+#include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/shader_stage.hpp>
 
 #include <glm/mat4x4.hpp>

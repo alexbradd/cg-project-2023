@@ -1,7 +1,6 @@
 #pragma once
 
 #include <seng/application_config.hpp>
-#include <seng/primitive_types.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/debug_messenger.hpp>
@@ -9,6 +8,7 @@
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/image.hpp>
+#include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 #include <seng/utils.hpp>
