@@ -11,7 +11,11 @@ FetchContent_Declare(glm
   GIT_REPOSITORY https://github.com/g-truc/glm
   GIT_TAG 0.9.9.8
 )
-FetchContent_MakeAvailable(fmt glm)
+FetchContent_Declare(tinyobjloader
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader
+  GIT_TAG v1.0.6
+)
+FetchContent_MakeAvailable(fmt glm tinyobjloader)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
@@ -66,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
   PRIVATE
     glfw
+    tinyobjloader
     Vulkan::Vulkan
     Vulkan::Headers
 )
