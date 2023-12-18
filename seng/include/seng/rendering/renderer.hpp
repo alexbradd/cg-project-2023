@@ -88,6 +88,7 @@ class Renderer {
 
   // Accessors
   const Device &getDevice() const { return device; }
+  const vk::raii::CommandPool &getCommandPool() const { return cmdPool; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
