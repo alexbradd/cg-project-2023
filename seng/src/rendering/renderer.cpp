@@ -276,7 +276,7 @@ void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
       vk::DescriptorSetAllocateInfo info{};
       info.descriptorPool = *descriptorPool;
       info.setSetLayouts(descs);
-      auto sets = vk::raii::DescriptorSets(device.logical(), info);
+      vk::raii::DescriptorSets sets(device.logical(), info);
       f.descriptorSets.emplace(layout, std::move(sets[0]));
     }
   }
