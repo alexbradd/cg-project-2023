@@ -30,7 +30,8 @@ struct hash<vk::DescriptorSetLayout> {
   std::size_t operator()(const vk::DescriptorSetLayout &descriptorSetLayout) const
   {
     std::size_t result = 0;
-    seng::internal::hashCombine(result, descriptorSetLayout);
+    seng::internal::hashCombine(result,
+                                static_cast<VkDescriptorSetLayout>(descriptorSetLayout));
     return result;
   }
 };
