@@ -48,7 +48,10 @@ void Application::run(unsigned int width,
     // FIXME: stub drawing
     try {
       const auto start{chrono::high_resolution_clock::now()};
-      auto frameHandle = vulkan->beginFrame();
+
+      auto maybeFrameHandle = vulkan->beginFrame();
+      if (!maybeFrameHandle.has_value()) continue;
+      auto& frameHandle = *maybeFrameHandle;
 
       vulkan->updateGlobalState(camera.projectionMatrix(), camera.viewMatrix());
 
@@ -60,8 +63,6 @@ void Application::run(unsigned int width,
       vulkan->endFrame(frameHandle);
       const auto end{chrono::high_resolution_clock::now()};
       ctx->_deltaTime = end - start;
-    } catch (const BeginFrameException& e) {
-      log::info("Could not begin frame: {}", e.what());
     } catch (const exception& e) {
       log::warning("Unhandled exception reached draw function: {}", e.what());
     }

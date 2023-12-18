@@ -18,26 +18,12 @@
 
 #include <array>
 #include <cstdint>
-#include <exception>
-#include <string>
 #include <vector>
 
 namespace seng::rendering {
 
 // Forward declarations
 class GlfwWindow;
-
-/**
- * Exception thrown if, for some reason, starting the frame was not possible.
- */
-class BeginFrameException : public std::exception {
- public:
-  BeginFrameException(std::string_view error) : err{error} {}
-  const char *what() const noexcept override { return err.c_str(); }
-
- private:
-  std::string err{};
-};
 
 /**
  * A handle referring to an in-construction frame
@@ -92,9 +78,9 @@ class Renderer {
 
   /**
    * Starts recording a frame and returns a handle to it. If recording cannot be
-   * started, raise a `BeginFrameException`.
+   * started, return an empty optional.
    */
-  FrameHandle beginFrame();
+  std::optional<FrameHandle> beginFrame();
 
   void updateGlobalState(glm::mat4 projection, glm::mat4 view) const;
   void updateModel(glm::mat4 model) const;

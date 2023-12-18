@@ -237,17 +237,19 @@ void Renderer::signalResize()
   fbGeneration++;
 }
 
-FrameHandle Renderer::beginFrame()
+optional<FrameHandle> Renderer::beginFrame()
 {
   if (recreatingSwapchain) {
     device.logical().waitIdle();
-    throw BeginFrameException("Already recreating swapchain, waiting...");
+    seng::log::dbg("Already recreating swapchain, waiting...");
+    return nullopt;
   }
 
   if (lastFbGeneration != fbGeneration) {
     device.logical().waitIdle();
     recreateSwapchain();
-    throw BeginFrameException("Framebuffer changed, aborting...");
+    seng::log::dbg("Framebuffer changed, aborting...");
+    return nullopt;
   }
 
   auto &frame = frames[currentFrame];
@@ -276,10 +278,10 @@ FrameHandle Renderer::beginFrame()
     vk::Rect2D scissor{{0, 0}, swapchain.extent()};
     curBuf.buffer().setScissor(0, scissor);
 
-    return {currentFrame};
+    return optional(FrameHandle{currentFrame});
   } catch (const exception &e) {
     log::warning("Caught exception: {}", e.what());
-    throw BeginFrameException("Caught exception while starting recording...");
+    return nullopt;
   }
 }
 
