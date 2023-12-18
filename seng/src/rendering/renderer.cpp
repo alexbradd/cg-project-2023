@@ -36,23 +36,6 @@ using namespace std;
 static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
 
-// Stub geometry uploading
-static void uploadTo(const Device &device,
-                     const vk::raii::CommandPool &pool,
-                     const vk::raii::Queue &queue,
-                     const Buffer &to,
-                     vk::DeviceSize size,
-                     vk::DeviceSize offset,
-                     const void *data)
-{
-  vk::MemoryPropertyFlags hostVisible = vk::MemoryPropertyFlagBits::eHostCoherent |
-                                        vk::MemoryPropertyFlagBits::eHostVisible;
-
-  Buffer temp(device, vk::BufferUsageFlagBits::eTransferSrc, size, hostVisible, true);
-  temp.load(data, 0, size, {});
-  temp.copy(to, {0, offset, size}, pool, queue);
-}
-
 // Definitions for RenderTarget
 Renderer::RenderTarget::RenderTarget(const Device &device,
                                      const vk::ImageView swapchainImage,
@@ -79,7 +62,6 @@ Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent
 }
 
 // Definitions for Frame
-
 Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
     commandBuffer(device, pool, true),
     imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
@@ -108,13 +90,6 @@ static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
 
 static constexpr vk::DescriptorPoolCreateFlags descriptorPoolFlags =
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-
-static constexpr vk::BufferUsageFlags vertexBufferUsage =
-    vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
-    vk::BufferUsageFlagBits::eTransferDst;
-static constexpr vk::BufferUsageFlags indexBufferUsage =
-    vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
-    vk::BufferUsageFlagBits::eTransferDst;
 
 const std::vector<const char *> Renderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
@@ -163,11 +138,7 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
       info.maxSets = 1024;  // FIXME: not really sure about this
       info.setPoolSizes(Renderer::POOL_SIZES);
       return vk::raii::DescriptorPool(device.logical(), info);
-    })),
-
-    // Buffers
-    vertexBuffer(device, vertexBufferUsage, sizeof(Vertex) * 1024 * 1024),
-    indexBuffer(device, indexBufferUsage, sizeof(Vertex) * 1024 * 1024)
+    }))
 {
   // Targets and frames
   for (auto &img : swapchain.images())
@@ -177,23 +148,6 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
   targets.reserve(swapchain.images().size());
 
   log::info("Vulkan context is up and running!");
-
-  // FIXME: Temporary geometry
-  log::dbg("Loading test geometry");
-  verts[0].pos = glm::vec3(-0.5, -0.5, 0.0);
-  verts[1].pos = glm::vec3(0.5, -0.5, 0.0);
-  verts[2].pos = glm::vec3(0.5, 0.5, 0.0);
-  verts[3].pos = glm::vec3(-0.5, 0.5, 0.0);
-  indices[0] = 0;
-  indices[1] = 1;
-  indices[2] = 2;
-  indices[3] = 0;
-  indices[4] = 2;
-  indices[5] = 3;
-  uploadTo(device, cmdPool, device.graphicsQueue(), vertexBuffer, sizeof(Vertex) * 4, 0,
-           verts.data());
-  uploadTo(device, cmdPool, device.graphicsQueue(), indexBuffer, sizeof(uint32_t) * 6, 0,
-           indices.data());
 }
 
 vk::raii::Instance createInstance(const vk::raii::Context &context,

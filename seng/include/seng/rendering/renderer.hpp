@@ -8,7 +8,6 @@
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/image.hpp>
-#include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 #include <seng/utils.hpp>
@@ -187,15 +186,9 @@ class Renderer {
   std::vector<RenderTarget> targets;
   std::vector<Frame> frames;
 
-  Buffer vertexBuffer, indexBuffer;
-
   uint64_t fbGeneration = 0, lastFbGeneration = 0;
   uint32_t currentFrame = 0;
   bool recreatingSwapchain = false;
-
-  // FIXME: Test Geometry
-  std::array<Vertex, 4> verts;
-  std::array<uint32_t, 6> indices;
 
   /**
    * Recreate the current swapchain and framebuffers
