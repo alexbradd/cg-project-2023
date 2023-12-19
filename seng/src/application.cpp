@@ -39,27 +39,20 @@ void Application::run(unsigned int width,
   activeScene = make_unique<Scene>(
       Scene::loadFromDisk(*vulkan, conf, "default", width / static_cast<float>(height)));
 
-  // The main applcation loop goes like this:
-  //
-  // 1. Game state is updated, reacting to input changes
-  // 2. That state is drawn to screen
-  // 3. Pending input events are processed and made available for the next frame
   while (!window->shouldClose()) {
     // FIXME: stub drawing
     try {
       const auto start{chrono::high_resolution_clock::now()};
-
-      auto maybeFrameHandle = vulkan->beginFrame();
-      if (!maybeFrameHandle.has_value()) continue;
-      auto& frameHandle = *maybeFrameHandle;
-
-      activeScene->draw(frameHandle);
-
-      vulkan->endFrame(frameHandle);
-      const auto end{chrono::high_resolution_clock::now()};
-      ctx->_deltaTime = end - start;
+      bool executed =
+          vulkan->scopedFrame([&](auto& handle) { activeScene->draw(handle); });
+      if (!executed)
+        continue;
+      else {
+        const auto end{chrono::high_resolution_clock::now()};
+        ctx->_deltaTime = end - start;
+      }
     } catch (const exception& e) {
-      log::warning("Unhandled exception reached draw function: {}", e.what());
+      log::warning("Unhandled exception reached main loop: {}", e.what());
     }
 
     ctx->_inputManager->updateEvents();
