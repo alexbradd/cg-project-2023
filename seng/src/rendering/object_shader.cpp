@@ -11,7 +11,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <stddef.h>
-#include <cstdint>
 #include <functional>
 #include <string>
 #include <utility>
@@ -29,32 +28,12 @@ static const vk::MemoryPropertyFlags UNIFORM_MEM_FLAGS =
 
 ObjectShader::ObjectShader(const Device& dev,
                            const RenderPass& pass,
-                           uint32_t globalPoolSize,
+                           const vk::raii::DescriptorSetLayout& globalDescriptorSetLayout,
                            string name,
                            vector<const ShaderStage*> stages) :
     vulkanDev(std::addressof(dev)),
     name(std::move(name)),
     _stages(std::move(stages)),
-    globalDescriptorPool(std::invoke([&]() {
-      vk::DescriptorPoolSize poolSize{vk::DescriptorType::eUniformBuffer, globalPoolSize};
-      vk::DescriptorPoolCreateInfo info{};
-      info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-      info.maxSets = globalPoolSize;
-      info.setPoolSizes(poolSize);
-      return DescriptorPool(dev.logical(), info);
-    })),
-    globalDescriptorSetLayout(std::invoke([&]() {
-      vk::DescriptorSetLayoutBinding guboBinding{};
-      guboBinding.binding = 0;
-      guboBinding.descriptorCount = 1;
-      guboBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-      guboBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-      vk::DescriptorSetLayoutCreateInfo info{};
-      info.bindingCount = 1;
-      info.pBindings = &guboBinding;
-      return DescriptorSetLayout(dev.logical(), info);
-    })),
     pipeline(std::invoke([&]() {
       // Attributes
       AttributeDescriptions attributes{Vertex::attributeDescriptions()};
@@ -73,14 +52,6 @@ ObjectShader::ObjectShader(const Device& dev,
       Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
       return Pipeline(dev, pass, pipeInfo);
     })),
-    globalDescriptorSets(std::invoke([&]() {
-      vector<vk::DescriptorSetLayout> descs(globalPoolSize, *globalDescriptorSetLayout);
-
-      vk::DescriptorSetAllocateInfo info{};
-      info.descriptorPool = *globalDescriptorPool;
-      info.setSetLayouts(descs);
-      return DescriptorSets(dev.logical(), info);
-    })),
     gubo(dev, UNIFORM_USAGE_FLAGS, sizeof(guo), UNIFORM_MEM_FLAGS, true)
 {
   log::dbg("Created object shader {}", name);
@@ -91,10 +62,9 @@ void ObjectShader::use(const CommandBuffer& buffer) const
   pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
-void ObjectShader::uploadGlobalState(const CommandBuffer& buf, uint32_t imageIndex) const
+void ObjectShader::uploadGlobalState(const CommandBuffer& buf,
+                                     const vk::raii::DescriptorSet& descriptor) const
 {
-  auto& descriptor = globalDescriptorSets[imageIndex];
-
   // Copy to buffer
   vk::DeviceSize range = sizeof(guo);
   vk::DeviceSize offset = 0;

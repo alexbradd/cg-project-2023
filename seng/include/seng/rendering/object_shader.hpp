@@ -7,7 +7,6 @@
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -34,7 +33,7 @@ class ObjectShader {
 
   ObjectShader(const Device& dev,
                const RenderPass& pass,
-               uint32_t globalPoolSize,
+               const vk::raii::DescriptorSetLayout& globalDescriptorSetLayout,
                std::string name,
                std::vector<const ShaderStage*> stages);
   ObjectShader(const ObjectShader&) = delete;
@@ -55,7 +54,8 @@ class ObjectShader {
   /**
    * Push the values conntained in the global uniform object to the shader
    */
-  void uploadGlobalState(const CommandBuffer& buf, uint32_t imageIndex) const;
+  void uploadGlobalState(const CommandBuffer& buf,
+                         const vk::raii::DescriptorSet& descriptor) const;
 
   /**
    * Push the given model matrix to the shader
@@ -67,10 +67,7 @@ class ObjectShader {
   std::string name;
   std::vector<const ShaderStage*> _stages;
 
-  vk::raii::DescriptorPool globalDescriptorPool;
-  vk::raii::DescriptorSetLayout globalDescriptorSetLayout;
   Pipeline pipeline;
-  vk::raii::DescriptorSets globalDescriptorSets;
   GlobalUniformObject guo;
   Buffer gubo;
 };
