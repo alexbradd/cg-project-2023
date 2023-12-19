@@ -1,7 +1,7 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
+#include <seng/utils.hpp>
+
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.hpp>
@@ -68,16 +68,22 @@ struct GlobalUniformObject {
 
 }  // namespace seng::rendering
 
-// Curtesy of vulkan-tutorial.com, chapter about loading models
+// Adapted from vulkan-tutorial.com's chapter about loading models
 namespace std {
 template <>
 struct hash<seng::rendering::Vertex> {
   size_t operator()(seng::rendering::Vertex const& vertex) const
   {
-    auto hashVec3 = hash<glm::vec3>();
-    auto hashVec2 = hash<glm::vec2>();
-    return ((hashVec3(vertex.pos) ^ hashVec3(vertex.color) << 1) >> 1) ^
-           (hashVec2(vertex.texCoord) << 1);
+    using seng::internal::hashCombine;
+    std::size_t vPos = 0;
+    std::size_t vColor = 0;
+    std::size_t vTexCoord = 0;
+
+    hashCombine(vPos, vertex.pos);
+    hashCombine(vColor, vertex.color);
+    hashCombine(vTexCoord, vertex.texCoord);
+
+    return ((vPos ^ vColor << 1) >> 1) ^ (vTexCoord << 1);
   }
 };
 }  // namespace std
