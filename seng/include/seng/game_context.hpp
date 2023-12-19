@@ -13,7 +13,7 @@ class GameContext {
   friend Application;  // To allow update of internal objects
 
  public:
-  GameContext(Camera& c) : _currentCamera(c) {}
+  GameContext() {}
   GameContext(const GameContext&) = delete;
   GameContext(GameContext&&) = default;
 
@@ -22,12 +22,10 @@ class GameContext {
 
   const InputManager* inputManager() const { return _inputManager.get(); }
   std::chrono::duration<float> deltaTime() const { return _deltaTime; }
-  Camera& currentCamera() const { return _currentCamera; }
 
  private:
   std::unique_ptr<InputManager> _inputManager;
   std::chrono::duration<float> _deltaTime;
-  std::reference_wrapper<Camera> _currentCamera;
 };
 
 };  // namespace seng

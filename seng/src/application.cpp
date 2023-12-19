@@ -36,7 +36,7 @@ void Application::run(unsigned int width,
   camera.transform().setPos(0.0, 0.0, 2.0f);
   Transform model;
 
-  ctx = make_unique<GameContext>(camera);
+  ctx = make_unique<GameContext>();
   ctx->_inputManager = make_unique<InputManager>(window.get());
 
   // The main applcation loop goes like this:
