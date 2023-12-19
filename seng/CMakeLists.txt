@@ -49,6 +49,7 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/buffer.cpp
     ./src/transform.cpp
     ./src/camera.cpp
+    ./src/rendering/mesh.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
