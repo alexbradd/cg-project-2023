@@ -5,6 +5,7 @@
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/renderer.hpp>
+#include <seng/rendering/scene.hpp>
 #include <seng/transform.hpp>
 
 #include <chrono>
@@ -32,12 +33,11 @@ void Application::run(unsigned int width,
 {
   makeWindow(width, height);
 
-  Camera camera(width / static_cast<float>(height));
-  camera.transform().setPos(0.0, 0.0, 2.0f);
-  Transform model;
-
   ctx = make_unique<GameContext>();
   ctx->_inputManager = make_unique<InputManager>(window.get());
+
+  activeScene = make_unique<Scene>(
+      Scene::loadFromDisk(*vulkan, conf, "default", width / static_cast<float>(height)));
 
   // The main applcation loop goes like this:
   //
@@ -53,6 +53,7 @@ void Application::run(unsigned int width,
       if (!maybeFrameHandle.has_value()) continue;
       auto& frameHandle = *maybeFrameHandle;
 
+      activeScene->draw(frameHandle);
 
       vulkan->endFrame(frameHandle);
       const auto end{chrono::high_resolution_clock::now()};
@@ -66,6 +67,7 @@ void Application::run(unsigned int width,
     cb(ctx.get());  // TODO: to be substituted with gamobject Update
   }
 
+  activeScene = nullptr;
   destroyWindow();
   ctx = nullptr;
 }
@@ -75,8 +77,10 @@ void Application::makeWindow(unsigned int width, unsigned int height)
   window = make_unique<GlfwWindow>(conf.appName, width, height);
   vulkan = make_unique<Renderer>(conf, *window);
 
-  window->onResize([this](GLFWwindow*, unsigned int, unsigned int) {
+  window->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
     if (vulkan != nullptr) vulkan->signalResize();
+    if (activeScene != nullptr)
+      activeScene->mainCamera().aspectRatio(w / static_cast<float>(h));
   });
 }
 

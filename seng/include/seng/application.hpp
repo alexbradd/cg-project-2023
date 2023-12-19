@@ -12,6 +12,7 @@ class GameContext;
 namespace rendering {
 class GlfwWindow;
 class Renderer;
+class Scene;
 }  // namespace rendering
 
 /**
@@ -52,6 +53,7 @@ class Application {
 
   std::shared_ptr<rendering::GlfwWindow> window;
   std::unique_ptr<rendering::Renderer> vulkan;
+  std::unique_ptr<rendering::Scene> activeScene;
 
   std::shared_ptr<GameContext> ctx;
 
