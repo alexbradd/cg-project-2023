@@ -40,19 +40,16 @@ void Application::run(unsigned int width,
   Timestamp lastFrame = Clock::now();
   while (!glfwWindow->shouldClose()) {
     try {
-      const auto delta = Clock::now() - lastFrame;
       bool executed = vulkan->scopedFrame([&](auto& handle) {
-        // TODO: pass delta to update func
+        const auto delta = Clock::now() - lastFrame;
+        inputManager->updateEvents();
+        cb(inSeconds(delta), *this);  // TODO: to be substituted with gameobject Update
         activeScene->draw(handle);
       });
       if (!executed)
         continue;
       else
         lastFrame = Clock::now();
-
-      inputManager->updateEvents();
-
-      cb(inSeconds(delta), *this);  // TODO: to be substituted with gamobject Update
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
