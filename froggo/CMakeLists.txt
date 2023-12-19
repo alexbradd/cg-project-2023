@@ -73,3 +73,4 @@ macro(copy_dir dirname)
 endmacro()
 
 copy_dir("assets")
+copy_dir("scenes")
