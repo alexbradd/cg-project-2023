@@ -4,7 +4,6 @@
 #include <iostream>
 #include <seng/application.hpp>
 #include <seng/camera.hpp>
-#include <seng/game_context.hpp>
 #include <seng/input_enums.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
@@ -29,7 +28,7 @@ int main(int, char* argv[])
     seng::log::info("Starting application");
 
     const float speed = 5.0f;
-    app.run(800, 600, [&](const seng::GameContext* ctx) {
+    app.run(800, 600, [&](float deltaTime, const seng::Application& app) {
       /* auto& transform = ctx->currentCamera().transform(); */
       /**/
       /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyA)) */

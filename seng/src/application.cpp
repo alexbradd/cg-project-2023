@@ -1,6 +1,5 @@
 #include <seng/application.hpp>
 #include <seng/camera.hpp>
-#include <seng/game_context.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
@@ -29,21 +28,19 @@ Application::~Application()
 
 void Application::run(unsigned int width,
                       unsigned int height,
-                      function<void(const GameContext*)> cb)
+                      function<void(float, const Application&)> cb)
 {
   makeWindow(width, height);
-
-  ctx = make_unique<GameContext>();
-  ctx->_inputManager = make_unique<InputManager>(window.get());
+  inputManager = make_unique<InputManager>(glfwWindow.get());
 
   activeScene = make_unique<Scene>(
       Scene::loadFromDisk(*vulkan, conf, "default", width / static_cast<float>(height)));
 
   Timestamp lastFrame = Clock::now();
-  while (!window->shouldClose()) {
+  while (!glfwWindow->shouldClose()) {
     try {
+      const auto delta = Clock::now() - lastFrame;
       bool executed = vulkan->scopedFrame([&](auto& handle) {
-        [[maybe_unused]] const auto delta = Clock::now() - lastFrame;
         // TODO: pass delta to update func
         activeScene->draw(handle);
       });
@@ -51,26 +48,25 @@ void Application::run(unsigned int width,
         continue;
       else
         lastFrame = Clock::now();
+
+      inputManager->updateEvents();
+
+      cb(inSeconds(delta), *this);  // TODO: to be substituted with gamobject Update
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
-
-    ctx->_inputManager->updateEvents();
-
-    cb(ctx.get());  // TODO: to be substituted with gamobject Update
   }
 
   activeScene = nullptr;
   destroyWindow();
-  ctx = nullptr;
 }
 
 void Application::makeWindow(unsigned int width, unsigned int height)
 {
-  window = make_unique<GlfwWindow>(conf.appName, width, height);
-  vulkan = make_unique<Renderer>(conf, *window);
+  glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
+  vulkan = make_unique<Renderer>(conf, *glfwWindow);
 
-  window->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
+  glfwWindow->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
     if (vulkan != nullptr) vulkan->signalResize();
     if (activeScene != nullptr)
       activeScene->mainCamera().aspectRatio(w / static_cast<float>(h));
@@ -80,10 +76,5 @@ void Application::makeWindow(unsigned int width, unsigned int height)
 void Application::destroyWindow()
 {
   vulkan = nullptr;
-  window = nullptr;
-}
-
-const ApplicationConfig& Application::config() const
-{
-  return conf;
+  glfwWindow = nullptr;
 }

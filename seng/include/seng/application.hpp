@@ -7,13 +7,13 @@
 
 namespace seng {
 
-class GameContext;
-
 namespace rendering {
 class GlfwWindow;
 class Renderer;
 class Scene;
 }  // namespace rendering
+
+class InputManager;
 
 /**
  * Entry point for user application. Its main role is to bootstrap vulkan and
@@ -44,18 +44,23 @@ class Application {
    */
   void run(unsigned int width,
            unsigned int height,
-           std::function<void(const GameContext *)> cb);
+           std::function<void(float, const Application &)> cb);
 
-  const ApplicationConfig &config() const;
+  // Accessors
+  const ApplicationConfig &config() const { return conf; }
+  const std::unique_ptr<rendering::Renderer> &renderer() const { return vulkan; }
+  const std::unique_ptr<rendering::GlfwWindow> &window() const { return glfwWindow; }
+  const std::unique_ptr<rendering::Scene> &scene() const { return activeScene; }
+  const std::unique_ptr<InputManager> &input() const { return inputManager; }
 
  private:
   ApplicationConfig conf;
 
-  std::unique_ptr<rendering::GlfwWindow> window;
+  std::unique_ptr<rendering::GlfwWindow> glfwWindow;
   std::unique_ptr<rendering::Renderer> vulkan;
   std::unique_ptr<rendering::Scene> activeScene;
 
-  std::shared_ptr<GameContext> ctx;
+  std::unique_ptr<InputManager> inputManager;
 
   void makeWindow(unsigned int width, unsigned int height);
   void destroyWindow();
