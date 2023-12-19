@@ -51,7 +51,7 @@ class Application {
  private:
   ApplicationConfig conf;
 
-  std::shared_ptr<rendering::GlfwWindow> window;
+  std::unique_ptr<rendering::GlfwWindow> window;
   std::unique_ptr<rendering::Renderer> vulkan;
   std::unique_ptr<rendering::Scene> activeScene;
 
