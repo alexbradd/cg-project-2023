@@ -297,6 +297,12 @@ const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
   return frames[handle.frameIndex].descriptorSets.at(layout);
 }
 
+const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
+{
+  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
+  return frames[handle.frameIndex].commandBuffer;
+}
+
 void Renderer::endFrame(FrameHandle &handle)
 {
   if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");

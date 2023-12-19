@@ -122,6 +122,11 @@ class Renderer {
    */
   const vk::raii::DescriptorSet &getDescriptorSet(const FrameHandle &frame,
                                                   vk::DescriptorSetLayout layout) const;
+  /*
+   * Get the command buffer of the current in-progress frame. If the passed handle is
+   * invalid, a runtime error is thrown.
+   */
+  const CommandBuffer &getCommandBuffer(const FrameHandle &frame) const;
 
   /**
    * Finishes recording the frame referred by the given handle. The handle is
