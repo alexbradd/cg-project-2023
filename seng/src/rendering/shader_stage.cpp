@@ -39,7 +39,7 @@ ShaderStage::ShaderStage(const Device &dev,
           suffix = FRAG_SUFFIX;
           break;
       }
-      filename = name + suffix;
+      filename = this->name + suffix;
 
       return seng::internal::readFile((shaderDir / filename).string());
     })),
