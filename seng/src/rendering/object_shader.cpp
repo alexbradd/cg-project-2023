@@ -67,7 +67,7 @@ ObjectShader::ObjectShader(const Device& dev,
       // Stages
       vector<vk::PipelineShaderStageCreateInfo> stageCreateInfo;
       for (size_t i = 0; i < ObjectShader::STAGES; i++) {
-        stageCreateInfo.emplace_back(stages[i]->createInfo());
+        stageCreateInfo.emplace_back(_stages[i]->createInfo());
       }
 
       Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
