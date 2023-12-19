@@ -30,27 +30,27 @@ add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
-    ./src/rendering/glfw_window.cpp
-    ./src/input_manager.cpp
-    ./src/utils.cpp
-    ./src/log.cpp
-    ./src/rendering/renderer.cpp
-    ./src/rendering/swapchain.cpp
-    ./src/rendering/debug_messenger.cpp
-    ./src/rendering/image.cpp
-    ./src/rendering/device.cpp
-    ./src/rendering/render_pass.cpp
-    ./src/rendering/command_buffer.cpp
-    ./src/rendering/framebuffer.cpp
-    ./src/rendering/fence.cpp
-    ./src/rendering/object_shader.cpp
-    ./src/rendering/shader_stage.cpp
-    ./src/rendering/pipeline.cpp
-    ./src/rendering/buffer.cpp
-    ./src/transform.cpp
     ./src/camera.cpp
-    ./src/rendering/scene.cpp
+    ./src/input_manager.cpp
+    ./src/log.cpp
+    ./src/rendering/buffer.cpp
+    ./src/rendering/command_buffer.cpp
+    ./src/rendering/debug_messenger.cpp
+    ./src/rendering/device.cpp
+    ./src/rendering/fence.cpp
+    ./src/rendering/framebuffer.cpp
+    ./src/rendering/glfw_window.cpp
+    ./src/rendering/image.cpp
     ./src/rendering/mesh.cpp
+    ./src/rendering/object_shader.cpp
+    ./src/rendering/pipeline.cpp
+    ./src/rendering/render_pass.cpp
+    ./src/rendering/renderer.cpp
+    ./src/rendering/scene.cpp
+    ./src/rendering/shader_stage.cpp
+    ./src/rendering/swapchain.cpp
+    ./src/transform.cpp
+    ./src/utils.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
