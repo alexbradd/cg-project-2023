@@ -122,20 +122,12 @@ class Renderer {
   const vk::raii::DescriptorSet &getDescriptorSet(const FrameHandle &frame,
                                                   vk::DescriptorSetLayout layout) const;
 
-  void updateGlobalState(glm::mat4 projection, glm::mat4 view) const;
-  void updateModel(glm::mat4 model) const;
-
   /**
    * Finishes recording the frame referred by the given handle. The handle is
    * invalidated after the call. If an invalid handle is passed, throw a
    * runtime_error.
    */
   void endFrame(FrameHandle &frame);
-
-  /**
-   * Draws a frame.
-   */
-  void draw() const;
 
  private:
   /**

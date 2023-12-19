@@ -53,12 +53,6 @@ void Application::run(unsigned int width,
       if (!maybeFrameHandle.has_value()) continue;
       auto& frameHandle = *maybeFrameHandle;
 
-      vulkan->updateGlobalState(camera.projectionMatrix(), camera.viewMatrix());
-
-      model.rotate(0.0f, 0.0f, 0.01f);
-      vulkan->updateModel(model.toMat4());
-
-      vulkan->draw();
 
       vulkan->endFrame(frameHandle);
       const auto end{chrono::high_resolution_clock::now()};

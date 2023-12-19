@@ -297,40 +297,6 @@ const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
   return frames[handle.frameIndex].descriptorSets.at(layout);
 }
 
-// FIXME: start of stub
-void Renderer::updateGlobalState(glm::mat4 projection, glm::mat4 view) const
-{
-  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
-  /* auto shader = shaderLoader.getShader("default"); */
-  /**/
-  /* shader->globalUniformObject().projection = projection; */
-  /* shader->globalUniformObject().view = view; */
-  /**/
-  /* // TODO: add other properties */
-  /**/
-  /* shader->uploadGlobalState(commandBuffer, imageIndex); */
-}
-
-void Renderer::updateModel(glm::mat4 model) const
-{
-  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
-  /* auto shader = shaderLoader.getShader("default"); */
-  /* shader->updateModelState(commandBuffer, model); */
-}
-
-void Renderer::draw() const
-{
-  /* auto &commandBuffer = graphicsCmdBufs[imageIndex]; */
-  /* auto shader = shaderLoader.getShader("default"); */
-  /**/
-  /* shader->use(commandBuffer); */
-  /* commandBuffer.buffer().bindVertexBuffers(0, {*vertexBuffer.buffer()}, {0}); */
-  /* commandBuffer.buffer().bindIndexBuffer(*indexBuffer.buffer(), 0, */
-  /*                                        vk::IndexType::eUint32); */
-  /* commandBuffer.buffer().drawIndexed(6, 1, 0, 0, 0); */
-}
-// FIXME: end of stub
-
 void Renderer::endFrame(FrameHandle &handle)
 {
   if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
