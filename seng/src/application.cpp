@@ -6,9 +6,9 @@
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/renderer.hpp>
 #include <seng/rendering/scene.hpp>
+#include <seng/time.hpp>
 #include <seng/transform.hpp>
 
-#include <chrono>
 #include <exception>
 #include <functional>
 #include <memory>
@@ -39,18 +39,18 @@ void Application::run(unsigned int width,
   activeScene = make_unique<Scene>(
       Scene::loadFromDisk(*vulkan, conf, "default", width / static_cast<float>(height)));
 
+  Timestamp lastFrame = Clock::now();
   while (!window->shouldClose()) {
-    // FIXME: stub drawing
     try {
-      const auto start{chrono::high_resolution_clock::now()};
-      bool executed =
-          vulkan->scopedFrame([&](auto& handle) { activeScene->draw(handle); });
+      bool executed = vulkan->scopedFrame([&](auto& handle) {
+        [[maybe_unused]] const auto delta = Clock::now() - lastFrame;
+        // TODO: pass delta to update func
+        activeScene->draw(handle);
+      });
       if (!executed)
         continue;
-      else {
-        const auto end{chrono::high_resolution_clock::now()};
-        ctx->_deltaTime = end - start;
-      }
+      else
+        lastFrame = Clock::now();
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
