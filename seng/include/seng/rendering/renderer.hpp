@@ -135,6 +135,18 @@ class Renderer {
    */
   void endFrame(FrameHandle &frame);
 
+  /**
+   * Mimicking std::scoped_lock, try starting recording a frame and, if successfull,
+   * execute the given function. At function exit (due to return or exception)
+   * always end the frame.
+   *
+   * If the function has been executed return true, else false.
+   *
+   * Using this function is ALWAYS preferred over manually calling beginFrame() and
+   * endFrame(), since we are guaranteed that the frame recording will always be stopped.
+   */
+  bool scopedFrame(std::function<void(const FrameHandle &)> func);
+
  private:
   /**
    * A render target is basically something that can be drawn to. In our specific

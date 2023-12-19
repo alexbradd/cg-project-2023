@@ -352,6 +352,23 @@ void Renderer::endFrame(FrameHandle &handle)
   currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
 }
 
+bool Renderer::scopedFrame(std::function<void(const FrameHandle &)> func)
+{
+  std::optional<FrameHandle> h = beginFrame();
+  if (!h)
+    return false;
+  else {
+    try {
+      func(*h);
+      endFrame(*h);
+      return true;
+    } catch (const exception &e) {
+      endFrame(*h);  // always end the frame, so that our application doesn't stall
+      throw;         // then rethrow whatever we caught
+    }
+  }
+}
+
 void Renderer::recreateSwapchain()
 {
   // If already recreating, do nothing.
