@@ -76,8 +76,8 @@ target_link_libraries(${PROJECT_NAME}
     glm::glm
     Vulkan::Vulkan
     Vulkan::Headers
+    yaml-cpp
   PRIVATE
     glfw
     tinyobjloader
-    yaml-cpp
 )
