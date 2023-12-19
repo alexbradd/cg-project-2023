@@ -58,12 +58,8 @@ class Application {
 
   std::unique_ptr<rendering::GlfwWindow> glfwWindow;
   std::unique_ptr<rendering::Renderer> vulkan;
-  std::unique_ptr<rendering::Scene> activeScene;
-
   std::unique_ptr<InputManager> inputManager;
-
-  void makeWindow(unsigned int width, unsigned int height);
-  void destroyWindow();
+  std::unique_ptr<rendering::Scene> activeScene;
 };
 
 }  // namespace seng

@@ -21,18 +21,19 @@ using namespace seng::rendering;
 Application::Application() : Application(ApplicationConfig{}) {}
 Application::Application(ApplicationConfig& config) : conf{config} {}
 Application::Application(ApplicationConfig&& config) : conf{std::move(config)} {}
-Application::~Application()
-{
-  destroyWindow();
-}
 
 void Application::run(unsigned int width,
                       unsigned int height,
                       function<void(float, const Application&)> cb)
 {
-  makeWindow(width, height);
+  glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
+  glfwWindow->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
+    if (vulkan != nullptr) vulkan->signalResize();
+    if (activeScene != nullptr)
+      activeScene->mainCamera().aspectRatio(w / static_cast<float>(h));
+  });
+  vulkan = make_unique<Renderer>(conf, *glfwWindow);
   inputManager = make_unique<InputManager>(glfwWindow.get());
-
   activeScene = make_unique<Scene>(
       Scene::loadFromDisk(*vulkan, conf, "default", width / static_cast<float>(height)));
 
@@ -58,23 +59,9 @@ void Application::run(unsigned int width,
   }
 
   activeScene = nullptr;
-  destroyWindow();
-}
-
-void Application::makeWindow(unsigned int width, unsigned int height)
-{
-  glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
-  vulkan = make_unique<Renderer>(conf, *glfwWindow);
-
-  glfwWindow->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
-    if (vulkan != nullptr) vulkan->signalResize();
-    if (activeScene != nullptr)
-      activeScene->mainCamera().aspectRatio(w / static_cast<float>(h));
-  });
-}
-
-void Application::destroyWindow()
-{
+  inputManager = nullptr;
   vulkan = nullptr;
   glfwWindow = nullptr;
 }
+
+Application::~Application() = default;
