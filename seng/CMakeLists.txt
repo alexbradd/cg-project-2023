@@ -46,9 +46,9 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/pipeline.cpp
     ./src/rendering/render_pass.cpp
     ./src/rendering/renderer.cpp
-    ./src/rendering/scene.cpp
     ./src/rendering/shader_stage.cpp
     ./src/rendering/swapchain.cpp
+    ./src/scene/scene.cpp
     ./src/transform.cpp
     ./src/utils.cpp
 )

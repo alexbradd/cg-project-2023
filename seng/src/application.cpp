@@ -4,7 +4,7 @@
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/renderer.hpp>
-#include <seng/rendering/scene.hpp>
+#include <seng/scene/scene.hpp>
 #include <seng/time.hpp>
 #include <seng/transform.hpp>
 
@@ -17,6 +17,7 @@
 using namespace std;
 using namespace seng;
 using namespace seng::rendering;
+using namespace seng::scene;
 
 Application::Application() : Application(ApplicationConfig{}) {}
 Application::Application(ApplicationConfig& config) : conf{config} {}

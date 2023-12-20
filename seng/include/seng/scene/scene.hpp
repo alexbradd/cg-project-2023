@@ -15,12 +15,15 @@
 
 namespace seng {
 class Application;
-};  // namespace seng
 
-namespace seng::rendering {
-
+namespace rendering {
 class Renderer;
 class FrameHandle;
+}  // namespace rendering
+
+};  // namespace seng
+
+namespace seng::scene {
 
 /**
  * A Scene is the container for all resources currently loaded that are not
@@ -65,7 +68,7 @@ class Scene {
    * Draw the scene's contents into the currently on-going frame reprsented by the
    * given FrameHandle.
    */
-  void draw(const FrameHandle &handle);
+  void draw(const rendering::FrameHandle &handle);
 
  private:
   /**
@@ -79,15 +82,15 @@ class Scene {
     float fov = glm::radians(45.0f);
   };
 
-  Renderer *renderer;
+  rendering::Renderer *renderer;
 
   // Global descriptor layout
   vk::raii::DescriptorSetLayout globalDescriptorSetLayout;
 
-  std::unordered_map<std::string, ShaderStage> stages;
-  std::unordered_map<std::string, ObjectShader> shaders;
+  std::unordered_map<std::string, rendering::ShaderStage> stages;
+  std::unordered_map<std::string, rendering::ObjectShader> shaders;
   // TODO: map<string, ObjectShader::Instance> shaderInstances
-  std::unordered_map<std::string, Mesh> meshes;
+  std::unordered_map<std::string, rendering::Mesh> meshes;
 
   // Scene graph
   Camera camera;
@@ -103,4 +106,4 @@ class Scene {
         const std::unordered_set<std::string> &meshNames);
 };
 
-};  // namespace seng::rendering
+};  // namespace seng::scene

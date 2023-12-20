@@ -3,8 +3,8 @@
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/renderer.hpp>
-#include <seng/rendering/scene.hpp>
 #include <seng/rendering/shader_stage.hpp>
+#include <seng/scene/scene.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <vulkan/vulkan_raii.hpp>
@@ -13,6 +13,7 @@
 #include <memory>
 #include <unordered_set>
 
+using namespace seng::scene;
 using namespace seng::rendering;
 using namespace std;
 

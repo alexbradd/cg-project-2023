@@ -10,8 +10,11 @@ namespace seng {
 namespace rendering {
 class GlfwWindow;
 class Renderer;
-class Scene;
 }  // namespace rendering
+
+namespace scene {
+class Scene;
+}  // namespace scene
 
 class InputManager;
 
@@ -50,7 +53,7 @@ class Application {
   const ApplicationConfig &config() const { return conf; }
   const std::unique_ptr<rendering::Renderer> &renderer() const { return vulkan; }
   const std::unique_ptr<rendering::GlfwWindow> &window() const { return glfwWindow; }
-  const std::unique_ptr<rendering::Scene> &scene() const { return activeScene; }
+  const std::unique_ptr<scene::Scene> &scene() const { return activeScene; }
   const std::unique_ptr<InputManager> &input() const { return inputManager; }
 
  private:
@@ -59,7 +62,7 @@ class Application {
   std::unique_ptr<rendering::GlfwWindow> glfwWindow;
   std::unique_ptr<rendering::Renderer> vulkan;
   std::unique_ptr<InputManager> inputManager;
-  std::unique_ptr<rendering::Scene> activeScene;
+  std::unique_ptr<scene::Scene> activeScene;
 };
 
 }  // namespace seng
