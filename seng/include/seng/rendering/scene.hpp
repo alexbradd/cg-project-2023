@@ -1,6 +1,5 @@
 #pragma once
 
-#include <seng/application_config.hpp>
 #include <seng/camera.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/mesh.hpp>
@@ -13,6 +12,10 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
+namespace seng {
+class Application;
+};  // namespace seng
 
 namespace seng::rendering {
 
@@ -54,8 +57,7 @@ class Scene {
    * Scenes are searched inside the `scenePath`. Filename construction is done
    * like this: `${scenePath}/${sceneName}.yml`.
    */
-  static Scene loadFromDisk(Renderer &renderer,
-                            const ApplicationConfig &config,
+  static Scene loadFromDisk(const Application &app,
                             std::string sceneName,
                             float cameraAspectRatio);
 
@@ -94,8 +96,7 @@ class Scene {
    * Private constructor. Users of the class should go through the `loadFromDisk()`
    * factory method.
    */
-  Scene(Renderer &renderer,
-        const ApplicationConfig &config,
+  Scene(const Application &app,
         const CameraParams &cameraParams,
         const std::unordered_set<std::string> &stageNames,
         const std::unordered_set<std::string> &shaderNames,

@@ -1,3 +1,4 @@
+#include <seng/application.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -22,39 +23,40 @@ using namespace std;
 // Initializer functions
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
 
-Scene::Scene(Renderer &renderer,
-             const ApplicationConfig &config,
+Scene::Scene(const Application &app,
              const CameraParams &cameraParams,
              [[maybe_unused]] const std::unordered_set<std::string> &stageNames,
              [[maybe_unused]] const std::unordered_set<std::string> &shaderNames,
              const std::unordered_set<std::string> &meshNames) :
-    renderer(std::addressof(renderer)),
-    globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer.getDevice())),
+    renderer(app.renderer().get()),
+    globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice())),
     camera(
         cameraParams.aspectRatio, cameraParams.near, cameraParams.far, cameraParams.fov)
 {
-  renderer.requestDescriptorSet(*globalDescriptorSetLayout);
+  auto &config = app.config();
+
+  renderer->requestDescriptorSet(*globalDescriptorSetLayout);
 
   camera.transform().setPos(0.0, 0.0, 10.0f);  // FIXME: stub
 
   // Load ShaderStages
   // FIXME: stub
-  stages.try_emplace(VERT_NAME, renderer.getDevice(), config.shaderPath, VERT_NAME,
+  stages.try_emplace(VERT_NAME, renderer->getDevice(), config.shaderPath, VERT_NAME,
                      ShaderStage::Type::eVertex);
-  stages.try_emplace(FRAG_NAME, renderer.getDevice(), config.shaderPath, FRAG_NAME,
+  stages.try_emplace(FRAG_NAME, renderer->getDevice(), config.shaderPath, FRAG_NAME,
                      ShaderStage::Type::eFragment);
 
   // Load ObjectShaders
   // FIXME: stub
   vector<const ShaderStage *> s{&stages.at(VERT_NAME), &stages.at(FRAG_NAME)};
-  shaders.try_emplace(SHADER_NAME, renderer.getDevice(), renderer.getRenderPass(),
+  shaders.try_emplace(SHADER_NAME, renderer->getDevice(), renderer->getRenderPass(),
                       globalDescriptorSetLayout, SHADER_NAME, s);
 
   // TODO: load shader instances
 
   // Load meshes
   for (const auto &s : meshNames) {
-    meshes.emplace(s, Mesh::loadFromDisk(renderer, config, s));
+    meshes.emplace(s, Mesh::loadFromDisk(*renderer, config, s));
   }
 
   // TODO: load entities
@@ -74,13 +76,12 @@ vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
   return vk::raii::DescriptorSetLayout(device.logical(), info);
 }
 
-Scene Scene::loadFromDisk(Renderer &renderer,
-                          const ApplicationConfig &config,
+Scene Scene::loadFromDisk(const Application &app,
                           std::string sceneName,
                           float cameraAspectRatio)
 {
   // Parse config file
-  filesystem::path scene{filesystem::path{config.scenePath} /
+  filesystem::path scene{filesystem::path{app.config().scenePath} /
                          filesystem::path{sceneName + ".yml"}};
   YAML::Node sceneConfig = YAML::LoadFile(scene.string());
   unordered_set<string> shaderStages;
@@ -116,7 +117,7 @@ Scene Scene::loadFromDisk(Renderer &renderer,
   // TODO: parse entities
   if (sceneConfig["Entities"]) seng::log::dbg("Got entities");
 
-  return Scene(renderer, config, cameraParams, shaderStages, shaders, meshPaths);
+  return Scene(app, cameraParams, shaderStages, shaders, meshPaths);
 }
 
 void Scene::draw(const FrameHandle &handle)
