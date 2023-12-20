@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
     ./src/camera.cpp
+    ./src/components/scene_config_component_factory.cpp
     ./src/input_manager.cpp
     ./src/log.cpp
     ./src/rendering/buffer.cpp
