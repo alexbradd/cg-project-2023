@@ -26,7 +26,7 @@ class BaseComponent {
   BaseComponent() = default;
   virtual ~BaseComponent() = default;
 
-  static std::string componentId() { return "__BaseComponent"; }
+  DECLARE_COMPONENT_ID("__BaseComponent");
 };
 
 };  // namespace seng::components
