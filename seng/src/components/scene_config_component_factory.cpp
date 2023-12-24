@@ -35,11 +35,14 @@ bool SceneConfigComponentFactory::registerComponent(const ComponentIdType &name,
 }
 
 std::unique_ptr<BaseComponent> SceneConfigComponentFactory::createFromSceneConfig(
-    const Application &app, const std::string &name, const YAML::Node &configNode)
+    Application &app,
+    Entity &entity,
+    const std::string &name,
+    const YAML::Node &configNode)
 {
   auto &store = configCreateFuncs();
   auto it = store.find(name);
-  if (it != store.end()) return it->second(app, configNode);
+  if (it != store.end()) return it->second(app, entity, configNode);
   seng::log::warning("No registered component matching {}", name);
   return nullptr;
 }

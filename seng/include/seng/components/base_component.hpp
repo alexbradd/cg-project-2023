@@ -2,6 +2,13 @@
 
 #include <seng/components/definitions.hpp>
 
+#include <memory>
+
+namespace seng {
+class Application;
+class Entity;
+}  // namespace seng
+
 namespace seng::components {
 
 /**
@@ -23,10 +30,18 @@ namespace seng::components {
  */
 class BaseComponent {
  public:
-  BaseComponent() = default;
+  DECLARE_COMPONENT_ID("__BaseComponent");
+
+  /// Constructor
+  BaseComponent(Application &app, Entity &entity) :
+      application(std::addressof(app)), entity(std::addressof(entity))
+  {
+  }
   virtual ~BaseComponent() = default;
 
-  DECLARE_COMPONENT_ID("__BaseComponent");
+ protected:
+  Application *application;
+  Entity *entity;
 };
 
 };  // namespace seng::components
