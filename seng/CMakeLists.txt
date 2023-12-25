@@ -51,6 +51,7 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/shader_stage.cpp
     ./src/rendering/swapchain.cpp
     ./src/scene/scene.cpp
+    ./src/scene/scene_graph.cpp
     ./src/transform.cpp
     ./src/utils.cpp
 )
