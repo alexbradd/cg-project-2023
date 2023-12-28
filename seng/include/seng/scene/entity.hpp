@@ -126,9 +126,10 @@ class Entity {
   void insertComponent(std::unique_ptr<T>&& comp_ptr)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
-    T* ptr = comp_ptr.get();
-    components[T::componentId()].push_back(std::move(comp_ptr));
-    ptr->initialize();
+    if (!checkAndWarnCompPtr(comp_ptr)) {
+      components[T::componentId()].push_back(std::move(comp_ptr));
+      components[T::componentId()].back()->initialize();
+    }
   }
 
   /**
@@ -150,6 +151,7 @@ class Entity {
 
   void removeWithIterByPtr(ComponentMap::iterator it,
                            const components::BaseComponent* ptr);
+  bool checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr);
 
   static uint64_t INDEX_COUNTER;
 

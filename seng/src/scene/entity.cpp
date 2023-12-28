@@ -18,6 +18,14 @@ Entity::Entity(Application& app, std::string n) :
   transform->initialize();
 }
 
+bool Entity::checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr)
+{
+  if (ptr == nullptr) {
+    seng::log::warning("Passing null component, ignoring. Something's wrong...");
+  }
+  return ptr == nullptr;
+}
+
 void Entity::removeWithIterByPtr(ComponentMap::iterator it,
                                  const components::BaseComponent* ptr)
 {
