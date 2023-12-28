@@ -35,12 +35,26 @@ class BaseComponent {
  public:
   DECLARE_COMPONENT_ID("__BaseComponent");
 
-  /// Constructor
+  /**
+   * Constructor.
+   *
+   * Overloaded constructors should not do anything more than set the needed
+   * parameters. Any interactions with the other engin systems should be done
+   * in `initialize()`
+   */
   BaseComponent(Application &app, scene::Entity &entity) :
       application(std::addressof(app)), entity(std::addressof(entity))
   {
   }
   virtual ~BaseComponent() = default;
+
+  /**
+   * Initialize this component.
+   *
+   * All systems and reference are guaranteed to be correct when this function is
+   * called, maning it is safe to do anything inside.
+   */
+  virtual void initialize() {}
 
  protected:
   Application *application;

@@ -110,7 +110,8 @@ class Entity {
   void emplaceComponent(Args&&... args)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
-    components[T::componentId()].push_back(std::make_unique<T>(args...));
+    components[T::componentId()].emplace_back(std::make_unique<T>(args...));
+    components[T::componentId()].back()->initialize();
   }
 
   /**
@@ -121,7 +122,9 @@ class Entity {
   void insertComponent(std::unique_ptr<T>&& comp_ptr)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
+    T* ptr = comp_ptr.get();
     components[T::componentId()].push_back(std::move(comp_ptr));
+    ptr->initialize();
   }
 
   /**
