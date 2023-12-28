@@ -26,11 +26,10 @@ void Application::run(unsigned int width,
                       function<void(float, const Application&)> cb)
 {
   glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
-  glfwWindow->onResize([this](GLFWwindow*, unsigned int w, unsigned int h) {
+  glfwWindow->onResize([this](auto, auto, auto) {
     if (vulkan != nullptr) vulkan->signalResize();
-    if (activeScene != nullptr)
-      activeScene->mainCamera().aspectRatio(w / static_cast<float>(h));
   });
+
   vulkan = make_unique<Renderer>(conf, *glfwWindow);
   inputManager = make_unique<InputManager>(glfwWindow.get());
   activeScene = make_unique<Scene>(
