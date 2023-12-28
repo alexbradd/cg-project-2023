@@ -15,8 +15,11 @@ class Node;
 // Fwd decl
 namespace seng {
 class Application;
-class Entity;
 }  // namespace seng
+
+namespace seng::scene {
+class Entity;
+};  // namespace seng::scene
 
 namespace seng::components {
 
@@ -31,7 +34,7 @@ class SceneConfigComponentFactory {
  public:
   /// Function type to be implemented by parseable components.
   using TConfigCreateFunc = std::unique_ptr<BaseComponent> (*)(Application &,
-                                                               Entity &,
+                                                               scene::Entity &,
                                                                const YAML::Node &);
 
  public:
@@ -46,7 +49,7 @@ class SceneConfigComponentFactory {
    */
   static std::unique_ptr<BaseComponent> createFromSceneConfig(
       Application &app,
-      Entity &entity,
+      scene::Entity &entity,
       const std::string &name,
       const YAML::Node &configNode);
 

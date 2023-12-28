@@ -1,11 +1,11 @@
 #include <seng/application.hpp>
 #include <seng/components/camera.hpp>
-#include <seng/entity.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/renderer.hpp>
 #include <seng/rendering/shader_stage.hpp>
+#include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
 
 #include <yaml-cpp/yaml.h>

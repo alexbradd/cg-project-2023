@@ -32,7 +32,6 @@ target_sources(${PROJECT_NAME}
     ./src/application.cpp
     ./src/components/camera.cpp
     ./src/components/scene_config_component_factory.cpp
-    ./src/entity.cpp
     ./src/input_manager.cpp
     ./src/log.cpp
     ./src/rendering/buffer.cpp
@@ -50,6 +49,7 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/renderer.cpp
     ./src/rendering/shader_stage.cpp
     ./src/rendering/swapchain.cpp
+    ./src/scene/entity.cpp
     ./src/scene/scene.cpp
     ./src/scene/scene_graph.cpp
     ./src/transform.cpp

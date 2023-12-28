@@ -1,9 +1,10 @@
-#include <memory>
-#include <seng/entity.hpp>
 #include <seng/log.hpp>
+#include <seng/scene/entity.hpp>
 #include <seng/transform.hpp>
 
-using namespace seng;
+#include <memory>
+
+using namespace seng::scene;
 using namespace seng::components;
 using namespace std;
 

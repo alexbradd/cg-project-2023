@@ -1,6 +1,6 @@
 #pragma once
 
-#include <seng/entity.hpp>
+#include <seng/scene/entity.hpp>
 
 #include <list>
 #include <unordered_set>
@@ -19,7 +19,7 @@ namespace seng::scene {
 class SceneGraph {
  public:
   /// Convenience typedef
-  using EntityList = std::list<seng::Entity>;
+  using EntityList = std::list<Entity>;
 
  public:
   /// Constructor
@@ -64,7 +64,7 @@ class SceneGraph {
    *
    * N.B. This incurs linear search time.
    */
-  void remove(const seng::Entity *e);
+  void remove(const Entity *e);
 
   /**
    * Delete the Entity with the given name from the scene graph.

@@ -11,11 +11,11 @@
 #include <unordered_map>
 #include <vector>
 
-namespace seng {
-
-namespace components {
+namespace seng::components {
 class BaseComponent;
-}
+};  // namespace seng::components
+
+namespace seng::scene {
 
 /**
  * An entity in a scene's scene graph.
@@ -150,14 +150,14 @@ class Entity {
                            const components::BaseComponent* ptr);
 };
 
-};  // namespace seng
+};  // namespace seng::scene
 
 namespace std {
 
 // Template instantiation for hash<>, so that we can use entities in sets and maps
 template <>
-struct hash<seng::Entity> {
-  std::size_t operator()(const seng::Entity& entity) const
+struct hash<seng::scene::Entity> {
+  std::size_t operator()(const seng::scene::Entity& entity) const
   {
     hash<std::string> stringHasher;
     return stringHasher(entity.getName());

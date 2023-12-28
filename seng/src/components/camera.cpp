@@ -1,8 +1,8 @@
 #include <seng/application.hpp>
 #include <seng/components/camera.hpp>
-#include <seng/entity.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
+#include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
 
 // clang-format off
@@ -15,6 +15,7 @@
 #include <memory>
 
 using namespace seng;
+using namespace seng::scene;
 using namespace seng::components;
 using namespace std;
 

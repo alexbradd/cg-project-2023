@@ -1,7 +1,7 @@
 #include <seng/log.hpp>
 #include <seng/scene/scene_graph.hpp>
 
-using namespace seng;
+/* using namespace seng; */
 using namespace seng::scene;
 using namespace std;
 

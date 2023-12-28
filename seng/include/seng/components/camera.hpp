@@ -12,7 +12,10 @@
 
 namespace seng {
 class Application;
+
+namespace scene {
 class Entity;
+};  // namespace scene
 
 namespace components {
 
@@ -31,7 +34,7 @@ namespace components {
 class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
  public:
   Camera(Application& app,
-         Entity& entity,
+         scene::Entity& entity,
          float near = 0.1f,
          float far = 1000.0f,
          float fov = glm::radians(45.0f));
@@ -43,7 +46,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
 
   DECLARE_COMPONENT_ID("Camera");
   static std::unique_ptr<BaseComponent> createFromConfig(Application& a,
-                                                         Entity& e,
+                                                         scene::Entity& e,
                                                          const YAML::Node&);
 
   // Getters

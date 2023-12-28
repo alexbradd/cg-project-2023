@@ -6,8 +6,11 @@
 
 namespace seng {
 class Application;
-class Entity;
 }  // namespace seng
+
+namespace seng::scene {
+class Entity;
+};  // namespace seng::scene
 
 namespace seng::components {
 
@@ -33,7 +36,7 @@ class BaseComponent {
   DECLARE_COMPONENT_ID("__BaseComponent");
 
   /// Constructor
-  BaseComponent(Application &app, Entity &entity) :
+  BaseComponent(Application &app, scene::Entity &entity) :
       application(std::addressof(app)), entity(std::addressof(entity))
   {
   }
@@ -41,7 +44,7 @@ class BaseComponent {
 
  protected:
   Application *application;
-  Entity *entity;
+  scene::Entity *entity;
 };
 
 };  // namespace seng::components
