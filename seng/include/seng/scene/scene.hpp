@@ -1,10 +1,10 @@
 #pragma once
 
-#include <seng/camera.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/shader_stage.hpp>
+#include <seng/scene/scene_graph.hpp>
 
 #include <glm/trigonometric.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -20,6 +20,10 @@ namespace rendering {
 class Renderer;
 class FrameHandle;
 }  // namespace rendering
+
+namespace components {
+class Camera;
+}
 
 };  // namespace seng
 
@@ -51,6 +55,20 @@ class Scene {
   Scene &operator=(const Scene &) = delete;
   Scene &operator=(Scene &&) = default;
 
+  /**
+   * Return a pointer to the main camera, if one is registered.
+   */
+  const components::Camera *camera() const { return mainCamera; }
+
+  /**
+   * Return a pointer to the main camera, if one is registered.
+   */
+  components::Camera *camera() { return mainCamera; }
+
+  /**
+   * Registers the given camera as the camera that will be used for drawing.
+   */
+  void registerCamera(components::Camera *cam);
 
   /**
    * Parse the scene YAML from disk and set the state of this scene to the
@@ -80,6 +98,7 @@ class Scene {
   std::unordered_map<std::string, rendering::Mesh> meshes;
 
   // Scene graph
+  components::Camera *mainCamera;
   SceneGraph sceneGraph;
 };
 
