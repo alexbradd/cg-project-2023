@@ -47,7 +47,7 @@ class Application {
   const ApplicationConfig &config() const { return conf; }
   const std::unique_ptr<rendering::Renderer> &renderer() const { return vulkan; }
   const std::unique_ptr<rendering::GlfwWindow> &window() const { return glfwWindow; }
-  const std::unique_ptr<scene::Scene> &scene() const { return activeScene; }
+  const std::unique_ptr<scene::Scene> &currentActiveScene() const { return activeScene; }
   const std::unique_ptr<InputManager> &input() const { return inputManager; }
 
  private:
