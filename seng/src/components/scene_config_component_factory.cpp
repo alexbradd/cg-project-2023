@@ -35,7 +35,7 @@ bool SceneConfigComponentFactory::registerComponent(const ComponentIdType &name,
   return false;
 }
 
-std::unique_ptr<BaseComponent> SceneConfigComponentFactory::createFromSceneConfig(
+std::unique_ptr<BaseComponent> SceneConfigComponentFactory::create(
     Application &app,
     Entity &entity,
     const std::string &name,

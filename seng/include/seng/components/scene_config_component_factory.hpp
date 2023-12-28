@@ -47,11 +47,10 @@ class SceneConfigComponentFactory {
    * Create an instance of the Component identified by `name` from the given YAML
    * node.
    */
-  static std::unique_ptr<BaseComponent> createFromSceneConfig(
-      Application &app,
-      scene::Entity &entity,
-      const std::string &name,
-      const YAML::Node &configNode);
+  static std::unique_ptr<BaseComponent> create(Application &app,
+                                               scene::Entity &entity,
+                                               const std::string &name,
+                                               const YAML::Node &configNode);
 
  private:
   /// Convenience alias
