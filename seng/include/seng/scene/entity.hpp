@@ -5,6 +5,7 @@
 #include <seng/transform.hpp>
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -20,10 +21,10 @@ namespace seng::scene {
 /**
  * An entity in a scene's scene graph.
  *
- * An entity is a "named container" of Component instances. An entities name
- * should be unique inside the scene it is defined in.
+ * An entity is a "named container" of Component instances. An entity has an
+ * ever-increasing unique ID associated to it.
  *
- * Every entity has always at least one component: a Transform. The entities
+ * Every entity has always at least one component: a Transform. The entity's
  * transform gets "special treatment" by having its own bespoke accessor
  * (`getTransform`). The main reason for this is that the most frequent change
  * of an Entity's state will be to its Transform, so reducing lookup cost is
@@ -58,17 +59,18 @@ class Entity {
   Entity& operator=(const Entity&) = delete;
   Entity& operator=(Entity&&) = default;
 
-  /// Equality operator overload. Since entities have unique names in the scene,
-  /// we simply compare the names.
+  /// Equality operator overload. Since entities have unique IDs in the scene,
+  /// we simply compare the ids.
   friend bool operator==(const Entity& lhs, const Entity& rhs)
   {
-    return lhs.name == rhs.name;
+    return lhs.id == rhs.id;
   }
 
   /// Inequality operator, defined in terms of the equality operator
   friend bool operator!=(const Entity& lhs, const Entity& rhs) { return !(lhs == rhs); }
 
   // Accessors
+  const uint64_t& getId() const { return id; }
   const std::string& getName() const { return name; }
   const std::unique_ptr<Transform>& getTransform() const { return transform; }
 
@@ -142,12 +144,15 @@ class Entity {
   }
 
  private:
+  uint64_t id;
   std::string name;
   std::unique_ptr<Transform> transform;
   ComponentMap components;
 
   void removeWithIterByPtr(ComponentMap::iterator it,
                            const components::BaseComponent* ptr);
+
+  static uint64_t INDEX_COUNTER;
 };
 
 };  // namespace seng::scene
@@ -159,8 +164,8 @@ template <>
 struct hash<seng::scene::Entity> {
   std::size_t operator()(const seng::scene::Entity& entity) const
   {
-    hash<std::string> stringHasher;
-    return stringHasher(entity.getName());
+    hash<uint64_t> hasher;
+    return hasher(entity.getId());
   }
 };
 

@@ -8,8 +8,10 @@ using namespace seng::scene;
 using namespace seng::components;
 using namespace std;
 
+uint64_t Entity::INDEX_COUNTER = 0;
+
 Entity::Entity(std::string n) :
-    name(std::move(n)), transform(std::make_unique<Transform>())
+    id(INDEX_COUNTER++), name(std::move(n)), transform(std::make_unique<Transform>())
 {
 }
 
