@@ -8,6 +8,8 @@
 using namespace seng::scene;
 using namespace std;
 
+SceneGraph::SceneGraph(Application &app) : app(std::addressof(app)) {}
+
 SceneGraph::EntityList::const_iterator SceneGraph::findByName(
     const std::string &name) const
 {

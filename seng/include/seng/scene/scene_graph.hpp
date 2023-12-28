@@ -23,7 +23,7 @@ class SceneGraph {
 
  public:
   /// Constructor
-  SceneGraph() = default;
+  SceneGraph(Application &app);
   SceneGraph(const SceneGraph &) = delete;
   SceneGraph(SceneGraph &&) = default;
 
@@ -103,6 +103,7 @@ class SceneGraph {
   void clear();
 
  private:
+  Application *app;
   EntityList entities;
 };
 

@@ -30,7 +30,8 @@ Scene::Scene(Application &app) :
     app(std::addressof(app)),
     renderer(app.renderer().get()),
     globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice())),
-    mainCamera(nullptr)
+    mainCamera(nullptr),
+    sceneGraph(app)
 {
   renderer->requestDescriptorSet(*globalDescriptorSetLayout);
 }
