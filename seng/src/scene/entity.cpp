@@ -18,6 +18,15 @@ Entity::Entity(Application& app, std::string n) :
   transform->initialize();
 }
 
+void Entity::setTransform(std::unique_ptr<components::Transform>&& t)
+{
+  if (t != nullptr) {
+    transform = std::move(t);
+  } else {
+    seng::log::warning("Passing null transform, ignoring. Something's wrong...");
+  }
+}
+
 bool Entity::checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr)
 {
   if (ptr == nullptr) {

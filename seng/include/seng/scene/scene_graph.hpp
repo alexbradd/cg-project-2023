@@ -5,6 +5,10 @@
 #include <list>
 #include <vector>
 
+namespace YAML {
+class Node;
+}
+
 namespace seng::scene {
 
 /**
@@ -77,6 +81,12 @@ class SceneGraph {
    * pointer to it.
    */
   Entity *newEntity(std::string name);
+
+  /**
+   * Create a new Entity into the scene graph from the given config node. If the
+   * node is malformed, nullptr will be returned.
+   */
+  Entity *newEntity(const YAML::Node &node);
 
   /**
    * Delete the corresponding Entity from the scene graph.

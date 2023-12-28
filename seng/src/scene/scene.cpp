@@ -7,6 +7,7 @@
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
+#include <seng/scene/scene_graph.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <vulkan/vulkan_raii.hpp>
@@ -84,9 +85,6 @@ void Scene::loadFromDisk(std::string sceneName)
     }
   }
 
-  // TODO: parse entities
-  if (sceneConfig["Entities"]) seng::log::dbg("Got entities");
-
   // Load ShaderStages
   // FIXME: stub
   stages.try_emplace(VERT_NAME, renderer->getDevice(), config.shaderPath, VERT_NAME,
@@ -107,10 +105,11 @@ void Scene::loadFromDisk(std::string sceneName)
     meshes.emplace(s, Mesh::loadFromDisk(*renderer, config, s));
   }
 
-  // TODO: entities
-  auto e = sceneGraph.newEntity("cam");  // FIXME: stub
-  e->emplaceComponent<components::Camera>(*app, *e);
-  e->getTransform()->translate(0, 0, 10);
+  // Load entities
+  if (sceneConfig["Entities"] && sceneConfig["Entities"].IsSequence()) {
+    auto e = sceneConfig["Entities"];
+    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) sceneGraph.newEntity(*i);
+  }
 }
 
 void Scene::registerCamera(seng::components::Camera *cam)

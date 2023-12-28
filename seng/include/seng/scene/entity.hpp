@@ -161,6 +161,8 @@ class Entity {
    */
   Entity(Application& app, std::string name);
 
+  void setTransform(std::unique_ptr<components::Transform>&& transform);
+
   friend class SceneGraph;
 };
 

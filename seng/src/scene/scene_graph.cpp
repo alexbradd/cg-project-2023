@@ -1,6 +1,10 @@
+#include <seng/components/scene_config_component_factory.hpp>
+#include <seng/components/utils.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene_graph.hpp>
+
+#include <yaml-cpp/yaml.h>
 
 #include <memory>
 
@@ -45,6 +49,44 @@ Entity *SceneGraph::newEntity(std::string name)
 {
   entities.push_back(Entity(*app, name));
   return &entities.back();
+}
+
+Entity *SceneGraph::newEntity(const YAML::Node &node)
+{
+  using namespace seng::components;
+
+  if (!node.IsMap()) {
+    seng::log::warning("Malformed YAML node");
+    return nullptr;
+  }
+
+  std::string name = "Entity";
+  if (node["name"] && node["name"].IsScalar()) name = node["name"].as<string>();
+  Entity *ret = newEntity(name);
+
+  if (node["transform"] && node["transform"].IsMap()) {
+    auto &t = node["transform"];
+    auto ptr =
+        SceneConfigComponentFactory::create(*app, *ret, Transform::componentId(), t);
+    auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
+    ret->setTransform(std::move(concrete));
+  }
+
+  if (node["components"] && node["components"].IsSequence()) {
+    auto &comps = node["components"];
+    for (YAML::const_iterator i = comps.begin(); i != comps.end(); ++i) {
+      auto &comp = *i;
+      if (!comp.IsMap() || !comp["id"] || !comp["id"].IsScalar()) {
+        seng::log::warning("Malformed YAML component, skipping...");
+        continue;
+      }
+      std::string id = comp["id"].as<string>();
+      std::unique_ptr<BaseComponent> ptr =
+          SceneConfigComponentFactory::create(*app, *ret, id, comp);
+      ret->insertComponent(std::move(ptr));
+    }
+  }
+  return ret;
 }
 
 void SceneGraph::remove(EntityList::const_iterator i)
