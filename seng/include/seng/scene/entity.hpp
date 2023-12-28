@@ -45,14 +45,6 @@ class Entity {
   using ComponentMap = std::unordered_map<std::string, ComponentList>;
 
  public:
-  /**
-   * Constructor for a new entity with the given name and position in the origin
-   *
-   * Note: one should never create an Entity directly as it can bread component
-   * attaching, but instead go through the scene graph.
-   */
-  Entity(std::string name);
-
   Entity(const Entity&) = delete;
   Entity(Entity&&) = default;
 
@@ -153,6 +145,14 @@ class Entity {
                            const components::BaseComponent* ptr);
 
   static uint64_t INDEX_COUNTER;
+
+  /**
+   * Constructor for a new entity with the given name and position in the origin.
+   * Private since users shoud use the appropriate method in SceneGraph.
+   */
+  Entity(std::string name);
+
+  friend class SceneGraph;
 };
 
 };  // namespace seng::scene
