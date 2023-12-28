@@ -65,4 +65,9 @@ void Application::run(unsigned int width, unsigned int height)
   glfwWindow = nullptr;
 }
 
+void Application::stop() {
+  if (glfwWindow)
+    glfwWindow->close();
+}
+
 Application::~Application() = default;

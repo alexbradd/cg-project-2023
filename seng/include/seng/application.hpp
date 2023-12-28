@@ -43,6 +43,11 @@ class Application {
    */
   void run(unsigned int width, unsigned int height);
 
+  /**
+   * Request application exit.
+   */
+  void stop();
+
   // Accessors
   const ApplicationConfig &config() const { return conf; }
   const std::unique_ptr<rendering::Renderer> &renderer() const { return vulkan; }

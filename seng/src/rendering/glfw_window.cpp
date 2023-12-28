@@ -37,6 +37,8 @@ GlfwWindow::~GlfwWindow() {
   glfwTerminate();
 }
 
+void GlfwWindow::close() { glfwSetWindowShouldClose(ptr, GLFW_TRUE); }
+
 bool GlfwWindow::shouldClose() const { return glfwWindowShouldClose(ptr); }
 
 void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback) {

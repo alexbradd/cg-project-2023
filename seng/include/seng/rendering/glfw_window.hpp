@@ -45,6 +45,11 @@ class GlfwWindow {
   bool shouldClose() const;
 
   /**
+   * Request window closure.
+   */
+  void close();
+
+  /**
    * Add the given callback to the list of functions to be run on window resizing.
    *
    * The parameters passed to the callback are the same passed
