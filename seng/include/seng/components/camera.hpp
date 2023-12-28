@@ -33,11 +33,15 @@ namespace components {
  */
 class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
  public:
+  static constexpr float DEFAULT_NEAR = 0.1f;
+  static constexpr float DEFAULT_FAR = 1000.0f;
+  static constexpr float DEFAULT_FOV = glm::radians(45.0f);
+
   Camera(Application& app,
          scene::Entity& entity,
-         float near = 0.1f,
-         float far = 1000.0f,
-         float fov = glm::radians(45.0f));
+         float near = DEFAULT_NEAR,
+         float far = DEFAULT_FAR,
+         float fov = DEFAULT_FOV);
   Camera(const Camera&) = delete;
   Camera(Camera&&) = default;
 

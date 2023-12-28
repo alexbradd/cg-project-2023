@@ -84,12 +84,19 @@ std::unique_ptr<BaseComponent> Camera::createFromConfig(Application& app,
                                                         Entity& entity,
                                                         const YAML::Node& node)
 {
-  float near = 0.1, far = 1000.0f, fov = glm::radians(45.0f);
-  if (node["near"] && node["near"].IsScalar()) near = node["near"].as<float>();
-  if (node["far"] && node["far"].IsScalar()) far = node["far"].as<float>();
-  if (node["fov"] && node["fov"].IsScalar()) {
-    float deg = node["fov"].as<float>();
+  float near = DEFAULT_NEAR;
+  float far = DEFAULT_FAR;
+  float fov = DEFAULT_FOV;
+
+  if (node["near"] && node["near"].IsScalar())
+    near = node["near"].as<float>(DEFAULT_NEAR);
+  if (node["far"] && node["far"].IsScalar()) far = node["far"].as<float>(DEFAULT_FAR);
+  if (node["fov_deg"] && node["fov_deg"].IsScalar()) {
+    float deg = node["fov_deg"].as<float>(45.0f);
     fov = glm::radians(deg);
   }
+  if (node["fov_radians"] && node["fov_radians"].IsScalar())
+    fov = node["fov_radians"].as<float>(DEFAULT_FOV);
+
   return std::make_unique<Camera>(app, entity, near, far, fov);
 }
