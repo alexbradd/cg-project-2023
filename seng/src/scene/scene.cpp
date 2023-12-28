@@ -24,16 +24,63 @@ using namespace std;
 // Initializer functions
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
 
-Scene::Scene(const Application &app,
-             [[maybe_unused]] const std::unordered_set<std::string> &stageNames,
-             [[maybe_unused]] const std::unordered_set<std::string> &shaderNames,
-             const std::unordered_set<std::string> &meshNames) :
+Scene::Scene(Application &app) :
+    app(std::addressof(app)),
     renderer(app.renderer().get()),
     globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice()))
 {
-  auto &config = app.config();
-
   renderer->requestDescriptorSet(*globalDescriptorSetLayout);
+}
+
+vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
+{
+  vk::DescriptorSetLayoutBinding guboBinding{};
+  guboBinding.binding = 0;
+  guboBinding.descriptorCount = 1;
+  guboBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+  guboBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
+
+  vk::DescriptorSetLayoutCreateInfo info{};
+  info.bindingCount = 1;
+  info.pBindings = &guboBinding;
+  return vk::raii::DescriptorSetLayout(device.logical(), info);
+}
+
+void Scene::loadFromDisk(std::string sceneName)
+{
+  // clear old state
+  stages.clear();
+  shaders.clear();
+  // TODO: clear old instances
+  meshes.clear();
+  sceneGraph.clear();
+
+  auto &config = app->config();
+  // Parse config file
+  filesystem::path scene{filesystem::path{config.scenePath} /
+                         filesystem::path{sceneName + ".yml"}};
+  YAML::Node sceneConfig = YAML::LoadFile(scene.string());
+  /* unordered_set<string> shaderStageNames; */
+  /* unordered_set<string> shaderNames; */
+  // TODO: how to go about instances?
+  unordered_set<string> meshNames;
+
+  // TODO: Shaders
+  if (sceneConfig["Shaders"]) seng::log::dbg("Got shaders");
+
+  // TODO: Shaders isntances
+  if (sceneConfig["ShaderInstances"]) seng::log::dbg("Got shader instances");
+
+  // Parse mesh list
+  if (sceneConfig["Meshes"]) {
+    auto meshes = sceneConfig["Meshes"];
+    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
+      meshNames.insert(i->as<string>());
+    }
+  }
+
+  // TODO: parse entities
+  if (sceneConfig["Entities"]) seng::log::dbg("Got entities");
 
   // Load ShaderStages
   // FIXME: stub
@@ -54,56 +101,6 @@ Scene::Scene(const Application &app,
   for (const auto &s : meshNames) {
     meshes.emplace(s, Mesh::loadFromDisk(*renderer, config, s));
   }
-
-  // TODO: load entities
-}
-
-vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
-{
-  vk::DescriptorSetLayoutBinding guboBinding{};
-  guboBinding.binding = 0;
-  guboBinding.descriptorCount = 1;
-  guboBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-  guboBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-  vk::DescriptorSetLayoutCreateInfo info{};
-  info.bindingCount = 1;
-  info.pBindings = &guboBinding;
-  return vk::raii::DescriptorSetLayout(device.logical(), info);
-}
-
-Scene Scene::loadFromDisk(const Application &app,
-                          std::string sceneName,
-                          float cameraAspectRatio)
-{
-  // Parse config file
-  filesystem::path scene{filesystem::path{app.config().scenePath} /
-                         filesystem::path{sceneName + ".yml"}};
-  YAML::Node sceneConfig = YAML::LoadFile(scene.string());
-  unordered_set<string> shaderStages;
-  unordered_set<string> shaders;
-  // TODO: how to go about instances?
-  unordered_set<string> meshPaths;
-
-  // TODO: Shaders
-  if (sceneConfig["Shaders"]) seng::log::dbg("Got shaders");
-
-  // TODO: Shaders isntances
-  if (sceneConfig["ShaderInstances"]) seng::log::dbg("Got shader instances");
-
-  // Parse mesh list
-  if (sceneConfig["Meshes"]) {
-    auto meshes = sceneConfig["Meshes"];
-    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
-      meshPaths.insert(i->as<string>());
-    }
-  }
-
-  // Parse camera parameters
-  // TODO: parse entities
-  if (sceneConfig["Entities"]) seng::log::dbg("Got entities");
-
-  return Scene(app, cameraParams, shaderStages, shaders, meshPaths);
 }
 
 void Scene::draw(const FrameHandle &handle)

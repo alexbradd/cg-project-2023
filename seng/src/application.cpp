@@ -32,8 +32,8 @@ void Application::run(unsigned int width,
 
   vulkan = make_unique<Renderer>(conf, *glfwWindow);
   inputManager = make_unique<InputManager>(glfwWindow.get());
-  activeScene = make_unique<Scene>(
-      Scene::loadFromDisk(*this, "default", width / static_cast<float>(height)));
+  activeScene = make_unique<Scene>(Scene(*this));
+  activeScene->loadFromDisk("default");
 
   Timestamp lastFrame = Clock::now();
   while (!glfwWindow->shouldClose()) {

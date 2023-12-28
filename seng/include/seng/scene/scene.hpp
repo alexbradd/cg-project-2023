@@ -43,6 +43,7 @@ namespace seng::scene {
  */
 class Scene {
  public:
+  Scene(Application &app);
   Scene(const Scene &) = delete;
   Scene(Scene &&) = default;
   ~Scene();
@@ -52,14 +53,13 @@ class Scene {
 
 
   /**
-   * Factory that parses the scene YAML from disk and allocates it.
+   * Parse the scene YAML from disk and set the state of this scene to the
+   * parsed one.
    *
    * Scenes are searched inside the `scenePath`. Filename construction is done
    * like this: `${scenePath}/${sceneName}.yml`.
    */
-  static Scene loadFromDisk(const Application &app,
-                            std::string sceneName,
-                            float cameraAspectRatio);
+  void loadFromDisk(std::string sceneName);
 
   /**
    * Draw the scene's contents into the currently on-going frame reprsented by the
@@ -68,6 +68,7 @@ class Scene {
   void draw(const rendering::FrameHandle &handle);
 
  private:
+  Application *app;
   rendering::Renderer *renderer;
 
   // Global descriptor layout
@@ -79,16 +80,7 @@ class Scene {
   std::unordered_map<std::string, rendering::Mesh> meshes;
 
   // Scene graph
-
-  /**
-   * Private constructor. Users of the class should go through the `loadFromDisk()`
-   * factory method.
-   */
-  Scene(const Application &app,
-        const CameraParams &cameraParams,
-        const std::unordered_set<std::string> &stageNames,
-        const std::unordered_set<std::string> &shaderNames,
-        const std::unordered_set<std::string> &meshNames);
+  SceneGraph sceneGraph;
 };
 
 };  // namespace seng::scene
