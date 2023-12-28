@@ -29,6 +29,9 @@ namespace seng::components {
  * protected field, containing the Entity to which the component is attached.
  * Inheritors may use this constructor or initialize this field themselves.
  * Well-behaved constructors should not leave this field nullptr.
+ *
+ * Components should not be copyable or movable, since they are fixed in memory
+ * and handled via smart pointers.
  */
 class BaseComponent {
  public:
@@ -38,10 +41,16 @@ class BaseComponent {
    * Constructor.
    *
    * Overloaded constructors should not do anything more than set the needed
-   * parameters. Any interactions with the other engin systems should be done
-   * in `initialize()`
+   * parameters. Any interactions with the other engine systems should be done
+   * in `initialize()` or other initialization functions.
    */
   BaseComponent(scene::Entity &entity) : entity(std::addressof(entity)) {}
+  BaseComponent(const BaseComponent &) = delete;
+  BaseComponent(BaseComponent &&) = delete;
+
+  BaseComponent &operator=(const BaseComponent &) = delete;
+  BaseComponent &operator=(BaseComponent &&) = delete;
+
   virtual ~BaseComponent() = default;
 
   /**

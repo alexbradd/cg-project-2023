@@ -48,11 +48,11 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
          float fov = DEFAULT_FOV,
          bool main = DEFAULT_MAIN);
   Camera(const Camera&) = delete;
-  Camera(Camera&&) = default;
+  Camera(Camera&&) = delete;
   ~Camera();
 
   Camera& operator=(const Camera&) = delete;
-  Camera& operator=(Camera&&) = default;
+  Camera& operator=(Camera&&) = delete;
 
   DECLARE_COMPONENT_ID("Camera");
   static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& e,

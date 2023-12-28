@@ -53,11 +53,11 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
             glm::vec3 pos = DEFAULT_POS,
             glm::vec3 scale = DEFAULT_SCALE,
             glm::vec3 rotation = DEFAULT_ROT);
-  Transform(const Transform&) = default;
-  Transform(Transform&&) = default;
+  Transform(const Transform&) = delete;
+  Transform(Transform&&) = delete;
 
   Transform& operator=(const Transform&) = delete;
-  Transform& operator=(Transform&&) = default;
+  Transform& operator=(Transform&&) = delete;
 
   DECLARE_COMPONENT_ID("Transform");
   static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& entity,
