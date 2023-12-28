@@ -1,6 +1,11 @@
 project(froggo)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME}
+  PRIVATE
+    main.cpp
+    test_controller.cpp
+)
 target_compile_features(${PROJECT_NAME}
   PRIVATE
     cxx_std_17
