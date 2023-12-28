@@ -1,16 +1,18 @@
-#include <seng/transform.hpp>
+#include <seng/components/transform.hpp>
+#include <seng/yaml_utils.hpp>
 
 // clang-format off
 #include <glm/gtx/quaternion.hpp>
 // clang-format on
+#include <yaml-cpp/yaml.h>
 
 using namespace seng;
+using namespace seng::components;
 using namespace glm;
 
-Transform::Transform(vec3 pos,
-                     vec3 scale,
-                     vec3 rotation) :
-  _pos(0.0f), _scale(1.0f), _rotation()
+Transform::Transform(
+    Application& app, scene::Entity& e, vec3 pos, vec3 scale, vec3 rotation) :
+    BaseComponent(app, e)
 {
   setPos(pos.x, pos.y, pos.z);
   setScale(scale.x, scale.y, scale.x);
@@ -77,4 +79,22 @@ mat4 Transform::toMat4() const
 {
   return glm::translate(glm::mat4(1.0f), _pos) * glm::toMat4(_rotation) *
          glm::scale(glm::mat4(1.0f), _scale);
+}
+
+std::unique_ptr<BaseComponent> Transform::createFromConfig(Application& app,
+                                                           scene::Entity& entity,
+                                                           const YAML::Node& node)
+{
+  glm::vec3 pos = DEFAULT_POS;
+  glm::vec3 scale = DEFAULT_SCALE;
+  glm::vec3 rot = DEFAULT_ROT;
+
+  if (node["position"]) pos = node["position"].as<glm::vec3>(DEFAULT_POS);
+  if (node["scale"] && node["scale"].IsScalar())
+    scale = node["scale"].as<glm::vec3>(DEFAULT_SCALE);
+  if (node["rotation_deg"])
+    rot = glm::radians(node["rotation_deg"].as<glm::vec3>(DEFAULT_ROT));
+  if (node["rotation_rad"]) rot = node["rotation_rad"].as<glm::vec3>(DEFAULT_ROT);
+
+  return std::make_unique<Transform>(app, entity, pos, scale, rot);
 }

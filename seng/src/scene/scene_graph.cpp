@@ -43,7 +43,7 @@ std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
 
 Entity *SceneGraph::newEntity(std::string name)
 {
-  entities.push_back(Entity(name));
+  entities.push_back(Entity(*app, name));
   return &entities.back();
 }
 

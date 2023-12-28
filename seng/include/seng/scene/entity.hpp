@@ -1,8 +1,8 @@
 #pragma once
 
 #include <seng/components/base_component.hpp>
+#include <seng/components/transform.hpp>
 #include <seng/components/utils.hpp>
-#include <seng/transform.hpp>
 
 #include <algorithm>
 #include <cstdint>
@@ -11,6 +11,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+namespace seng {
+class Application;
+};
 
 namespace seng::components {
 class BaseComponent;
@@ -64,7 +68,7 @@ class Entity {
   // Accessors
   const uint64_t& getId() const { return id; }
   const std::string& getName() const { return name; }
-  const std::unique_ptr<Transform>& getTransform() const { return transform; }
+  const std::unique_ptr<components::Transform>& getTransform() const { return transform; }
 
   /**
    * Return an iterator to the start of a vector of owned pointers to
@@ -141,7 +145,7 @@ class Entity {
  private:
   uint64_t id;
   std::string name;
-  std::unique_ptr<Transform> transform;
+  std::unique_ptr<components::Transform> transform;
   ComponentMap components;
 
   void removeWithIterByPtr(ComponentMap::iterator it,
@@ -153,7 +157,7 @@ class Entity {
    * Constructor for a new entity with the given name and position in the origin.
    * Private since users shoud use the appropriate method in SceneGraph.
    */
-  Entity(std::string name);
+  Entity(Application& app, std::string name);
 
   friend class SceneGraph;
 };

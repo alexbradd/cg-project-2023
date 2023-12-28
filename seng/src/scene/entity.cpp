@@ -1,6 +1,6 @@
+#include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>
-#include <seng/transform.hpp>
 
 #include <memory>
 
@@ -10,9 +10,12 @@ using namespace std;
 
 uint64_t Entity::INDEX_COUNTER = 0;
 
-Entity::Entity(std::string n) :
-    id(INDEX_COUNTER++), name(std::move(n)), transform(std::make_unique<Transform>())
+Entity::Entity(Application& app, std::string n) :
+    id(INDEX_COUNTER++),
+    name(std::move(n)),
+    transform(std::make_unique<components::Transform>(app, *this))
 {
+  transform->initialize();
 }
 
 void Entity::removeWithIterByPtr(ComponentMap::iterator it,

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <seng/components/base_component.hpp>
+#include <seng/components/definitions.hpp>
+#include <seng/components/scene_config_component_factory.hpp>
+
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RADIANS
 
@@ -7,7 +11,15 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-namespace seng {
+namespace YAML {
+class Node;
+};
+
+namespace seng::scene {
+class Entity;
+};
+
+namespace seng::components {
 
 /**
  * Encodes the position, rotation and scale of an object.
@@ -28,19 +40,30 @@ namespace seng {
  *
  * TODO: allow to build a hierarchy of transforms
  */
-class Transform {
+class Transform : public BaseComponent, public ConfigParsableComponent<Transform> {
  public:
+  static constexpr glm::vec3 DEFAULT_POS = glm::vec3(0.0f);
+  static constexpr glm::vec3 DEFAULT_SCALE = glm::vec3(1.0f);
+  static constexpr glm::vec3 DEFAULT_ROT = glm::vec3(0.0f);
+
   /**
    * Create a new transform with the given position, scale and rotation
    */
-  Transform(glm::vec3 pos = glm::vec3(0.0f),
-            glm::vec3 scale = glm::vec3(1.0f),
-            glm::vec3 rotation = glm::vec3(0.0f));
+  Transform(Application& app,
+            scene::Entity& entity,
+            glm::vec3 pos = DEFAULT_POS,
+            glm::vec3 scale = DEFAULT_SCALE,
+            glm::vec3 rotation = DEFAULT_ROT);
   Transform(const Transform&) = default;
   Transform(Transform&&) = default;
 
-  Transform& operator=(const Transform&) = default;
+  Transform& operator=(const Transform&) = delete;
   Transform& operator=(Transform&&) = default;
+
+  DECLARE_COMPONENT_ID("Transform");
+  static std::unique_ptr<BaseComponent> createFromConfig(Application& app,
+                                                         scene::Entity& entity,
+                                                         const YAML::Node& node);
 
   /**
    * Converts this transform to a matrix that transforms the local-to-this-transform
@@ -96,7 +119,7 @@ class Transform {
    * Return the unitary vector representing the up direction of this transform
    * (which would be the local y axis)
    */
-  glm::vec3 up() const ;
+  glm::vec3 up() const;
 
   /**
    * Return the unitary vector representing the down direction of this transform
@@ -115,4 +138,4 @@ class Transform {
   glm::quat _rotation;
 };
 
-};  // namespace seng
+};  // namespace seng::components
