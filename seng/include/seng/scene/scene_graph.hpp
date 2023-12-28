@@ -9,7 +9,12 @@ namespace YAML {
 class Node;
 }
 
+namespace seng {
+class Application;
+}
+
 namespace seng::scene {
+class Scene;
 
 /**
  * The scene graph.
@@ -27,7 +32,7 @@ class SceneGraph {
 
  public:
   /// Constructor
-  SceneGraph(Application &app);
+  SceneGraph(Application &app, Scene &scene);
   SceneGraph(const SceneGraph &) = delete;
   SceneGraph(SceneGraph &&) = default;
 
@@ -114,6 +119,7 @@ class SceneGraph {
 
  private:
   Application *app;
+  Scene *scene;
   EntityList entities;
 };
 

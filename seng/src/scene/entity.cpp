@@ -10,10 +10,12 @@ using namespace std;
 
 uint64_t Entity::INDEX_COUNTER = 0;
 
-Entity::Entity(Application& app, std::string n) :
+Entity::Entity(Application& app, Scene& s, std::string n) :
+    application(std::addressof(app)),
+    scene(std::addressof(s)),
     id(INDEX_COUNTER++),
     name(std::move(n)),
-    transform(std::make_unique<components::Transform>(app, *this))
+    transform(std::make_unique<components::Transform>(*this))
 {
   transform->initialize();
 }

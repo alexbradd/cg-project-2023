@@ -21,6 +21,7 @@ class BaseComponent;
 };  // namespace seng::components
 
 namespace seng::scene {
+class Scene;
 
 /**
  * An entity in a scene's scene graph.
@@ -66,6 +67,14 @@ class Entity {
   friend bool operator!=(const Entity& lhs, const Entity& rhs) { return !(lhs == rhs); }
 
   // Accessors
+  const Application& getApplication() const { return *application; }
+  Application& getApplication() { return *application; }
+
+  /// Return the scene this entity is instantiated in
+  const Scene& getScene() const { return *scene; }
+  /// Return the scene this entity is instantiated in
+  Scene& getScene() { return *scene; }
+
   const uint64_t& getId() const { return id; }
   const std::string& getName() const { return name; }
   const std::unique_ptr<components::Transform>& getTransform() const { return transform; }
@@ -144,6 +153,8 @@ class Entity {
   }
 
  private:
+  Application* application;
+  Scene* scene;
   uint64_t id;
   std::string name;
   std::unique_ptr<components::Transform> transform;
@@ -159,7 +170,7 @@ class Entity {
    * Constructor for a new entity with the given name and position in the origin.
    * Private since users shoud use the appropriate method in SceneGraph.
    */
-  Entity(Application& app, std::string name);
+  Entity(Application& app, Scene& scene, std::string name);
 
   void setTransform(std::unique_ptr<components::Transform>&& transform);
 

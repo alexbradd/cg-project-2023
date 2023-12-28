@@ -12,7 +12,10 @@
 using namespace seng::scene;
 using namespace std;
 
-SceneGraph::SceneGraph(Application &app) : app(std::addressof(app)) {}
+SceneGraph::SceneGraph(Application &app, Scene &scene) :
+    app(std::addressof(app)), scene(std::addressof(scene))
+{
+}
 
 SceneGraph::EntityList::const_iterator SceneGraph::findByName(
     const std::string &name) const
@@ -47,7 +50,7 @@ std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
 
 Entity *SceneGraph::newEntity(std::string name)
 {
-  entities.push_back(Entity(*app, name));
+  entities.push_back(Entity(*app, *scene, name));
   return &entities.back();
 }
 

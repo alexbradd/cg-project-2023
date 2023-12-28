@@ -36,7 +36,7 @@ Scene::Scene(Application &app) :
     renderer(app.renderer().get()),
     globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice())),
     mainCamera(nullptr),
-    sceneGraph(app)
+    sceneGraph(app, *this)
 {
   renderer->requestDescriptorSet(*globalDescriptorSetLayout);
 }
