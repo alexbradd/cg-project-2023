@@ -10,9 +10,11 @@
 #include <seng/scene/scene_graph.hpp>
 
 #include <yaml-cpp/yaml.h>
+#include <tuple>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <unordered_set>
 
@@ -26,6 +28,8 @@ using namespace std;
 
 // Initializer functions
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
+
+uint64_t Scene::EVENT_INDEX = 0;
 
 Scene::Scene(Application &app) :
     app(std::addressof(app)),
@@ -141,6 +145,33 @@ void Scene::draw(const FrameHandle &handle)
     shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub
     cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
   }
+}
+
+SceneEventToken Scene::listen(SceneEvents e, std::function<void(float)> h)
+{
+  EventHandlerType handler = make_tuple(EVENT_INDEX++, h);
+  eventHandlers[e].push_back(handler);
+  SceneEventToken tok;
+  tok.event = e;
+  tok.id = EVENT_INDEX;
+  return tok;
+}
+
+void Scene::unlisten(SceneEventToken tok)
+{
+  auto i = eventHandlers.find(tok.event);
+  if (i == eventHandlers.end()) return;
+
+  auto end = std::remove_if(i->second.begin(), i->second.end(),
+                            [&](const auto &h) { return tok.id == std::get<0>(h); });
+  i->second.erase(end, i->second.end());
+}
+
+void Scene::fireEventType(SceneEvents event, float delta) const
+{
+  auto i = eventHandlers.find(event);
+  if (i == eventHandlers.end()) return;
+  for (const auto &ev : i->second) std::get<1>(ev)(delta);
 }
 
 Scene::~Scene()

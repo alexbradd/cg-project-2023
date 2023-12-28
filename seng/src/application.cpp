@@ -21,9 +21,7 @@ Application::Application() : Application(ApplicationConfig{}) {}
 Application::Application(ApplicationConfig& config) : conf{config} {}
 Application::Application(ApplicationConfig&& config) : conf{std::move(config)} {}
 
-void Application::run(unsigned int width,
-                      unsigned int height,
-                      function<void(float, const Application&)> cb)
+void Application::run(unsigned int width, unsigned int height)
 {
   glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
   glfwWindow->onResize([this](auto, auto, auto) {
@@ -39,10 +37,18 @@ void Application::run(unsigned int width,
   while (!glfwWindow->shouldClose()) {
     try {
       bool executed = vulkan->scopedFrame([&](auto& handle) {
-        const auto delta = Clock::now() - lastFrame;
+        float deltaTime = inSeconds(Clock::now() - lastFrame);
+
+        // Early update
+        activeScene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
         inputManager->updateEvents();
-        cb(inSeconds(delta), *this);  // TODO: to be substituted with gameobject Update
+
+        // Update
+        activeScene->fireEventType(SceneEvents::UPDATE, deltaTime);
+
+        // Late update
         activeScene->draw(handle);
+        activeScene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
       });
       if (!executed)
         continue;

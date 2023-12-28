@@ -24,34 +24,35 @@ int main(int, char* argv[])
   try {
     seng::log::info("Starting application");
 
-    const float speed = 5.0f;
-    app.run(800, 600, [&](float deltaTime, const seng::Application& app) {
-      /* auto& transform = ctx->currentCamera().transform(); */
-      /**/
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyA)) */
-      /*   transform.translate(-transform.right() * speed * ctx->deltaTime().count()); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyD)) */
-      /*   transform.translate(transform.right() * speed * ctx->deltaTime().count()); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyW)) */
-      /*   transform.translate(-transform.forward() * speed * ctx->deltaTime().count()); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyS)) */
-      /*   transform.translate(transform.forward() * speed * ctx->deltaTime().count()); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eSpace)) { */
-      /*   if (ctx->inputManager()->keyHold(seng::KeyCode::eModLeftShift)) */
-      /*     transform.translate(-transform.up() * speed * ctx->deltaTime().count()); */
-      /*   else */
-      /*     transform.translate(transform.up() * speed * ctx->deltaTime().count()); */
-      /* } */
-      /**/
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eUp)) */
-      /*   transform.rotate(glm::radians(1.0f), 0.0f, 0.0f); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eDown)) */
-      /*   transform.rotate(glm::radians(-1.0f), 0.0f, 0.0f); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eLeft)) */
-      /*   transform.rotate(0.0f, glm::radians(1.0f), 0.0f); */
-      /* if (ctx->inputManager()->keyHold(seng::KeyCode::eRight)) */
-      /*   transform.rotate(0.0f, glm::radians(-1.0f), 0.0f); */
-    });
+    app.run(800, 600);
+    /* const float speed = 5.0f; */
+    /* app.run(800, 600, [&](float deltaTime, const seng::Application& app) { */
+    /* auto& transform = ctx->currentCamera().transform(); */
+    /**/
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyA)) */
+    /*   transform.translate(-transform.right() * speed * ctx->deltaTime().count()); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyD)) */
+    /*   transform.translate(transform.right() * speed * ctx->deltaTime().count()); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyW)) */
+    /*   transform.translate(-transform.forward() * speed * ctx->deltaTime().count()); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eKeyS)) */
+    /*   transform.translate(transform.forward() * speed * ctx->deltaTime().count()); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eSpace)) { */
+    /*   if (ctx->inputManager()->keyHold(seng::KeyCode::eModLeftShift)) */
+    /*     transform.translate(-transform.up() * speed * ctx->deltaTime().count()); */
+    /*   else */
+    /*     transform.translate(transform.up() * speed * ctx->deltaTime().count()); */
+    /* } */
+    /**/
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eUp)) */
+    /*   transform.rotate(glm::radians(1.0f), 0.0f, 0.0f); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eDown)) */
+    /*   transform.rotate(glm::radians(-1.0f), 0.0f, 0.0f); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eLeft)) */
+    /*   transform.rotate(0.0f, glm::radians(1.0f), 0.0f); */
+    /* if (ctx->inputManager()->keyHold(seng::KeyCode::eRight)) */
+    /*   transform.rotate(0.0f, glm::radians(-1.0f), 0.0f); */
+    /* }); */
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }

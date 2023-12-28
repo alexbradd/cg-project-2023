@@ -2,7 +2,6 @@
 
 #include <seng/application_config.hpp>
 
-#include <functional>
 #include <memory>
 
 namespace seng {
@@ -41,13 +40,8 @@ class Application {
    * Blocks until application is closed.
    *
    * In case of a fatal error a std::runtime_error will be thrown
-   *
-   * TODO: For test purposes, we pass in a lambda that will get called every
-   * frame, once we have the gameObject system up we will remove this
    */
-  void run(unsigned int width,
-           unsigned int height,
-           std::function<void(float, const Application &)> cb);
+  void run(unsigned int width, unsigned int height);
 
   // Accessors
   const ApplicationConfig &config() const { return conf; }

@@ -5,13 +5,14 @@
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/scene/scene_graph.hpp>
+#include <seng/time.hpp>
 
 #include <glm/trigonometric.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include <functional>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace seng {
 class Application;
@@ -28,6 +29,23 @@ class Camera;
 };  // namespace seng
 
 namespace seng::scene {
+
+/**
+ * Identifies the types of events that the scene will emit:
+ *
+ * 1. EARLY_UPDATE: Runs before input events have been polled
+ * 2. UPDATE: Main update event
+ * 3. LATE_UPDATE: Runs after the scene is finished drawing.
+ */
+enum class SceneEvents { EARLY_UPDATE, UPDATE, LATE_UPDATE };
+
+class SceneEventToken {
+ private:
+  SceneEvents event;
+  uint64_t id;
+
+  friend class Scene;
+};
 
 /**
  * A Scene is the container for all resources currently loaded that are not
@@ -47,6 +65,8 @@ namespace seng::scene {
  */
 class Scene {
  public:
+  using EventHandlerType = std::tuple<std::uint64_t, std::function<void(float)>>;
+
   Scene(Application &app);
   Scene(const Scene &) = delete;
   Scene(Scene &&) = default;
@@ -85,6 +105,22 @@ class Scene {
    */
   void draw(const rendering::FrameHandle &handle);
 
+  /**
+   * Register for the given event. The handler will receive as input th delta in
+   * seconds between the current frame and the last drawn frame.
+   */
+  SceneEventToken listen(SceneEvents event, std::function<void(float)> cb);
+
+  /**
+   * Unregister for the given event.
+   */
+  void unlisten(SceneEventToken tok);
+
+  /**
+   * Fires the given event.
+   */
+  void fireEventType(SceneEvents event, float delta) const;
+
  private:
   Application *app;
   rendering::Renderer *renderer;
@@ -100,6 +136,11 @@ class Scene {
   // Scene graph
   components::Camera *mainCamera;
   SceneGraph sceneGraph;
+
+  // Event dispatcher
+  std::unordered_map<SceneEvents, std::vector<EventHandlerType>> eventHandlers;
+
+  static uint64_t EVENT_INDEX;
 };
 
 };  // namespace seng::scene
