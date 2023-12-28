@@ -25,20 +25,15 @@ using namespace std;
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
 
 Scene::Scene(const Application &app,
-             const CameraParams &cameraParams,
              [[maybe_unused]] const std::unordered_set<std::string> &stageNames,
              [[maybe_unused]] const std::unordered_set<std::string> &shaderNames,
              const std::unordered_set<std::string> &meshNames) :
     renderer(app.renderer().get()),
-    globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice())),
-    camera(
-        cameraParams.aspectRatio, cameraParams.near, cameraParams.far, cameraParams.fov)
+    globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice()))
 {
   auto &config = app.config();
 
   renderer->requestDescriptorSet(*globalDescriptorSetLayout);
-
-  camera.transform().setPos(0.0, 0.0, 10.0f);  // FIXME: stub
 
   // Load ShaderStages
   // FIXME: stub
@@ -105,16 +100,6 @@ Scene Scene::loadFromDisk(const Application &app,
   }
 
   // Parse camera parameters
-  CameraParams cameraParams;
-  cameraParams.aspectRatio = cameraAspectRatio;
-  if (sceneConfig["Camera"]) {
-    auto cam = sceneConfig["Camera"];
-    if (cam["near"]) cameraParams.near = cam["near"].as<float>();
-    if (cam["far"]) cameraParams.far = cam["far"].as<float>();
-    if (cam["fov"]) cameraParams.fov = cam["fov"].as<float>();
-    // TODO: parse initial position
-  }
-
   // TODO: parse entities
   if (sceneConfig["Entities"]) seng::log::dbg("Got entities");
 
@@ -123,22 +108,24 @@ Scene Scene::loadFromDisk(const Application &app,
 
 void Scene::draw(const FrameHandle &handle)
 {
-  const auto &cmd = renderer->getCommandBuffer(handle);
-  auto &shader = shaders.at(SHADER_NAME);  // FIXME: stub
-
-  shader.globalUniformObject().projection = camera.projectionMatrix();
-  shader.globalUniformObject().view = camera.viewMatrix();
-  shader.uploadGlobalState(
-      cmd, renderer->getDescriptorSet(handle, *globalDescriptorSetLayout));
-
-  for (const auto &mesh : meshes) {  // FIXME: should be per game object not per mesh
-    shader.updateModelState(cmd, glm::mat4(1));
-    cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0});
-    cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0,
-                                 vk::IndexType::eUint32);
-    shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub
-    cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
-  }
+  /* const auto &cmd = renderer->getCommandBuffer(handle); */
+  /* auto &shader = shaders.at(SHADER_NAME);  // FIXME: stub */
+  /**/
+  /* if (mainCamera == nullptr) return; */
+  /**/
+  /* shader.globalUniformObject().projection = mainCamera->projectionMatrix(); */
+  /* shader.globalUniformObject().view = mainCamera->viewMatrix(); */
+  /* shader.uploadGlobalState( */
+  /*     cmd, renderer->getDescriptorSet(handle, *globalDescriptorSetLayout)); */
+  /**/
+  /* for (const auto &mesh : meshes) {  // FIXME: should be per game object not per mesh */
+  /*   shader.updateModelState(cmd, glm::mat4(1)); */
+  /*   cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0}); */
+  /*   cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0, */
+  /*                                vk::IndexType::eUint32); */
+  /*   shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub */
+  /*   cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0); */
+  /* } */
 }
 
 Scene::~Scene()

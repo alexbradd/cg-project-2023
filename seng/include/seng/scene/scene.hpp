@@ -50,9 +50,6 @@ class Scene {
   Scene &operator=(const Scene &) = delete;
   Scene &operator=(Scene &&) = default;
 
-  // Accessors
-  const Camera &mainCamera() const { return camera; }
-  Camera &mainCamera() { return camera; }
 
   /**
    * Factory that parses the scene YAML from disk and allocates it.
@@ -71,17 +68,6 @@ class Scene {
   void draw(const rendering::FrameHandle &handle);
 
  private:
-  /**
-   * Utility struct used in parsing camera info from configuration. Mirrors the
-   * constructor from `seng::Camera`.
-   */
-  struct CameraParams {
-    float aspectRatio;
-    float near = 0.1f;
-    float far = 1000.0f;
-    float fov = glm::radians(45.0f);
-  };
-
   rendering::Renderer *renderer;
 
   // Global descriptor layout
@@ -93,7 +79,6 @@ class Scene {
   std::unordered_map<std::string, rendering::Mesh> meshes;
 
   // Scene graph
-  Camera camera;
 
   /**
    * Private constructor. Users of the class should go through the `loadFromDisk()`
