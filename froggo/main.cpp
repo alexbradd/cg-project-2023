@@ -1,9 +1,5 @@
 #include <seng/application.hpp>
-#include <seng/camera.hpp>
-#include <seng/input_enums.hpp>
-#include <seng/input_manager.hpp>
 #include <seng/log.hpp>
-#include <seng/transform.hpp>
 
 #include <cstdlib>
 #include <exception>
