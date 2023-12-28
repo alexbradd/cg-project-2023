@@ -43,7 +43,14 @@ std::unique_ptr<BaseComponent> SceneConfigComponentFactory::createFromSceneConfi
 {
   auto &store = configCreateFuncs();
   auto it = store.find(name);
-  if (it != store.end()) return it->second(app, entity, configNode);
+  if (it != store.end()) {
+    try {
+      return it->second(app, entity, configNode);
+    } catch (const exception &e) {
+      seng::log::warning("Error encountered during parsing: {}", e.what());
+      return nullptr;
+    }
+  }
   seng::log::warning("No registered component matching {}", name);
   return nullptr;
 }
