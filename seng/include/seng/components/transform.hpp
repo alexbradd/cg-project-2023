@@ -60,8 +60,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   Transform& operator=(Transform&&) = default;
 
   DECLARE_COMPONENT_ID("Transform");
-  static std::unique_ptr<BaseComponent> createFromConfig(Application& app,
-                                                         scene::Entity& entity,
+  static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& entity,
                                                          const YAML::Node& node);
 
   /**

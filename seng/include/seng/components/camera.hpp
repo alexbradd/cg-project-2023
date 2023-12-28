@@ -55,8 +55,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   Camera& operator=(Camera&&) = default;
 
   DECLARE_COMPONENT_ID("Camera");
-  static std::unique_ptr<BaseComponent> createFromConfig(Application& a,
-                                                         scene::Entity& e,
+  static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& e,
                                                          const YAML::Node&);
 
   // Overrides

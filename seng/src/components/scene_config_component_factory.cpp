@@ -36,16 +36,13 @@ bool SceneConfigComponentFactory::registerComponent(const ComponentIdType &name,
 }
 
 std::unique_ptr<BaseComponent> SceneConfigComponentFactory::create(
-    Application &app,
-    Entity &entity,
-    const std::string &name,
-    const YAML::Node &configNode)
+    Entity &entity, const std::string &name, const YAML::Node &configNode)
 {
   auto &store = configCreateFuncs();
   auto it = store.find(name);
   if (it != store.end()) {
     try {
-      return it->second(app, entity, configNode);
+      return it->second(entity, configNode);
     } catch (const exception &e) {
       seng::log::warning("Error encountered during parsing: {}", e.what());
       return nullptr;

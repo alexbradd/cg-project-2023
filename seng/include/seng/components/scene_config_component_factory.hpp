@@ -33,8 +33,7 @@ namespace seng::components {
 class SceneConfigComponentFactory {
  public:
   /// Function type to be implemented by parseable components.
-  using TConfigCreateFunc = std::unique_ptr<BaseComponent> (*)(Application &,
-                                                               scene::Entity &,
+  using TConfigCreateFunc = std::unique_ptr<BaseComponent> (*)(scene::Entity &,
                                                                const YAML::Node &);
 
  public:
@@ -47,8 +46,7 @@ class SceneConfigComponentFactory {
    * Create an instance of the Component identified by `name` from the given YAML
    * node.
    */
-  static std::unique_ptr<BaseComponent> create(Application &app,
-                                               scene::Entity &entity,
+  static std::unique_ptr<BaseComponent> create(scene::Entity &entity,
                                                const std::string &name,
                                                const YAML::Node &configNode);
 
@@ -67,7 +65,7 @@ class SceneConfigComponentFactory {
  * two static methods:
  *
  * 1. `string componentId()`: return the id of the Component
- * 2. `unique_ptr<Component> createFromConfig(const Application &, const YAML::Node &)`:
+ * 2. `unique_ptr<Component> createFromConfig(Entity &, const YAML::Node &)`:
  *    create a component instance from the YAML config
  */
 template <typename T>

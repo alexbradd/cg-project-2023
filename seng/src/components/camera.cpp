@@ -96,8 +96,7 @@ void Camera::fov(float fov)
   _fov = fov;
 }
 
-std::unique_ptr<BaseComponent> Camera::createFromConfig(Application& app,
-                                                        Entity& entity,
+std::unique_ptr<BaseComponent> Camera::createFromConfig(Entity& entity,
                                                         const YAML::Node& node)
 {
   float near = DEFAULT_NEAR;

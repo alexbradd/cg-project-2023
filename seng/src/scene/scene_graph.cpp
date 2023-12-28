@@ -69,8 +69,7 @@ Entity *SceneGraph::newEntity(const YAML::Node &node)
 
   if (node["transform"] && node["transform"].IsMap()) {
     auto &t = node["transform"];
-    auto ptr =
-        SceneConfigComponentFactory::create(*app, *ret, Transform::componentId(), t);
+    auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
     auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
     ret->setTransform(std::move(concrete));
   }
@@ -85,7 +84,7 @@ Entity *SceneGraph::newEntity(const YAML::Node &node)
       }
       std::string id = comp["id"].as<string>();
       std::unique_ptr<BaseComponent> ptr =
-          SceneConfigComponentFactory::create(*app, *ret, id, comp);
+          SceneConfigComponentFactory::create(*ret, id, comp);
       ret->insertComponent(std::move(ptr));
     }
   }
