@@ -61,7 +61,7 @@ class SceneEventToken {
  * The "stuff that the user can interact with", i.e. entities, are organized in a
  * scene graph. For more info on those, refer to the specific classes.
  *
- * A scene is non-copyable, only movable.
+ * A scene is non-copyable and non movable.
  */
 class Scene {
  public:
@@ -69,11 +69,11 @@ class Scene {
 
   Scene(Application &app);
   Scene(const Scene &) = delete;
-  Scene(Scene &&) = default;
+  Scene(Scene &&) = delete;
   ~Scene();
 
   Scene &operator=(const Scene &) = delete;
-  Scene &operator=(Scene &&) = default;
+  Scene &operator=(Scene &&) = delete;
 
   /**
    * Return a pointer to the main camera, if one is registered.
