@@ -12,7 +12,9 @@
 // clang-format on
 #include <yaml-cpp/yaml.h>
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 
 using namespace seng;
 using namespace seng::scene;
@@ -21,12 +23,16 @@ using namespace std;
 
 using namespace std::placeholders;
 
-Camera::Camera(Application& app, Entity& entity, float near, float far, float fov) :
+std::vector<Camera*> Camera::cameras;
+
+Camera::Camera(
+    Application& app, Entity& entity, float near, float far, float fov, bool main) :
     BaseComponent(app, entity)
 {
   _near = near;
   _far = far;
   _fov = fov;
+  registerAsMain = main;
 }
 
 void Camera::initialize()
@@ -35,7 +41,16 @@ void Camera::initialize()
   _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
 
   application->window()->onResize(std::bind(&Camera::resize, this, _2, _3));
-  application->scene()->registerCamera(this);
+
+  cameras.push_back(this);
+
+  if (registerAsMain) application->scene()->setMainCamera(this);
+}
+
+Camera::~Camera()
+{
+  auto end = std::remove(cameras.begin(), cameras.end(), this);
+  cameras.erase(end, cameras.end());
 }
 
 glm::mat4 Camera::projectionMatrix() const
@@ -87,7 +102,9 @@ std::unique_ptr<BaseComponent> Camera::createFromConfig(Application& app,
   float near = DEFAULT_NEAR;
   float far = DEFAULT_FAR;
   float fov = DEFAULT_FOV;
+  bool main = DEFAULT_MAIN;
 
+  if (node["main"] && node["main"].IsScalar()) main = node["main"].as<bool>();
   if (node["near"] && node["near"].IsScalar())
     near = node["near"].as<float>(DEFAULT_NEAR);
   if (node["far"] && node["far"].IsScalar()) far = node["far"].as<float>(DEFAULT_FAR);
@@ -98,5 +115,5 @@ std::unique_ptr<BaseComponent> Camera::createFromConfig(Application& app,
   if (node["fov_radians"] && node["fov_radians"].IsScalar())
     fov = node["fov_radians"].as<float>(DEFAULT_FOV);
 
-  return std::make_unique<Camera>(app, entity, near, far, fov);
+  return std::make_unique<Camera>(app, entity, near, far, fov, main);
 }

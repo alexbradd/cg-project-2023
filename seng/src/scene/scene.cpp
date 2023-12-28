@@ -112,7 +112,7 @@ void Scene::loadFromDisk(std::string sceneName)
   }
 }
 
-void Scene::registerCamera(seng::components::Camera *cam)
+void Scene::setMainCamera(components::Camera *cam)
 {
   if (cam == nullptr) {
     seng::log::warning("Trying to register null camera");

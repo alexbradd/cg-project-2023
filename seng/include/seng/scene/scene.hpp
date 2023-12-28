@@ -68,7 +68,7 @@ class Scene {
   /**
    * Registers the given camera as the camera that will be used for drawing.
    */
-  void registerCamera(components::Camera *cam);
+  void setMainCamera(components::Camera *cam);
 
   /**
    * Parse the scene YAML from disk and set the state of this scene to the

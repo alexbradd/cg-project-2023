@@ -16,3 +16,4 @@ Entities:
       position: [0.0, 0.0, 10.0]
     components:
       - id: "Camera"
+        main: true
