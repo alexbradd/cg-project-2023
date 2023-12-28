@@ -3,6 +3,7 @@
 #include <seng/scene/entity.hpp>
 
 #include <list>
+#include <vector>
 
 namespace seng::scene {
 
@@ -32,8 +33,8 @@ class SceneGraph {
   ~SceneGraph() = default;
 
   /**
-   * Find an Entity in the scene graph by its name. If no such entity can be found,
-   * a past-the-end iterator is returned.
+   * Find the first Entity in the scene graph with the given name. If no such
+   * entity can be found, a past-the-end iterator is returned.
    *
    * N.B.: searching for an entity is linear in the number of entites in the
    * scene graph, so make sure to cache the iterator (it is safe to do
@@ -42,14 +43,34 @@ class SceneGraph {
   EntityList::const_iterator findByName(const std::string &name) const;
 
   /**
-   * Find an Entity in the scene graph by its name. If no such entity can be found,
-   * a past-the-end iterator is returned.
+   * Find the first Entity in the scene graph with the given name. If no such
+   * entity can be found, a past-the-end iterator is returned.
    *
    * N.B.: searching for an entity is linear in the number of entites in the
    * scene graph, so make sure to cache the iterator (it is safe to do
    * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
    */
   EntityList::iterator findByName(const std::string &name);
+
+  /**
+   * Collect all references to instances with the given name in a vector and
+   * return them.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  std::vector<const Entity *> findAllByName(const std::string &name) const;
+
+  /**
+   * Collect all references to instances with the given name in a vector and
+   * return them.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  std::vector<Entity *> findAllByName(const std::string &name);
 
   /**
    * Create a new Entity into the scene graph with the given name and return a

@@ -1,5 +1,8 @@
 #include <seng/log.hpp>
+#include <seng/scene/entity.hpp>
 #include <seng/scene/scene_graph.hpp>
+
+#include <memory>
 
 /* using namespace seng; */
 using namespace seng::scene;
@@ -16,6 +19,24 @@ SceneGraph::EntityList::iterator SceneGraph::findByName(const std::string &name)
 {
   return std::find_if(entities.begin(), entities.end(),
                       [&](const auto &elem) { return elem.getName() == name; });
+}
+
+std::vector<const Entity *> SceneGraph::findAllByName(const std::string &name) const
+{
+  vector<const Entity *> ptrs;
+  for (const auto &e : entities) {
+    if (e.getName() == name) ptrs.push_back(std::addressof(e));
+  }
+  return ptrs;
+}
+
+std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
+{
+  vector<Entity *> ptrs;
+  for (auto &e : entities) {
+    if (e.getName() == name) ptrs.push_back(std::addressof(e));
+  }
+  return ptrs;
 }
 
 Entity *SceneGraph::newEntity(std::string name)
