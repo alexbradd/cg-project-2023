@@ -42,8 +42,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   static constexpr float DEFAULT_FOV = glm::radians(45.0f);
   static constexpr bool DEFAULT_MAIN = false;
 
-  Camera(Application& app,
-         scene::Entity& entity,
+  Camera(scene::Entity& entity,
          float near = DEFAULT_NEAR,
          float far = DEFAULT_FAR,
          float fov = DEFAULT_FOV,

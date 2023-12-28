@@ -25,9 +25,8 @@ using namespace std::placeholders;
 
 std::vector<Camera*> Camera::cameras;
 
-Camera::Camera(
-    Application& app, Entity& entity, float near, float far, float fov, bool main) :
-    BaseComponent(app, entity)
+Camera::Camera(Entity& entity, float near, float far, float fov, bool main) :
+    BaseComponent(entity)
 {
   _near = near;
   _far = far;
@@ -37,14 +36,16 @@ Camera::Camera(
 
 void Camera::initialize()
 {
-  auto windowSize = application->window()->framebufferSize();
+  auto& window = entity->getApplication().window();
+
+  auto windowSize = window->framebufferSize();
   _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
 
-  application->window()->onResize(std::bind(&Camera::resize, this, _2, _3));
+  window->onResize(std::bind(&Camera::resize, this, _2, _3));
 
   cameras.push_back(this);
 
-  if (registerAsMain) application->scene()->setMainCamera(this);
+  if (registerAsMain) entity->getScene().setMainCamera(this);
 }
 
 Camera::~Camera()
@@ -115,5 +116,5 @@ std::unique_ptr<BaseComponent> Camera::createFromConfig(Application& app,
   if (node["fov_radians"] && node["fov_radians"].IsScalar())
     fov = node["fov_radians"].as<float>(DEFAULT_FOV);
 
-  return std::make_unique<Camera>(app, entity, near, far, fov, main);
+  return std::make_unique<Camera>(entity, near, far, fov, main);
 }

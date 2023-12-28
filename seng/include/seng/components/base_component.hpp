@@ -25,11 +25,10 @@ namespace seng::components {
  * 2. Declaring a static function called `componentId` that returns a
  *    ComponentIdType
  *
- * The BaseComponent class provides a constructor that initializes the
- * `application` and `entity` protected fields, containing respecitvely the
- * current Application instance and the Entity to which the component is
- * attached. Inheritors may use this constructor or initialize these fields
- * themselves. Well-behaved constructors should not leave these fields nullptr.
+ * The BaseComponent class provides a constructor that initializes the `entity`
+ * protected field, containing the Entity to which the component is attached.
+ * Inheritors may use this constructor or initialize this field themselves.
+ * Well-behaved constructors should not leave this field nullptr.
  */
 class BaseComponent {
  public:
@@ -42,10 +41,7 @@ class BaseComponent {
    * parameters. Any interactions with the other engin systems should be done
    * in `initialize()`
    */
-  BaseComponent(Application &app, scene::Entity &entity) :
-      application(std::addressof(app)), entity(std::addressof(entity))
-  {
-  }
+  BaseComponent(scene::Entity &entity) : entity(std::addressof(entity)) {}
   virtual ~BaseComponent() = default;
 
   /**
@@ -57,7 +53,6 @@ class BaseComponent {
   virtual void initialize() {}
 
  protected:
-  Application *application;
   scene::Entity *entity;
 };
 

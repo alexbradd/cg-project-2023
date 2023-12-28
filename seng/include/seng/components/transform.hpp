@@ -49,8 +49,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   /**
    * Create a new transform with the given position, scale and rotation
    */
-  Transform(Application& app,
-            scene::Entity& entity,
+  Transform(scene::Entity& entity,
             glm::vec3 pos = DEFAULT_POS,
             glm::vec3 scale = DEFAULT_SCALE,
             glm::vec3 rotation = DEFAULT_ROT);

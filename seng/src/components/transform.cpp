@@ -10,9 +10,8 @@ using namespace seng;
 using namespace seng::components;
 using namespace glm;
 
-Transform::Transform(
-    Application& app, scene::Entity& e, vec3 pos, vec3 scale, vec3 rotation) :
-    BaseComponent(app, e)
+Transform::Transform(scene::Entity& e, vec3 pos, vec3 scale, vec3 rotation) :
+    BaseComponent(e)
 {
   setPos(pos.x, pos.y, pos.z);
   setScale(scale.x, scale.y, scale.x);
@@ -96,5 +95,5 @@ std::unique_ptr<BaseComponent> Transform::createFromConfig(Application& app,
     rot = glm::radians(node["rotation_deg"].as<glm::vec3>(DEFAULT_ROT));
   if (node["rotation_rad"]) rot = node["rotation_rad"].as<glm::vec3>(DEFAULT_ROT);
 
-  return std::make_unique<Transform>(app, entity, pos, scale, rot);
+  return std::make_unique<Transform>(entity, pos, scale, rot);
 }
