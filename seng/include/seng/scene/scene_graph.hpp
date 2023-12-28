@@ -3,7 +3,6 @@
 #include <seng/scene/entity.hpp>
 
 #include <list>
-#include <unordered_set>
 
 namespace seng::scene {
 
@@ -54,8 +53,7 @@ class SceneGraph {
 
   /**
    * Create a new Entity into the scene graph with the given name and return a
-   * pointer to it. If an entity with the same name is already present, nullptr
-   * will be returned.
+   * pointer to it.
    */
   Entity *newEntity(std::string name);
 
@@ -85,7 +83,6 @@ class SceneGraph {
 
  private:
   EntityList entities;
-  std::unordered_set<std::string> names;  // used to enforce the class invariant
 };
 
 }  // namespace seng::scene

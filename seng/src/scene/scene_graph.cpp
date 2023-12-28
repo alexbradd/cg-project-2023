@@ -5,12 +5,6 @@
 using namespace seng::scene;
 using namespace std;
 
-static bool setContains(const unordered_set<string> &s, const string &k)
-{
-  auto it = s.find(k);
-  return it != s.end();
-}
-
 SceneGraph::EntityList::const_iterator SceneGraph::findByName(
     const std::string &name) const
 {
@@ -26,18 +20,12 @@ SceneGraph::EntityList::iterator SceneGraph::findByName(const std::string &name)
 
 Entity *SceneGraph::newEntity(std::string name)
 {
-  if (setContains(names, name)) {
-    seng::log::warning("Attempting to insert an Entity with an already present name");
-    return nullptr;
-  }
-  names.insert(name);
   entities.push_back(Entity(name));
   return &entities.back();
 }
 
 void SceneGraph::remove(EntityList::const_iterator i)
 {
-  names.erase(i->getName());
   entities.erase(i);
 }
 
@@ -70,5 +58,4 @@ void SceneGraph::remove(const string &name)
 void SceneGraph::clear()
 {
   entities.clear();
-  names.clear();
 }
