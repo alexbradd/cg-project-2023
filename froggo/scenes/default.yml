@@ -10,22 +10,9 @@ ShaderInstances:
 Meshes:
   - test1
 
-Entites:
-  - transform:
-      {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
-        xAngle: 0.0,
-        yAngle: 0.0,
-        zAngle: 0.0,
-        xScale: 1.0,
-        yScale: 1.0,
-        zScale: 1.0,
-      }
-    graphics:
-      mesh: test1
-      material: test
-    scripts:
-      - scriptId: test
-        params: ["test", 1, false]
+Entities:
+  - name: "cam"
+    transform:
+      position: [0.0, 0.0, 10.0]
+    components:
+      - id: "Camera"
