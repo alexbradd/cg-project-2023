@@ -49,6 +49,9 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
                                                          scene::Entity& e,
                                                          const YAML::Node&);
 
+  // Overrides
+  void initialize() override;
+
   // Getters
   float aspectRatio() const { return _aspectRatio; }
   float nearPlane() const { return _near; }

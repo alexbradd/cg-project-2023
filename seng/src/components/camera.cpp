@@ -24,14 +24,18 @@ using namespace std::placeholders;
 Camera::Camera(Application& app, Entity& entity, float near, float far, float fov) :
     BaseComponent(app, entity)
 {
-  auto windowSize = app.window()->framebufferSize();
-  _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
   _near = near;
   _far = far;
   _fov = fov;
+}
 
-  app.window()->onResize(std::bind(&Camera::resize, this, _2, _3));
-  app.scene()->registerCamera(this);
+void Camera::initialize()
+{
+  auto windowSize = application->window()->framebufferSize();
+  _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
+
+  application->window()->onResize(std::bind(&Camera::resize, this, _2, _3));
+  application->scene()->registerCamera(this);
 }
 
 glm::mat4 Camera::projectionMatrix() const
