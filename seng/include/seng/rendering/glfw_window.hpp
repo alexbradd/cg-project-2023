@@ -45,7 +45,7 @@ class GlfwWindow {
   bool shouldClose() const;
 
   /**
-   * Run the given callback on window resizing.
+   * Add the given callback to the list of functions to be run on window resizing.
    *
    * The parameters passed to the callback are the same passed
    * glfwSetFramebufferSizeCallback().
@@ -87,9 +87,8 @@ class GlfwWindow {
   GLFWwindow *ptr;
   std::string _appName;
   unsigned int _width, _height;
-  std::optional<std::function<void(GLFWwindow *, int, int)>> _onResize;
-  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>>
-      _onKeyEvent;
+  std::vector<std::function<void(GLFWwindow *, int, int)>> _onResizeCbs;
+  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>> _onKeyEvent;
 
   static void resizeCallback(GLFWwindow *window, int w, int h);
   static void onKeyCallback(

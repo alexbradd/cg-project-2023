@@ -40,7 +40,7 @@ GlfwWindow::~GlfwWindow() {
 bool GlfwWindow::shouldClose() const { return glfwWindowShouldClose(ptr); }
 
 void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback) {
-  _onResize = callback;
+  _onResizeCbs.push_back(callback);
 }
 
 void GlfwWindow::onKeyEvent(
@@ -82,8 +82,8 @@ void GlfwWindow::resizeCallback(GLFWwindow *window, int w, int h) {
   wrapper->_width = w;
   wrapper->_height = h;
   if (w == 0 || h == 0) return;
-  if (wrapper->_onResize.has_value())
-    (wrapper->_onResize).value()(window, w, h);
+  for (const auto& onResize: wrapper->_onResizeCbs)
+    onResize(window, w, h);
 }
 
 void GlfwWindow::onKeyCallback(
