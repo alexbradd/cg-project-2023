@@ -12,11 +12,6 @@ namespace YAML {
 class Node;
 };
 
-// Fwd decl
-namespace seng {
-class Application;
-}  // namespace seng
-
 namespace seng::scene {
 class Entity;
 };  // namespace seng::scene

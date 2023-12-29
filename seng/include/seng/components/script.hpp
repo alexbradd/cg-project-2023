@@ -5,8 +5,6 @@
 #include <seng/scene/scene.hpp>
 
 namespace seng {
-class Application;
-
 namespace scene {
 class Entity;
 }

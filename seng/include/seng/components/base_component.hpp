@@ -4,10 +4,6 @@
 
 #include <memory>
 
-namespace seng {
-class Application;
-}  // namespace seng
-
 namespace seng::scene {
 class Entity;
 };  // namespace seng::scene
@@ -62,7 +58,7 @@ class BaseComponent {
   virtual void initialize() {}
 
  protected:
-  scene::Entity *entity;
+  scene::Entity *const entity;
 };
 
 };  // namespace seng::components

@@ -13,7 +13,6 @@
 #include <vector>
 
 namespace seng {
-class Application;
 
 namespace scene {
 class Entity;
