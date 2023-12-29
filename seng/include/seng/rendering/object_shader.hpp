@@ -43,8 +43,8 @@ class ObjectShader {
   ObjectShader& operator=(const ObjectShader&) = delete;
   ObjectShader& operator=(ObjectShader&&) = default;
 
-  const GlobalUniformObject& globalUniformObject() const { return guo; }
-  GlobalUniformObject& globalUniformObject() { return guo; }
+  const GlobalUniformObject& globalUniformObject() const { return m_guo; }
+  GlobalUniformObject& globalUniformObject() { return m_guo; }
 
   /**
    * Use the shader by binding the pipeline in the given command buffer
@@ -63,13 +63,13 @@ class ObjectShader {
   void updateModelState(const CommandBuffer& buf, glm::mat4 model) const;
 
  private:
-  const Device* vulkanDev;
-  std::string name;
-  std::vector<const ShaderStage*> _stages;
+  const Device* m_device;
+  std::string m_name;
+  std::vector<const ShaderStage*> m_stages;
 
-  Pipeline pipeline;
-  GlobalUniformObject guo;
-  Buffer gubo;
+  Pipeline m_pipeline;
+  GlobalUniformObject m_guo;
+  Buffer m_gubo;
 };
 
 }  // namespace seng::rendering
