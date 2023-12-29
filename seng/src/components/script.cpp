@@ -16,12 +16,12 @@ void ScriptComponent::initialize()
 {
   auto &s = entity->scene();
 
-  earlyUpdateToken = s.listen(scene::SceneEvents::EARLY_UPDATE,
-                              std::bind(&ScriptComponent::onEarlyUpdate, this, _1));
-  updateToken = s.listen(scene::SceneEvents::UPDATE,
-                         std::bind(&ScriptComponent::onUpdate, this, _1));
-  lateUpdateToken = s.listen(scene::SceneEvents::UPDATE,
-                             std::bind(&ScriptComponent::onLateUpdate, this, _1));
+  m_earlyUpdateToken = s.listen(scene::SceneEvents::EARLY_UPDATE,
+                                std::bind(&ScriptComponent::onEarlyUpdate, this, _1));
+  m_updateToken = s.listen(scene::SceneEvents::UPDATE,
+                           std::bind(&ScriptComponent::onUpdate, this, _1));
+  m_lateUpdateToken = s.listen(scene::SceneEvents::UPDATE,
+                               std::bind(&ScriptComponent::onLateUpdate, this, _1));
   scriptInitialize();
 }
 
@@ -31,7 +31,7 @@ ScriptComponent::~ScriptComponent()
 
   auto &s = entity->scene();
 
-  s.unlisten(earlyUpdateToken);
-  s.unlisten(updateToken);
-  s.unlisten(lateUpdateToken);
+  s.unlisten(m_earlyUpdateToken);
+  s.unlisten(m_updateToken);
+  s.unlisten(m_lateUpdateToken);
 }

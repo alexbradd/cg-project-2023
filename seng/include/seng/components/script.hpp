@@ -69,7 +69,7 @@ class ScriptComponent : public BaseComponent {
   virtual void onLateUpdate([[maybe_unused]] float deltaTime) {}
 
  private:
-  scene::SceneEventToken earlyUpdateToken, updateToken, lateUpdateToken;
+  scene::SceneEventToken m_earlyUpdateToken, m_updateToken, m_lateUpdateToken;
 };
 
 };  // namespace components
