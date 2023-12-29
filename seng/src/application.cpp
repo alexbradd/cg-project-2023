@@ -23,32 +23,32 @@ Application::Application(ApplicationConfig&& config) : conf{std::move(config)} {
 
 void Application::run(unsigned int width, unsigned int height)
 {
-  glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
-  glfwWindow->onResize([this](auto, auto, auto) {
-    if (vulkan != nullptr) vulkan->signalResize();
+  m_glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
+  m_glfwWindow->onResize([this](auto, auto, auto) {
+    if (m_vulkan != nullptr) m_vulkan->signalResize();
   });
 
-  vulkan = make_unique<Renderer>(conf, *glfwWindow);
-  inputManager = make_unique<InputManager>(glfwWindow.get());
-  activeScene = make_unique<Scene>(*this);
-  activeScene->loadFromDisk("default");
+  m_vulkan = make_unique<Renderer>(conf, *m_glfwWindow);
+  m_inputManager = make_unique<InputManager>(m_glfwWindow.get());
+  m_scene = make_unique<Scene>(*this);
+  m_scene->loadFromDisk("default");
 
   Timestamp lastFrame = Clock::now();
-  while (!glfwWindow->shouldClose()) {
+  while (!m_glfwWindow->shouldClose()) {
     try {
-      bool executed = vulkan->scopedFrame([&](auto& handle) {
+      bool executed = m_vulkan->scopedFrame([&](auto& handle) {
         float deltaTime = inSeconds(Clock::now() - lastFrame);
 
         // Early update
-        activeScene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
-        inputManager->updateEvents();
+        m_scene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
+        m_inputManager->updateEvents();
 
         // Update
-        activeScene->fireEventType(SceneEvents::UPDATE, deltaTime);
+        m_scene->fireEventType(SceneEvents::UPDATE, deltaTime);
 
         // Late update
-        activeScene->draw(handle);
-        activeScene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
+        m_scene->draw(handle);
+        m_scene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
       });
       if (!executed)
         continue;
@@ -59,15 +59,15 @@ void Application::run(unsigned int width, unsigned int height)
     }
   }
 
-  activeScene = nullptr;
-  inputManager = nullptr;
-  vulkan = nullptr;
-  glfwWindow = nullptr;
+  m_scene = nullptr;
+  m_inputManager = nullptr;
+  m_vulkan = nullptr;
+  m_glfwWindow = nullptr;
 }
 
-void Application::stop() {
-  if (glfwWindow)
-    glfwWindow->close();
+void Application::stop()
+{
+  if (m_glfwWindow) m_glfwWindow->close();
 }
 
 Application::~Application() = default;

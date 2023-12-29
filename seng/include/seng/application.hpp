@@ -50,18 +50,18 @@ class Application {
 
   // Accessors
   const ApplicationConfig &config() const { return conf; }
-  const std::unique_ptr<rendering::Renderer> &renderer() const { return vulkan; }
-  const std::unique_ptr<rendering::GlfwWindow> &window() const { return glfwWindow; }
-  const std::unique_ptr<scene::Scene> &currentActiveScene() const { return activeScene; }
-  const std::unique_ptr<InputManager> &input() const { return inputManager; }
+  const std::unique_ptr<rendering::Renderer> &renderer() const { return m_vulkan; }
+  const std::unique_ptr<rendering::GlfwWindow> &window() const { return m_glfwWindow; }
+  const std::unique_ptr<scene::Scene> &currentScene() const { return m_scene; }
+  const std::unique_ptr<InputManager> &input() const { return m_inputManager; }
 
  private:
   ApplicationConfig conf;
 
-  std::unique_ptr<rendering::GlfwWindow> glfwWindow;
-  std::unique_ptr<rendering::Renderer> vulkan;
-  std::unique_ptr<InputManager> inputManager;
-  std::unique_ptr<scene::Scene> activeScene;
+  std::unique_ptr<rendering::GlfwWindow> m_glfwWindow;
+  std::unique_ptr<rendering::Renderer> m_vulkan;
+  std::unique_ptr<InputManager> m_inputManager;
+  std::unique_ptr<scene::Scene> m_scene;
 };
 
 }  // namespace seng
