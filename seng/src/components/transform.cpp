@@ -20,7 +20,7 @@ Transform::Transform(scene::Entity& e, vec3 pos, vec3 scale, vec3 rotation) :
 
 void Transform::setPos(float x, float y, float z)
 {
-  _pos = vec3(x, y, z);
+  m_pos = vec3(x, y, z);
 }
 
 void Transform::translate(float x, float y, float z)
@@ -30,7 +30,7 @@ void Transform::translate(float x, float y, float z)
 
 void Transform::translate(glm::vec3 pos)
 {
-  _pos += pos;
+  m_pos += pos;
 }
 
 void Transform::setScale(float x, float y, float z)
@@ -38,25 +38,25 @@ void Transform::setScale(float x, float y, float z)
   x = x == 0.0f ? 1.0 : x;
   y = y == 0.0f ? 1.0 : y;
   z = z == 0.0f ? 1.0 : z;
-  _scale = vec3(x, y, z);
+  m_scale = vec3(x, y, z);
 }
 
 void Transform::setRotation(float xAngle, float yAngle, float zAngle)
 {
   // Quaternion can be created from euler angles with the Pitch-Yaw-Roll order
-  _rotation = glm::quat(vec3(yAngle, zAngle, xAngle));
+  m_rotation = glm::quat(vec3(yAngle, zAngle, xAngle));
 }
 
 void Transform::rotate(float xAngle, float yAngle, float zAngle)
 {
   quat dQ = quat(vec3(0.0f, yAngle, 0.0f)) * quat(vec3(xAngle, 0.0f, 0.0f)) *
             quat(vec3(0.0f, 0.0f, zAngle));
-  _rotation = _rotation * dQ;
+  m_rotation = m_rotation * dQ;
 }
 
 void Transform::rotate(float angle, vec3 axis)
 {
-  _rotation = _rotation * glm::rotate(quat(1.0f, 0.0f, 0.0f, 0.0f), angle, axis);
+  m_rotation = m_rotation * glm::rotate(quat(1.0f, 0.0f, 0.0f, 0.0f), angle, axis);
 }
 
 vec3 Transform::forward() const
@@ -76,8 +76,8 @@ vec3 Transform::right() const
 
 mat4 Transform::toMat4() const
 {
-  return glm::translate(glm::mat4(1.0f), _pos) * glm::toMat4(_rotation) *
-         glm::scale(glm::mat4(1.0f), _scale);
+  return glm::translate(glm::mat4(1.0f), m_pos) * glm::toMat4(m_rotation) *
+         glm::scale(glm::mat4(1.0f), m_scale);
 }
 
 std::unique_ptr<BaseComponent> Transform::createFromConfig(scene::Entity& entity,
