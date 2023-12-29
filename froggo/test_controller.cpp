@@ -26,48 +26,48 @@ class TestController : public components::ScriptComponent,
 
   DECLARE_COMPONENT_ID("TestController");
   static std::unique_ptr<components::BaseComponent> createFromConfig(
-      scene::Entity &entity, const YAML::Node &node)
+      scene::Entity &entity, [[maybe_unused]] const YAML::Node &node)
   {
     return std::make_unique<TestController>(entity);
   }
 
   void scriptInitialize() override
   {
-    t = entity->transform().get();
-    inputManager = entity->application().input().get();
+    m_transform = entity->transform().get();
+    m_input = entity->application().input().get();
   }
 
   void onUpdate(float deltaTime) override
   {
-    if (inputManager->keyHold(seng::KeyCode::eKeyA))
-      t->translate(-t->right() * speed * deltaTime);
-    if (inputManager->keyHold(seng::KeyCode::eKeyD))
-      t->translate(t->right() * speed * deltaTime);
-    if (inputManager->keyHold(seng::KeyCode::eKeyW))
-      t->translate(-t->forward() * speed * deltaTime);
-    if (inputManager->keyHold(seng::KeyCode::eKeyS))
-      t->translate(t->forward() * speed * deltaTime);
-    if (inputManager->keyHold(seng::KeyCode::eSpace)) {
-      if (inputManager->keyHold(seng::KeyCode::eModLeftShift))
-        t->translate(-t->up() * speed * deltaTime);
+    if (m_input->keyHold(seng::KeyCode::eKeyA))
+      m_transform->translate(-m_transform->right() * m_speed * deltaTime);
+    if (m_input->keyHold(seng::KeyCode::eKeyD))
+      m_transform->translate(m_transform->right() * m_speed * deltaTime);
+    if (m_input->keyHold(seng::KeyCode::eKeyW))
+      m_transform->translate(-m_transform->forward() * m_speed * deltaTime);
+    if (m_input->keyHold(seng::KeyCode::eKeyS))
+      m_transform->translate(m_transform->forward() * m_speed * deltaTime);
+    if (m_input->keyHold(seng::KeyCode::eSpace)) {
+      if (m_input->keyHold(seng::KeyCode::eModLeftShift))
+        m_transform->translate(-m_transform->up() * m_speed * deltaTime);
       else
-        t->translate(t->up() * speed * deltaTime);
+        m_transform->translate(m_transform->up() * m_speed * deltaTime);
     }
 
-    if (inputManager->keyHold(seng::KeyCode::eUp))
-      t->rotate(glm::radians(1.0f), 0.0f, 0.0f);
-    else if (inputManager->keyHold(seng::KeyCode::eDown))
-      t->rotate(glm::radians(-1.0f), 0.0f, 0.0f);
-    else if (inputManager->keyHold(seng::KeyCode::eLeft))
-      t->rotate(0.0f, glm::radians(1.0f), 0.0f);
-    else if (inputManager->keyHold(seng::KeyCode::eRight))
-      t->rotate(0.0f, glm::radians(-1.0f), 0.0f);
+    if (m_input->keyHold(seng::KeyCode::eUp))
+      m_transform->rotate(glm::radians(1.0f), 0.0f, 0.0f);
+    else if (m_input->keyHold(seng::KeyCode::eDown))
+      m_transform->rotate(glm::radians(-1.0f), 0.0f, 0.0f);
+    else if (m_input->keyHold(seng::KeyCode::eLeft))
+      m_transform->rotate(0.0f, glm::radians(1.0f), 0.0f);
+    else if (m_input->keyHold(seng::KeyCode::eRight))
+      m_transform->rotate(0.0f, glm::radians(-1.0f), 0.0f);
 
-    if (inputManager->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
+    if (m_input->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
   }
 
  private:
-  float speed = 5.0f;
-  components::Transform *t;
-  InputManager *inputManager;
+  float m_speed = 5.0f;
+  components::Transform *m_transform;
+  InputManager *m_input;
 };
