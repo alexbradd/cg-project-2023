@@ -18,9 +18,9 @@ static vk::raii::RenderPass createRenderPass(const Device &device,
                                              const vector<Attachment> &attachments);
 
 RenderPass::RenderPass(const Device &device, std::vector<Attachment> attachments) :
-    vulkanDev(std::addressof(device)),
-    attachments(std::move(attachments)),
-    _pass(createRenderPass(device, this->attachments))
+    m_device(std::addressof(device)),
+    m_attachments(std::move(attachments)),
+    m_renderPass(createRenderPass(device, this->m_attachments))
 {
 }
 
@@ -85,13 +85,13 @@ void RenderPass::begin(const CommandBuffer &buf,
                        vk::Offset2D offset) const
 {
   vk::RenderPassBeginInfo renderPassInfo{};
-  renderPassInfo.renderPass = *_pass;
+  renderPassInfo.renderPass = *m_renderPass;
   renderPassInfo.framebuffer = *fb.handle();
   renderPassInfo.renderArea.offset = offset;
   renderPassInfo.renderArea.extent = extent;
 
-  std::vector<vk::ClearValue> clearValues(attachments.size());
-  std::transform(attachments.begin(), attachments.end(), clearValues.begin(),
+  std::vector<vk::ClearValue> clearValues(m_attachments.size());
+  std::transform(m_attachments.begin(), m_attachments.end(), clearValues.begin(),
                  [](auto &a) { return a.clearValue; });
   renderPassInfo.setClearValues(clearValues);
 
@@ -105,5 +105,5 @@ void RenderPass::end(const CommandBuffer &buf) const
 
 RenderPass::~RenderPass()
 {
-  if (*_pass != vk::RenderPass{}) log::dbg("Destroying render pass");
+  if (*m_renderPass != vk::RenderPass{}) log::dbg("Destroying render pass");
 }

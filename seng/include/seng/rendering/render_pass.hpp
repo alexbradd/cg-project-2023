@@ -47,7 +47,7 @@ class RenderPass {
   RenderPass& operator=(RenderPass&&) = default;
 
   // Accessors
-  const vk::raii::RenderPass& handle() const { return _pass; }
+  const vk::raii::RenderPass& handle() const { return m_renderPass; }
 
   /**
    * Begin a render pass one the given extent and offeset.
@@ -63,9 +63,9 @@ class RenderPass {
   void end(const CommandBuffer& buf) const;
 
  private:
-  const Device* vulkanDev;
-  std::vector<Attachment> attachments;
-  vk::raii::RenderPass _pass;
+  const Device* m_device;
+  std::vector<Attachment> m_attachments;
+  vk::raii::RenderPass m_renderPass;
 };
 
 }  // namespace seng::rendering
