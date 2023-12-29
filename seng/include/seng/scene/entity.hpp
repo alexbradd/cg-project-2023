@@ -159,7 +159,7 @@ class Entity {
 
   void transform(std::unique_ptr<components::Transform>&& transform);
 
-  friend class SceneGraph;
+  friend class Scene;
 };
 
 };  // namespace seng::scene

@@ -1,5 +1,6 @@
 #include <seng/application.hpp>
 #include <seng/components/camera.hpp>
+#include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -7,7 +8,6 @@
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
-#include <seng/scene/scene_graph.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <tuple>
@@ -35,8 +35,7 @@ Scene::Scene(Application &app) :
     m_app(std::addressof(app)),
     m_renderer(app.renderer().get()),
     m_globalDescriptorSetLayout(createGlobalDescriptorLayout(m_renderer->device())),
-    m_mainCamera(nullptr),
-    m_sceneGraph(app, *this)
+    m_mainCamera(nullptr)
 {
   m_renderer->requestDescriptorSet(*m_globalDescriptorSetLayout);
 }
@@ -62,7 +61,7 @@ void Scene::loadFromDisk(std::string sceneName)
   m_shaders.clear();
   // TODO: clear old instances
   m_meshes.clear();
-  m_sceneGraph.clear();
+  removeAllEntities();
   m_mainCamera = nullptr;
 
   auto &config = m_app->config();
@@ -112,9 +111,117 @@ void Scene::loadFromDisk(std::string sceneName)
   // Load entities
   if (sceneConfig["Entities"] && sceneConfig["Entities"].IsSequence()) {
     auto e = sceneConfig["Entities"];
-    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i)
-      m_sceneGraph.newEntity(*i);
+    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) newEntity(*i);
   }
+}
+
+Scene::EntityList::const_iterator Scene::findByName(const std::string &name) const
+{
+  return std::find_if(m_entities.begin(), m_entities.end(),
+                      [&](const auto &elem) { return elem.name() == name; });
+}
+
+Scene::EntityList::iterator Scene::findByName(const std::string &name)
+{
+  return std::find_if(m_entities.begin(), m_entities.end(),
+                      [&](const auto &elem) { return elem.name() == name; });
+}
+
+std::vector<const Entity *> Scene::findAllByName(const std::string &name) const
+{
+  vector<const Entity *> ptrs;
+  for (const auto &e : m_entities) {
+    if (e.name() == name) ptrs.push_back(std::addressof(e));
+  }
+  return ptrs;
+}
+
+std::vector<Entity *> Scene::findAllByName(const std::string &name)
+{
+  vector<Entity *> ptrs;
+  for (auto &e : m_entities) {
+    if (e.name() == name) ptrs.push_back(std::addressof(e));
+  }
+  return ptrs;
+}
+
+Entity *Scene::newEntity(std::string name)
+{
+  m_entities.push_back(Entity(*m_app, *this, name));
+  return &m_entities.back();
+}
+
+Entity *Scene::newEntity(const YAML::Node &node)
+{
+  using namespace seng::components;
+
+  if (!node.IsMap()) {
+    seng::log::warning("Malformed YAML node");
+    return nullptr;
+  }
+
+  std::string name = "Entity";
+  if (node["name"] && node["name"].IsScalar()) name = node["name"].as<string>();
+  Entity *ret = newEntity(name);
+
+  if (node["transform"] && node["transform"].IsMap()) {
+    auto &t = node["transform"];
+    auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
+    auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
+    ret->transform(std::move(concrete));
+  }
+
+  if (node["components"] && node["components"].IsSequence()) {
+    auto &comps = node["components"];
+    for (YAML::const_iterator i = comps.begin(); i != comps.end(); ++i) {
+      auto &comp = *i;
+      if (!comp.IsMap() || !comp["id"] || !comp["id"].IsScalar()) {
+        seng::log::warning("Malformed YAML component, skipping...");
+        continue;
+      }
+      std::string id = comp["id"].as<string>();
+      std::unique_ptr<BaseComponent> ptr =
+          SceneConfigComponentFactory::create(*ret, id, comp);
+      ret->untypedInsert(id, std::move(ptr));
+    }
+  }
+  return ret;
+}
+
+void Scene::removeEntity(EntityList::const_iterator i)
+{
+  m_entities.erase(i);
+}
+
+void Scene::removeEntity(const Entity *e)
+{
+  if (e == nullptr) {
+    seng::log::warning("Tried to remove a null entity... Something is wrong");
+    return;
+  }
+  auto it = std::find(m_entities.begin(), m_entities.end(), *e);
+  if (it == m_entities.end()) {
+    seng::log::warning(
+        "Tried to remove an entity not registered in the scene graph... Something is "
+        "wrong");
+    return;
+  }
+  this->removeEntity(it);
+}
+
+void Scene::removeEntity(const string &name)
+{
+  auto it = findByName(name);
+  if (it == m_entities.end()) {
+    seng::log::warning("Could not find an entity with the given name to remove");
+    return;
+  }
+  this->removeEntity(it);
+}
+
+void Scene::removeAllEntities()
+{
+  m_entities.clear();
 }
 
 void Scene::mainCamera(components::Camera *cam)

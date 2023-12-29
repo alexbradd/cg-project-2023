@@ -54,7 +54,6 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/swapchain.cpp
     ./src/scene/entity.cpp
     ./src/scene/scene.cpp
-    ./src/scene/scene_graph.cpp
     ./src/utils.cpp
 )
 target_include_directories(${PROJECT_NAME}

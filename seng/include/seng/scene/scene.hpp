@@ -4,15 +4,20 @@
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/shader_stage.hpp>
-#include <seng/scene/scene_graph.hpp>
+#include <seng/scene/entity.hpp>
 #include <seng/time.hpp>
 
 #include <glm/trigonometric.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <functional>
+#include <list>
 #include <string>
 #include <unordered_map>
+
+namespace YAML {
+class Node;
+}
 
 namespace seng {
 class Application;
@@ -66,6 +71,8 @@ class SceneEventToken {
 class Scene {
  public:
   using EventHandlerType = std::tuple<std::uint64_t, std::function<void(float)>>;
+  /// Typedef for the collection holding all entities in the scene
+  using EntityList = std::list<Entity>;
 
   Scene(Application &app);
   Scene(const Scene &) = delete;
@@ -74,6 +81,82 @@ class Scene {
 
   Scene &operator=(const Scene &) = delete;
   Scene &operator=(Scene &&) = delete;
+
+  /**
+   * Find the first Entity in the scene graph with the given name. If no such
+   * entity can be found, a past-the-end iterator is returned.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  EntityList::const_iterator findByName(const std::string &name) const;
+
+  /**
+   * Find the first Entity in the scene graph with the given name. If no such
+   * entity can be found, a past-the-end iterator is returned.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  EntityList::iterator findByName(const std::string &name);
+
+  /**
+   * Collect all references to instances with the given name in a vector and
+   * return them.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  std::vector<const Entity *> findAllByName(const std::string &name) const;
+
+  /**
+   * Collect all references to instances with the given name in a vector and
+   * return them.
+   *
+   * N.B.: searching for an entity is linear in the number of entites in the
+   * scene graph, so make sure to cache the iterator (it is safe to do
+   * so since they are guaranteed to not be invaliedated w.r.t. scene graph changes).
+   */
+  std::vector<Entity *> findAllByName(const std::string &name);
+
+  /**
+   * Create a new Entity into the scene graph with the given name and return a
+   * pointer to it.
+   */
+  Entity *newEntity(std::string name);
+
+  /**
+   * Create a new Entity into the scene graph from the given config node. If the
+   * node is malformed, nullptr will be returned.
+   */
+  Entity *newEntity(const YAML::Node &node);
+
+  /**
+   * Delete the corresponding Entity from the scene graph.
+   *
+   * N.B. This incurs linear search time.
+   */
+  void removeEntity(const Entity *e);
+
+  /**
+   * Delete the Entity with the given name from the scene graph.
+   *
+   * N.B. This incurs linear search time.
+   */
+  void removeEntity(const std::string &name);
+
+  /**
+   * Delete the Entity referenced by the given iterator
+   */
+  void removeEntity(EntityList::const_iterator it);
+
+  /**
+   * Destroy all entities in a scene
+   */
+  void removeAllEntities();
 
   /**
    * Return a pointer to the main camera, if one is registered.
@@ -135,7 +218,7 @@ class Scene {
 
   // Scene graph
   components::Camera *m_mainCamera;
-  SceneGraph m_sceneGraph;
+  EntityList m_entities;
 
   // Event dispatcher
   std::unordered_map<SceneEvents, std::vector<EventHandlerType>> m_eventHandlers;
