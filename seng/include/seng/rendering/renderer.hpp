@@ -54,8 +54,8 @@ class FrameHandle {
   void invalidate();
 
  private:
-  FrameHandle(ssize_t value) : frameIndex(value) {}
-  ssize_t frameIndex = -1;
+  FrameHandle(ssize_t value) : m_index(value) {}
+  ssize_t m_index = -1;
 };
 
 /**
@@ -87,9 +87,9 @@ class Renderer {
 #endif  // !NDEBUG
 
   // Accessors
-  const Device &getDevice() const { return device; }
-  const vk::raii::CommandPool &getCommandPool() const { return cmdPool; }
-  const RenderPass &getRenderPass() const { return renderPass; }
+  const Device &getDevice() const { return m_device; }
+  const vk::raii::CommandPool &getCommandPool() const { return m_commandPool; }
+  const RenderPass &getRenderPass() const { return m_renderPass; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
@@ -182,24 +182,25 @@ class Renderer {
 
   static const std::array<vk::DescriptorPoolSize, 1> POOL_SIZES;
 
-  const GlfwWindow *window;
-  vk::raii::Context context;
-  vk::raii::Instance instance;
-  DebugMessenger debugMessenger;
-  vk::raii::SurfaceKHR surface;
-  Device device;
-  Swapchain swapchain;
-  std::vector<Attachment> attachments;
-  RenderPass renderPass;
-  vk::raii::CommandPool cmdPool;
-  vk::raii::DescriptorPool descriptorPool;
+  const GlfwWindow *m_window;
+  vk::raii::Context m_context;
+  vk::raii::Instance m_instance;
+  DebugMessenger m_dbgMessenger;
+  vk::raii::SurfaceKHR m_surface;
+  Device m_device;
+  Swapchain m_swapchain;
+  std::vector<Attachment> m_attachments;
+  RenderPass m_renderPass;
+  vk::raii::CommandPool m_commandPool;
+  vk::raii::DescriptorPool m_descriptorPool;
 
-  std::vector<RenderTarget> targets;
-  std::vector<Frame> frames;
+  std::vector<RenderTarget> m_targets;
+  std::vector<Frame> m_frames;
 
-  uint64_t fbGeneration = 0, lastFbGeneration = 0;
-  uint32_t currentFrame = 0;
-  bool recreatingSwapchain = false;
+  uint64_t m_fbGeneration = 0;
+  uint64_t m_lastFbGeneration = 0;
+  uint32_t m_currentFrame = 0;
+  bool m_recreatingSwap = false;
 
   /**
    * Recreate the current swapchain and framebuffers

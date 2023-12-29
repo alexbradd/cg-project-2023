@@ -76,12 +76,12 @@ Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) 
 // Definitions for FrameHandle
 bool FrameHandle::invalid(size_t maxValue) const
 {
-  return frameIndex == -1 || frameIndex >= static_cast<ssize_t>(maxValue);
+  return m_index == -1 || m_index >= static_cast<ssize_t>(maxValue);
 }
 
 void FrameHandle::invalidate()
 {
-  frameIndex = -1;
+  m_index = -1;
 }
 
 // Defintions for renderer
@@ -100,52 +100,53 @@ const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES{{
 }};
 
 Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &window) :
-    window(std::addressof(window)),
-    context(),
+    m_window(std::addressof(window)),
+    m_context(),
     // Instance creation
-    instance(createInstance(context, window)),
-    debugMessenger(instance, USE_VALIDATION),
-    surface(window.createVulkanSurface(instance)),
+    m_instance(createInstance(m_context, window)),
+    m_dbgMessenger(m_instance, USE_VALIDATION),
+    m_surface(window.createVulkanSurface(m_instance)),
 
     // Device and swapchain
-    device(instance, surface),
-    swapchain(device, surface, window),
+    m_device(m_instance, m_surface),
+    m_swapchain(m_device, m_surface, window),
 
     // Renderpass
-    attachments{
+    m_attachments{
         // Color attachment
-        {{swapchain.format().format, vk::SampleCountFlagBits::e1,
+        {{m_swapchain.format().format, vk::SampleCountFlagBits::e1,
           vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
           vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR,
           vk::ImageLayout::eColorAttachmentOptimal,
           vk::ClearColorValue{0.0f, 0.0f, 1.0f, 0.0f}},
          // Depth attachment
-         {device.depthFormat().format, vk::SampleCountFlagBits::e1,
+         {m_device.depthFormat().format, vk::SampleCountFlagBits::e1,
           vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
           vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal,
           vk::ImageLayout::eDepthStencilAttachmentOptimal,
           vk::ClearDepthStencilValue{1.0f, 0}}}},
-    renderPass(device, attachments),
+    m_renderPass(m_device, m_attachments),
 
     // Pools
-    cmdPool(device.logical(),
-            {cmdPoolFlags, *device.queueFamilyIndices().graphicsFamily}),
-    descriptorPool(std::invoke([&]() {
+    m_commandPool(m_device.logical(),
+                  {cmdPoolFlags, *m_device.queueFamilyIndices().graphicsFamily}),
+    m_descriptorPool(std::invoke([&]() {
       vk::DescriptorPoolCreateInfo info{};
       info.flags = descriptorPoolFlags;
       info.maxSets = 1024;  // FIXME: not really sure about this
       info.setPoolSizes(Renderer::POOL_SIZES);
-      return vk::raii::DescriptorPool(device.logical(), info);
+      return vk::raii::DescriptorPool(m_device.logical(), info);
     }))
 {
   // Targets and frames
-  for (auto &img : swapchain.images())
-    targets.emplace_back(device, *img, swapchain.extent(), renderPass);
+  for (auto &img : m_swapchain.images())
+    m_targets.emplace_back(m_device, *img, m_swapchain.extent(), m_renderPass);
 
-  frames = many<Renderer::Frame>(swapchain.MAX_FRAMES_IN_FLIGHT, device, cmdPool);
-  targets.reserve(swapchain.images().size());
+  m_frames =
+      many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT, m_device, m_commandPool);
+  m_targets.reserve(m_swapchain.images().size());
 
   log::info("Vulkan context is up and running!");
 }
@@ -205,7 +206,7 @@ bool supportsAllLayers(const vector<const char *> &l)
 
 void Renderer::signalResize()
 {
-  fbGeneration++;
+  m_fbGeneration++;
 }
 
 void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
@@ -214,7 +215,7 @@ void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
   // We can also "optimize" and check only one since we always keep them in sync,
   // but just to be safe from inconsistent states.
   bool notFound = false;
-  for (auto &f : frames) {
+  for (auto &f : m_frames) {
     auto iter = f.descriptorSets.find(layout);
     if (iter == f.descriptorSets.end()) {
       notFound = true;
@@ -224,13 +225,13 @@ void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
   // If the descriptor layout has not been founmd in some frames, allocate the
   // map entries
   if (notFound) {
-    for (auto &f : frames) {
+    for (auto &f : m_frames) {
       array<vk::DescriptorSetLayout, 1> descs{layout};
 
       vk::DescriptorSetAllocateInfo info{};
-      info.descriptorPool = *descriptorPool;
+      info.descriptorPool = *m_descriptorPool;
       info.setSetLayouts(descs);
-      vk::raii::DescriptorSets sets(device.logical(), info);
+      vk::raii::DescriptorSets sets(m_device.logical(), info);
       f.descriptorSets.emplace(layout, std::move(sets[0]));
     }
   }
@@ -238,52 +239,52 @@ void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
 
 void Renderer::clearDescriptorSets()
 {
-  for (auto &f : frames) f.descriptorSets.clear();
-  descriptorPool.reset();
+  for (auto &f : m_frames) f.descriptorSets.clear();
+  m_descriptorPool.reset();
 }
 
 optional<FrameHandle> Renderer::beginFrame()
 {
-  if (recreatingSwapchain) {
-    device.logical().waitIdle();
+  if (m_recreatingSwap) {
+    m_device.logical().waitIdle();
     seng::log::dbg("Already recreating swapchain, waiting...");
     return nullopt;
   }
 
-  if (lastFbGeneration != fbGeneration) {
-    device.logical().waitIdle();
+  if (m_lastFbGeneration != m_fbGeneration) {
+    m_device.logical().waitIdle();
     recreateSwapchain();
     seng::log::dbg("Framebuffer changed, aborting...");
     return nullopt;
   }
 
-  auto &frame = frames[currentFrame];
+  auto &frame = m_frames[m_currentFrame];
   try {
     frame.inFlightFence.wait();
-    frame.imageIndex = swapchain.nextImageIndex(frame.imageAvailableSem);
+    frame.imageIndex = m_swapchain.nextImageIndex(frame.imageAvailableSem);
 
-    Framebuffer &curFb = targets[frame.imageIndex].framebuffer;
+    Framebuffer &curFb = m_targets[frame.imageIndex].framebuffer;
     CommandBuffer &curBuf = frame.commandBuffer;
     curBuf.reset();
     curBuf.begin();
 
     // Begin the render pass
-    renderPass.begin(curBuf, curFb, swapchain.extent(), {0, 0});
+    m_renderPass.begin(curBuf, curFb, m_swapchain.extent(), {0, 0});
 
     // Dynamic states
     vk::Viewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(swapchain.extent().width);
-    viewport.height = static_cast<float>(swapchain.extent().height);
+    viewport.width = static_cast<float>(m_swapchain.extent().width);
+    viewport.height = static_cast<float>(m_swapchain.extent().height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     curBuf.buffer().setViewport(0, viewport);
 
-    vk::Rect2D scissor{{0, 0}, swapchain.extent()};
+    vk::Rect2D scissor{{0, 0}, m_swapchain.extent()};
     curBuf.buffer().setScissor(0, scissor);
 
-    return optional(FrameHandle{currentFrame});
+    return optional(FrameHandle{m_currentFrame});
   } catch (const exception &e) {
     log::warning("Caught exception: {}", e.what());
     return nullopt;
@@ -293,23 +294,23 @@ optional<FrameHandle> Renderer::beginFrame()
 const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
     const FrameHandle &handle, vk::DescriptorSetLayout layout) const
 {
-  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
-  return frames[handle.frameIndex].descriptorSets.at(layout);
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+  return m_frames[handle.m_index].descriptorSets.at(layout);
 }
 
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
 {
-  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
-  return frames[handle.frameIndex].commandBuffer;
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+  return m_frames[handle.m_index].commandBuffer;
 }
 
 void Renderer::endFrame(FrameHandle &handle)
 {
-  if (handle.invalid(frames.size())) throw runtime_error("Invalid handle passed");
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
 
-  auto &frame = frames[handle.frameIndex];
+  auto &frame = m_frames[handle.m_index];
 
-  renderPass.end(frame.commandBuffer);
+  m_renderPass.end(frame.commandBuffer);
   frame.commandBuffer.end();
 
   // Reset the fence for use on the next frame
@@ -335,11 +336,11 @@ void Renderer::endFrame(FrameHandle &handle)
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
   submitInfo.setWaitDstStageMask(flags);
 
-  device.graphicsQueue().submit(submitInfo, *frame.inFlightFence.handle());
+  m_device.graphicsQueue().submit(submitInfo, *frame.inFlightFence.handle());
 
   try {
-    swapchain.present(device.presentQueue(), device.graphicsQueue(),
-                      frame.queueCompleteSem, frame.imageIndex);
+    m_swapchain.present(m_device.presentQueue(), m_device.graphicsQueue(),
+                        frame.queueCompleteSem, frame.imageIndex);
   } catch (const InadequateSwapchainException &e) {
     log::info("Error while presenting: swapchain out of date. Recreating...");
     recreateSwapchain();
@@ -349,7 +350,7 @@ void Renderer::endFrame(FrameHandle &handle)
   handle.invalidate();
 
   // Advance cyclical iterator
-  currentFrame = (currentFrame + 1) % swapchain.MAX_FRAMES_IN_FLIGHT;
+  m_currentFrame = (m_currentFrame + 1) % m_swapchain.MAX_FRAMES_IN_FLIGHT;
 }
 
 bool Renderer::scopedFrame(std::function<void(const FrameHandle &)> func)
@@ -372,40 +373,40 @@ bool Renderer::scopedFrame(std::function<void(const FrameHandle &)> func)
 void Renderer::recreateSwapchain()
 {
   // If already recreating, do nothing.
-  if (recreatingSwapchain) return;
+  if (m_recreatingSwap) return;
 
   // Get the new framebuffer size, if null do nothing
-  pair<unsigned int, unsigned int> fbSize = window->framebufferSize();
+  pair<unsigned int, unsigned int> fbSize = m_window->framebufferSize();
   if (fbSize.first == 0 || fbSize.second == 0) {
     log::dbg("Null framebuffer, aborting...");
     return;
   }
 
   // Start the creation process
-  recreatingSwapchain = true;
+  m_recreatingSwap = true;
   log::info("Started swapchain recreation");
 
   // Wait for any pending work to finish and flush out temporary data
-  device.logical().waitIdle();
+  m_device.logical().waitIdle();
 
   // Requery swapchain support data (it might have changed)
-  device.requerySupport();
-  device.requeryDepthFormat();
+  m_device.requerySupport();
+  m_device.requeryDepthFormat();
 
   // Recreate the swapchain and clear the currentFrame counter
-  swapchain = Swapchain(device, surface, *window, swapchain.swapchain());
-  currentFrame = 0;
+  m_swapchain = Swapchain(m_device, m_surface, *m_window, m_swapchain.swapchain());
+  m_currentFrame = 0;
 
   // Sync framebuffer generation
-  lastFbGeneration = fbGeneration;
+  m_lastFbGeneration = m_fbGeneration;
 
   // Recreate render targets
-  targets.clear();
-  for (auto &img : swapchain.images())
-    targets.emplace_back(device, *img, swapchain.extent(), renderPass);
+  m_targets.clear();
+  for (auto &img : m_swapchain.images())
+    m_targets.emplace_back(m_device, *img, m_swapchain.extent(), m_renderPass);
 
   // Finish the recreation process
-  recreatingSwapchain = false;
+  m_recreatingSwap = false;
   log::info("Finished swapchain recreation");
 }
 
@@ -413,8 +414,8 @@ Renderer::~Renderer()
 {
   // Just checking if the instance handle is valid is enough
   // since all objects are valid or none are.
-  if (*instance != vk::Instance{}) {
-    device.logical().waitIdle();
+  if (*m_instance != vk::Instance{}) {
+    m_device.logical().waitIdle();
     log::info("Destroying vulkan context");
   }
 }
