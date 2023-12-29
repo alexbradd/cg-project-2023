@@ -78,12 +78,12 @@ class Scene {
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  const components::Camera *camera() const { return mainCamera; }
+  const components::Camera *camera() const { return m_mainCamera; }
 
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  components::Camera *camera() { return mainCamera; }
+  components::Camera *camera() { return m_mainCamera; }
 
   /**
    * Registers the given camera as the camera that will be used for drawing.
@@ -122,23 +122,23 @@ class Scene {
   void fireEventType(SceneEvents event, float delta) const;
 
  private:
-  Application *app;
-  rendering::Renderer *renderer;
+  Application *m_app;
+  rendering::Renderer *m_renderer;
 
   // Global descriptor layout
-  vk::raii::DescriptorSetLayout globalDescriptorSetLayout;
+  vk::raii::DescriptorSetLayout m_globalDescriptorSetLayout;
 
-  std::unordered_map<std::string, rendering::ShaderStage> stages;
-  std::unordered_map<std::string, rendering::ObjectShader> shaders;
+  std::unordered_map<std::string, rendering::ShaderStage> m_stages;
+  std::unordered_map<std::string, rendering::ObjectShader> m_shaders;
   // TODO: map<string, ObjectShader::Instance> shaderInstances
-  std::unordered_map<std::string, rendering::Mesh> meshes;
+  std::unordered_map<std::string, rendering::Mesh> m_meshes;
 
   // Scene graph
-  components::Camera *mainCamera;
-  SceneGraph sceneGraph;
+  components::Camera *m_mainCamera;
+  SceneGraph m_sceneGraph;
 
   // Event dispatcher
-  std::unordered_map<SceneEvents, std::vector<EventHandlerType>> eventHandlers;
+  std::unordered_map<SceneEvents, std::vector<EventHandlerType>> m_eventHandlers;
 
   static uint64_t EVENT_INDEX;
 };

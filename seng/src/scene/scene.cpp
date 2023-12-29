@@ -32,13 +32,13 @@ static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &
 uint64_t Scene::EVENT_INDEX = 0;
 
 Scene::Scene(Application &app) :
-    app(std::addressof(app)),
-    renderer(app.renderer().get()),
-    globalDescriptorSetLayout(createGlobalDescriptorLayout(renderer->getDevice())),
-    mainCamera(nullptr),
-    sceneGraph(app, *this)
+    m_app(std::addressof(app)),
+    m_renderer(app.renderer().get()),
+    m_globalDescriptorSetLayout(createGlobalDescriptorLayout(m_renderer->getDevice())),
+    m_mainCamera(nullptr),
+    m_sceneGraph(app, *this)
 {
-  renderer->requestDescriptorSet(*globalDescriptorSetLayout);
+  m_renderer->requestDescriptorSet(*m_globalDescriptorSetLayout);
 }
 
 vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
@@ -58,14 +58,14 @@ vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
 void Scene::loadFromDisk(std::string sceneName)
 {
   // clear old state
-  stages.clear();
-  shaders.clear();
+  m_stages.clear();
+  m_shaders.clear();
   // TODO: clear old instances
-  meshes.clear();
-  sceneGraph.clear();
-  mainCamera = nullptr;
+  m_meshes.clear();
+  m_sceneGraph.clear();
+  m_mainCamera = nullptr;
 
-  auto &config = app->config();
+  auto &config = m_app->config();
   // Parse config file
   filesystem::path scene{filesystem::path{config.scenePath} /
                          filesystem::path{sceneName + ".yml"}};
@@ -91,58 +91,59 @@ void Scene::loadFromDisk(std::string sceneName)
 
   // Load ShaderStages
   // FIXME: stub
-  stages.try_emplace(VERT_NAME, renderer->getDevice(), config.shaderPath, VERT_NAME,
-                     ShaderStage::Type::eVertex);
-  stages.try_emplace(FRAG_NAME, renderer->getDevice(), config.shaderPath, FRAG_NAME,
-                     ShaderStage::Type::eFragment);
+  m_stages.try_emplace(VERT_NAME, m_renderer->getDevice(), config.shaderPath, VERT_NAME,
+                       ShaderStage::Type::eVertex);
+  m_stages.try_emplace(FRAG_NAME, m_renderer->getDevice(), config.shaderPath, FRAG_NAME,
+                       ShaderStage::Type::eFragment);
 
   // Load ObjectShaders
   // FIXME: stub
-  vector<const ShaderStage *> s{&stages.at(VERT_NAME), &stages.at(FRAG_NAME)};
-  shaders.try_emplace(SHADER_NAME, renderer->getDevice(), renderer->getRenderPass(),
-                      globalDescriptorSetLayout, SHADER_NAME, s);
+  vector<const ShaderStage *> s{&m_stages.at(VERT_NAME), &m_stages.at(FRAG_NAME)};
+  m_shaders.try_emplace(SHADER_NAME, m_renderer->getDevice(), m_renderer->getRenderPass(),
+                        m_globalDescriptorSetLayout, SHADER_NAME, s);
 
   // TODO: load shader instances
 
   // Load meshes
   for (const auto &s : meshNames) {
-    meshes.emplace(s, Mesh::loadFromDisk(*renderer, config, s));
+    m_meshes.emplace(s, Mesh::loadFromDisk(*m_renderer, config, s));
   }
 
   // Load entities
   if (sceneConfig["Entities"] && sceneConfig["Entities"].IsSequence()) {
     auto e = sceneConfig["Entities"];
-    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) sceneGraph.newEntity(*i);
+    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i)
+      m_sceneGraph.newEntity(*i);
   }
 }
 
-void Scene::setMainCamera(components::Camera *cam)
+void Scene::mainCamera(components::Camera *cam)
 {
   if (cam == nullptr) {
     seng::log::warning("Trying to register null camera");
     return;
   }
-  mainCamera = cam;
+  m_mainCamera = cam;
 }
 
 void Scene::draw(const FrameHandle &handle)
 {
-  const auto &cmd = renderer->getCommandBuffer(handle);
-  auto &shader = shaders.at(SHADER_NAME);  // FIXME: stub
+  const auto &cmd = m_renderer->getCommandBuffer(handle);
+  auto &shader = m_shaders.at(SHADER_NAME);  // FIXME: stub
 
-  if (mainCamera == nullptr) return;
+  if (m_mainCamera == nullptr) return;
 
-  shader.globalUniformObject().projection = mainCamera->projectionMatrix();
-  shader.globalUniformObject().view = mainCamera->viewMatrix();
+  shader.globalUniformObject().projection = m_mainCamera->projectionMatrix();
+  shader.globalUniformObject().view = m_mainCamera->viewMatrix();
   shader.uploadGlobalState(
-      cmd, renderer->getDescriptorSet(handle, *globalDescriptorSetLayout));
+      cmd, m_renderer->getDescriptorSet(handle, *m_globalDescriptorSetLayout));
 
-  for (const auto &mesh : meshes) {  // FIXME: should be per game object not per mesh
+  for (const auto &mesh : m_meshes) {  // FIXME: should be per game object not per mesh
     shader.updateModelState(cmd, glm::mat4(1));
     cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0});
     cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0,
                                  vk::IndexType::eUint32);
-    shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub
+    m_shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub
     cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
   }
 }
@@ -150,7 +151,7 @@ void Scene::draw(const FrameHandle &handle)
 SceneEventToken Scene::listen(SceneEvents e, std::function<void(float)> h)
 {
   EventHandlerType handler = make_tuple(EVENT_INDEX++, h);
-  eventHandlers[e].push_back(handler);
+  m_eventHandlers[e].push_back(handler);
   SceneEventToken tok;
   tok.event = e;
   tok.id = EVENT_INDEX;
@@ -159,8 +160,8 @@ SceneEventToken Scene::listen(SceneEvents e, std::function<void(float)> h)
 
 void Scene::unlisten(SceneEventToken tok)
 {
-  auto i = eventHandlers.find(tok.event);
-  if (i == eventHandlers.end()) return;
+  auto i = m_eventHandlers.find(tok.event);
+  if (i == m_eventHandlers.end()) return;
 
   auto end = std::remove_if(i->second.begin(), i->second.end(),
                             [&](const auto &h) { return tok.id == std::get<0>(h); });
@@ -169,19 +170,19 @@ void Scene::unlisten(SceneEventToken tok)
 
 void Scene::fireEventType(SceneEvents event, float delta) const
 {
-  auto i = eventHandlers.find(event);
-  if (i == eventHandlers.end()) return;
+  auto i = m_eventHandlers.find(event);
+  if (i == m_eventHandlers.end()) return;
   for (const auto &ev : i->second) std::get<1>(ev)(delta);
 }
 
 Scene::~Scene()
 {
   // Clear descriptors only if we are not in a moved-from state
-  if (*globalDescriptorSetLayout != vk::DescriptorSetLayout{}) {
+  if (*m_globalDescriptorSetLayout != vk::DescriptorSetLayout{}) {
     // Ensure that every operation relative to this scene has been completed
-    renderer->getDevice().logical().waitIdle();
+    m_renderer->getDevice().logical().waitIdle();
 
     // Clear requested resources
-    renderer->clearDescriptorSets();
+    m_renderer->clearDescriptorSets();
   }
 }
