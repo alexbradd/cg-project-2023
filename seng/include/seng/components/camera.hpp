@@ -61,10 +61,10 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   void initialize() override;
 
   // Getters
-  float aspectRatio() const { return _aspectRatio; }
-  float nearPlane() const { return _near; }
-  float farPlane() const { return _far; }
-  float fov() const { return _fov; }
+  float aspectRatio() const { return m_aspectRatio; }
+  float nearPlane() const { return m_near; }
+  float farPlane() const { return m_far; }
+  float fov() const { return m_fov; }
 
   static const std::vector<Camera*>& allCameras() { return cameras; }
 
@@ -87,11 +87,11 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   glm::mat4 viewMatrix() const;
 
  private:
-  bool registerAsMain;
-  float _aspectRatio;
-  float _near;
-  float _far;
-  float _fov;
+  bool m_registerAsMain;
+  float m_aspectRatio;
+  float m_near;
+  float m_far;
+  float m_fov;
 
   static std::vector<Camera*> cameras;
 
@@ -101,8 +101,8 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   void resize(int width, int height);
 
   // For caching
-  mutable bool _projectionDirty = true;
-  mutable glm::mat4 _projection;
+  mutable bool m_projectionDirty = true;
+  mutable glm::mat4 m_projection;
 };
 
 };  // namespace components

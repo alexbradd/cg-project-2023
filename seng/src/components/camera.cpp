@@ -29,10 +29,10 @@ std::vector<Camera*> Camera::cameras;
 Camera::Camera(Entity& entity, float near, float far, float fov, bool main) :
     BaseComponent(entity)
 {
-  _near = near;
-  _far = far;
-  _fov = fov;
-  registerAsMain = main;
+  m_near = near;
+  m_far = far;
+  m_fov = fov;
+  m_registerAsMain = main;
 }
 
 void Camera::initialize()
@@ -40,13 +40,13 @@ void Camera::initialize()
   auto& window = entity->application().window();
 
   auto windowSize = window->framebufferSize();
-  _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
+  m_aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
 
   window->onResize(std::bind(&Camera::resize, this, _2, _3));
 
   cameras.push_back(this);
 
-  if (registerAsMain) entity->scene().mainCamera(this);
+  if (m_registerAsMain) entity->scene().mainCamera(this);
 }
 
 Camera::~Camera()
@@ -57,12 +57,12 @@ Camera::~Camera()
 
 glm::mat4 Camera::projectionMatrix() const
 {
-  if (_projectionDirty) {
-    _projection = glm::perspective(_fov, _aspectRatio, _near, _far);
-    _projection[1][1] *= -1;
-    _projectionDirty = false;
+  if (m_projectionDirty) {
+    m_projection = glm::perspective(m_fov, m_aspectRatio, m_near, m_far);
+    m_projection[1][1] *= -1;
+    m_projectionDirty = false;
   }
-  return _projection;
+  return m_projection;
 }
 
 glm::mat4 Camera::viewMatrix() const
@@ -73,28 +73,28 @@ glm::mat4 Camera::viewMatrix() const
 void Camera::resize(int width, int height)
 {
   float newAr = width / static_cast<float>(height);
-  if (newAr != _aspectRatio) {
-    _projectionDirty = true;
-    _aspectRatio = newAr;
+  if (newAr != m_aspectRatio) {
+    m_projectionDirty = true;
+    m_aspectRatio = newAr;
   }
 }
 
 void Camera::nearPlane(float near)
 {
-  _projectionDirty = true;
-  _near = near;
+  m_projectionDirty = true;
+  m_near = near;
 }
 
 void Camera::farPlane(float far)
 {
-  _projectionDirty = true;
-  _far = far;
+  m_projectionDirty = true;
+  m_far = far;
 }
 
 void Camera::fov(float fov)
 {
-  _projectionDirty = true;
-  _fov = fov;
+  m_projectionDirty = true;
+  m_fov = fov;
 }
 
 std::unique_ptr<BaseComponent> Camera::createFromConfig(Entity& entity,
