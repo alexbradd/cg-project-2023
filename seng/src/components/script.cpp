@@ -27,8 +27,6 @@ void ScriptComponent::initialize()
 
 ScriptComponent::~ScriptComponent()
 {
-  if (!entity) return;  // We are in a moved-from state
-
   auto &s = entity->scene();
 
   s.unlisten(m_earlyUpdateToken);
