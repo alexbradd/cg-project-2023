@@ -34,7 +34,7 @@ uint64_t Scene::EVENT_INDEX = 0;
 Scene::Scene(Application &app) :
     m_app(std::addressof(app)),
     m_renderer(app.renderer().get()),
-    m_globalDescriptorSetLayout(createGlobalDescriptorLayout(m_renderer->getDevice())),
+    m_globalDescriptorSetLayout(createGlobalDescriptorLayout(m_renderer->device())),
     m_mainCamera(nullptr),
     m_sceneGraph(app, *this)
 {
@@ -91,15 +91,15 @@ void Scene::loadFromDisk(std::string sceneName)
 
   // Load ShaderStages
   // FIXME: stub
-  m_stages.try_emplace(VERT_NAME, m_renderer->getDevice(), config.shaderPath, VERT_NAME,
+  m_stages.try_emplace(VERT_NAME, m_renderer->device(), config.shaderPath, VERT_NAME,
                        ShaderStage::Type::eVertex);
-  m_stages.try_emplace(FRAG_NAME, m_renderer->getDevice(), config.shaderPath, FRAG_NAME,
+  m_stages.try_emplace(FRAG_NAME, m_renderer->device(), config.shaderPath, FRAG_NAME,
                        ShaderStage::Type::eFragment);
 
   // Load ObjectShaders
   // FIXME: stub
   vector<const ShaderStage *> s{&m_stages.at(VERT_NAME), &m_stages.at(FRAG_NAME)};
-  m_shaders.try_emplace(SHADER_NAME, m_renderer->getDevice(), m_renderer->getRenderPass(),
+  m_shaders.try_emplace(SHADER_NAME, m_renderer->device(), m_renderer->renderPass(),
                         m_globalDescriptorSetLayout, SHADER_NAME, s);
 
   // TODO: load shader instances
@@ -180,7 +180,7 @@ Scene::~Scene()
   // Clear descriptors only if we are not in a moved-from state
   if (*m_globalDescriptorSetLayout != vk::DescriptorSetLayout{}) {
     // Ensure that every operation relative to this scene has been completed
-    m_renderer->getDevice().logical().waitIdle();
+    m_renderer->device().logical().waitIdle();
 
     // Clear requested resources
     m_renderer->clearDescriptorSets();

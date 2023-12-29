@@ -87,9 +87,9 @@ class Renderer {
 #endif  // !NDEBUG
 
   // Accessors
-  const Device &getDevice() const { return m_device; }
-  const vk::raii::CommandPool &getCommandPool() const { return m_commandPool; }
-  const RenderPass &getRenderPass() const { return m_renderPass; }
+  const Device &device() const { return m_device; }
+  const RenderPass &renderPass() const { return m_renderPass; }
+  const vk::raii::CommandPool &commandPool() const { return m_commandPool; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
