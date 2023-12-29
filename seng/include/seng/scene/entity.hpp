@@ -59,24 +59,27 @@ class Entity {
   /// we simply compare the ids.
   friend bool operator==(const Entity& lhs, const Entity& rhs)
   {
-    return lhs.id == rhs.id;
+    return lhs.m_id == rhs.m_id;
   }
 
   /// Inequality operator, defined in terms of the equality operator
   friend bool operator!=(const Entity& lhs, const Entity& rhs) { return !(lhs == rhs); }
 
   // Accessors
-  const Application& getApplication() const { return *application; }
-  Application& getApplication() { return *application; }
+  const Application& getApplication() const { return *m_app; }
+  Application& getApplication() { return *m_app; }
 
   /// Return the scene this entity is instantiated in
-  const Scene& getScene() const { return *scene; }
+  const Scene& getScene() const { return *m_scene; }
   /// Return the scene this entity is instantiated in
-  Scene& getScene() { return *scene; }
+  Scene& getScene() { return *m_scene; }
 
-  const uint64_t& getId() const { return id; }
-  const std::string& getName() const { return name; }
-  const std::unique_ptr<components::Transform>& getTransform() const { return transform; }
+  const uint64_t& getId() const { return m_id; }
+  const std::string& getName() const { return m_name; }
+  const std::unique_ptr<components::Transform>& getTransform() const
+  {
+    return m_transform;
+  }
 
   /**
    * Return a reference to a vector of owned pointers to
@@ -92,8 +95,8 @@ class Entity {
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
 
-    auto it = components.find(T::componentId());
-    if (it == components.end()) return EMPTY_VECTOR;
+    auto it = m_components.find(T::componentId());
+    if (it == m_components.end()) return EMPTY_VECTOR;
     return it->second;
   }
 
@@ -104,8 +107,8 @@ class Entity {
   void emplaceComponent(Args&&... args)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
-    components[T::componentId()].emplace_back(std::make_unique<T>(args...));
-    components[T::componentId()].back()->initialize();
+    m_components[T::componentId()].emplace_back(std::make_unique<T>(args...));
+    m_components[T::componentId()].back()->initialize();
   }
 
   /**
@@ -126,17 +129,17 @@ class Entity {
   void removeComponent(const components::BaseComponent* comp_ptr)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
-    auto it = components.find(T::componentId());
+    auto it = m_components.find(T::componentId());
     removeWithIterByPtr(it, comp_ptr);
   }
 
  private:
-  Application* application;
-  Scene* scene;
-  uint64_t id;
-  std::string name;
-  std::unique_ptr<components::Transform> transform;
-  ComponentMap components;
+  Application* m_app;
+  Scene* m_scene;
+  uint64_t m_id;
+  std::string m_name;
+  std::unique_ptr<components::Transform> m_transform;
+  ComponentMap m_components;
 
   static uint64_t INDEX_COUNTER;
   static const ComponentList EMPTY_VECTOR;

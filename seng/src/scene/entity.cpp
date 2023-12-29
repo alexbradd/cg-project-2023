@@ -13,21 +13,21 @@ uint64_t Entity::INDEX_COUNTER = 0;
 const Entity::ComponentList Entity::EMPTY_VECTOR;
 
 Entity::Entity(Application& app, Scene& s, std::string n) :
-    application(std::addressof(app)),
-    scene(std::addressof(s)),
-    id(INDEX_COUNTER++),
-    name(std::move(n)),
-    transform(std::make_unique<Transform>(*this))
+    m_app(std::addressof(app)),
+    m_scene(std::addressof(s)),
+    m_id(INDEX_COUNTER++),
+    m_name(std::move(n)),
+    m_transform(std::make_unique<Transform>(*this))
 {
-  transform->initialize();
+  m_transform->initialize();
 }
 
 Entity::~Entity() = default;
 
-void Entity::setTransform(std::unique_ptr<Transform>&& t)
+void Entity::transform(std::unique_ptr<Transform>&& t)
 {
   if (t != nullptr) {
-    transform = std::move(t);
+    m_transform = std::move(t);
   } else {
     seng::log::warning("Passing null transform, ignoring. Something's wrong...");
   }
@@ -37,8 +37,8 @@ void Entity::untypedInsert(const ComponentIdType& id,
                            std::unique_ptr<BaseComponent>&& cmp)
 {
   if (!checkAndWarnCompPtr(cmp)) {
-    components[id].push_back(std::move(cmp));
-    components[id].back()->initialize();
+    m_components[id].push_back(std::move(cmp));
+    m_components[id].back()->initialize();
   }
 }
 
@@ -52,7 +52,7 @@ bool Entity::checkAndWarnCompPtr(std::unique_ptr<BaseComponent>& ptr)
 
 void Entity::removeWithIterByPtr(ComponentMap::iterator it, const BaseComponent* ptr)
 {
-  if (it == components.end()) {
+  if (it == m_components.end()) {
     seng::log::warning("Attempting to remove component type that is not attached");
     return;
   }
