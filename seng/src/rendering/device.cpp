@@ -85,14 +85,14 @@ static vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &,
 static vk::SurfaceFormatKHR detectDepthFormat(const vk::raii::PhysicalDevice &);
 
 Device::Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surface) :
-    _surface(std::addressof(surface)),
-    _physical(pickPhysicalDevice(instance, surface)),
-    _queueIndices(_physical, surface),
-    _swapchainDetails(_physical, surface),
-    _logical(createLogicalDevice(_physical, _queueIndices)),
-    _presentQueue(_logical, *_queueIndices.presentFamily, 0),
-    _graphicsQueue(_logical, *_queueIndices.graphicsFamily, 0),
-    _depthFormat(detectDepthFormat(_physical))
+    m_surface(std::addressof(surface)),
+    m_physical(pickPhysicalDevice(instance, surface)),
+    m_queueIndices(m_physical, surface),
+    m_swapDetails(m_physical, surface),
+    m_logical(createLogicalDevice(m_physical, m_queueIndices)),
+    m_presentQueue(m_logical, *m_queueIndices.presentFamily, 0),
+    m_graphicsQueue(m_logical, *m_queueIndices.graphicsFamily, 0),
+    m_depthFormat(detectDepthFormat(m_physical))
 {
   log::dbg("Device has beeen created successfully");
 }
@@ -171,7 +171,7 @@ vk::SurfaceFormatKHR detectDepthFormat(const vk::raii::PhysicalDevice &phy)
 
 uint32_t Device::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags) const
 {
-  vk::PhysicalDeviceMemoryProperties props{_physical.getMemoryProperties()};
+  vk::PhysicalDeviceMemoryProperties props{m_physical.getMemoryProperties()};
 
   for (uint32_t i = 0; i < props.memoryTypeCount; i++) {
     if (filter & (1 << i) && (props.memoryTypes[i].propertyFlags & flags) == flags)
@@ -182,18 +182,18 @@ uint32_t Device::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags)
 
 void Device::requerySupport()
 {
-  _queueIndices = QueueFamilyIndices(_physical, *_surface);
-  _swapchainDetails = SwapchainSupportDetails(_physical, *_surface);
+  m_queueIndices = QueueFamilyIndices(m_physical, *m_surface);
+  m_swapDetails = SwapchainSupportDetails(m_physical, *m_surface);
 }
 
 void Device::requeryDepthFormat()
 {
-  _depthFormat = detectDepthFormat(_physical);
+  m_depthFormat = detectDepthFormat(m_physical);
 }
 
 Device::~Device()
 {
   // Just checking if the device handle is valid is enough
   // since all other handles depend on the existence of it
-  if (*_logical != vk::Device{}) log::dbg("Destroying device");
+  if (*m_logical != vk::Device{}) log::dbg("Destroying device");
 }

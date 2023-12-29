@@ -83,18 +83,15 @@ class Device {
   static const std::vector<const char *> REQUIRED_EXT;
 
   // Accessors to the underlying handles
-  const vk::raii::PhysicalDevice &physical() const { return _physical; }
-  const vk::raii::Device &logical() const { return _logical; }
-  const vk::raii::Queue &presentQueue() const { return _presentQueue; }
-  const vk::raii::Queue &graphicsQueue() const { return _graphicsQueue; }
-  vk::SurfaceFormatKHR depthFormat() const { return _depthFormat; }
+  const vk::raii::PhysicalDevice &physical() const { return m_physical; }
+  const vk::raii::Device &logical() const { return m_logical; }
+  const vk::raii::Queue &presentQueue() const { return m_presentQueue; }
+  const vk::raii::Queue &graphicsQueue() const { return m_graphicsQueue; }
+  vk::SurfaceFormatKHR depthFormat() const { return m_depthFormat; }
 
   // Accessors to the support details
-  const QueueFamilyIndices &queueFamilyIndices() const { return _queueIndices; }
-  const SwapchainSupportDetails &swapchainSupportDetails() const
-  {
-    return _swapchainDetails;
-  }
+  const QueueFamilyIndices &queueFamilyIndices() const { return m_queueIndices; }
+  const SwapchainSupportDetails &swapchainSupportDetails() const { return m_swapDetails; }
 
   /**
    * Requery the swapchain support details.
@@ -113,14 +110,14 @@ class Device {
   uint32_t findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags) const;
 
  private:
-  const vk::raii::SurfaceKHR *_surface;
-  vk::raii::PhysicalDevice _physical;
-  QueueFamilyIndices _queueIndices;
-  SwapchainSupportDetails _swapchainDetails;
-  vk::raii::Device _logical;
-  vk::raii::Queue _presentQueue;
-  vk::raii::Queue _graphicsQueue;
-  vk::SurfaceFormatKHR _depthFormat;
+  const vk::raii::SurfaceKHR *m_surface;
+  vk::raii::PhysicalDevice m_physical;
+  QueueFamilyIndices m_queueIndices;
+  SwapchainSupportDetails m_swapDetails;
+  vk::raii::Device m_logical;
+  vk::raii::Queue m_presentQueue;
+  vk::raii::Queue m_graphicsQueue;
+  vk::SurfaceFormatKHR m_depthFormat;
 
   /**
    * Choose the optimal swapchain format.
