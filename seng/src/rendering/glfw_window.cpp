@@ -17,10 +17,9 @@ using namespace std;
 using namespace seng;
 using namespace seng::rendering;
 
-GlfwWindow::GlfwWindow(string appName,
-                       unsigned int width,
-                       unsigned int height) :
-    m_appName(std::move(appName)), m_width(width), m_height(height) {
+GlfwWindow::GlfwWindow(string appName, unsigned int width, unsigned int height) :
+    m_appName(std::move(appName)), m_width(width), m_height(height)
+{
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -32,25 +31,34 @@ GlfwWindow::GlfwWindow(string appName,
   glfwSetKeyCallback(m_ptr, onKeyCallback);
 }
 
-GlfwWindow::~GlfwWindow() {
+GlfwWindow::~GlfwWindow()
+{
   glfwDestroyWindow(m_ptr);
   glfwTerminate();
 }
 
-void GlfwWindow::close() { glfwSetWindowShouldClose(m_ptr, GLFW_TRUE); }
+void GlfwWindow::close()
+{
+  glfwSetWindowShouldClose(m_ptr, GLFW_TRUE);
+}
 
-bool GlfwWindow::shouldClose() const { return glfwWindowShouldClose(m_ptr); }
+bool GlfwWindow::shouldClose() const
+{
+  return glfwWindowShouldClose(m_ptr);
+}
 
-void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback) {
+void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback)
+{
   m_resizeCbs.push_back(callback);
 }
 
-void GlfwWindow::onKeyEvent(
-    function<void(GLFWwindow *, int, int, int, int)> callback) {
+void GlfwWindow::onKeyEvent(function<void(GLFWwindow *, int, int, int, int)> callback)
+{
   m_keyEventCb = callback;
 }
 
-vector<const char *> GlfwWindow::extensions() const {
+vector<const char *> GlfwWindow::extensions() const
+{
   uint32_t ext_count;
   vector<const char *> vec{};
   const char **glfw_ext = glfwGetRequiredInstanceExtensions(&ext_count);
@@ -59,39 +67,44 @@ vector<const char *> GlfwWindow::extensions() const {
   return vec;
 }
 
-pair<unsigned int, unsigned int> GlfwWindow::framebufferSize() const {
+pair<unsigned int, unsigned int> GlfwWindow::framebufferSize() const
+{
   int w, h;
   glfwGetFramebufferSize(m_ptr, &w, &h);
   return std::pair(w, h);
 }
 
-void GlfwWindow::wait() const { glfwWaitEvents(); }
+void GlfwWindow::wait() const
+{
+  glfwWaitEvents();
+}
 
-void GlfwWindow::poll() const { glfwPollEvents(); }
+void GlfwWindow::poll() const
+{
+  glfwPollEvents();
+}
 
-vk::raii::SurfaceKHR GlfwWindow::createVulkanSurface(
-    vk::raii::Instance &i) const {
+vk::raii::SurfaceKHR GlfwWindow::createVulkanSurface(vk::raii::Instance &i) const
+{
   VkSurfaceKHR surf;
   auto res = glfwCreateWindowSurface(*i, m_ptr, nullptr, &surf);
-  if (res != VK_SUCCESS)
-    throw std::runtime_error("failed to create window surface!");
+  if (res != VK_SUCCESS) throw std::runtime_error("failed to create window surface!");
   return vk::raii::SurfaceKHR{i, surf};
 }
 
-void GlfwWindow::resizeCallback(GLFWwindow *window, int w, int h) {
-  auto wrapper =
-      reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
+void GlfwWindow::resizeCallback(GLFWwindow *window, int w, int h)
+{
+  auto wrapper = reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
   wrapper->m_width = w;
   wrapper->m_height = h;
   if (w == 0 || h == 0) return;
-  for (const auto& onResize: wrapper->m_resizeCbs)
-    onResize(window, w, h);
+  for (const auto &onResize : wrapper->m_resizeCbs) onResize(window, w, h);
 }
 
 void GlfwWindow::onKeyCallback(
-    GLFWwindow *window, int key, int scancode, int action, int mods) {
-  auto wrapper =
-      reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
+    GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+  auto wrapper = reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
   if (wrapper->m_keyEventCb.has_value())
     (wrapper->m_keyEventCb).value()(window, key, scancode, action, mods);
 }
