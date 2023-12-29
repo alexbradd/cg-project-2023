@@ -21,11 +21,11 @@ Swapchain::Swapchain(const Device &dev,
                      const vk::raii::SurfaceKHR &surface,
                      const GlfwWindow &window,
                      const vk::raii::SwapchainKHR &old) :
-    vulkanDev(std::addressof(dev)),
-    _format(dev.swapchainSupportDetails().chooseFormat()),
-    _extent(dev.swapchainSupportDetails().chooseExtent(window)),
+    m_device(std::addressof(dev)),
+    m_format(dev.swapchainSupportDetails().chooseFormat()),
+    m_extent(dev.swapchainSupportDetails().chooseExtent(window)),
     // === Create swapchain
-    _swapchain(std::invoke([&]() {
+    m_swapchain(std::invoke([&]() {
       QueueFamilyIndices indices(dev.queueFamilyIndices());
       vk::SurfaceCapabilitiesKHR capabilities(dev.swapchainSupportDetails().capabilities);
 
@@ -37,9 +37,9 @@ Swapchain::Swapchain(const Device &dev,
       vk::SwapchainCreateInfoKHR sci{};
       sci.surface = *surface;
       sci.minImageCount = imageCount;
-      sci.imageFormat = _format.format;
-      sci.imageColorSpace = _format.colorSpace;
-      sci.imageExtent = _extent;
+      sci.imageFormat = m_format.format;
+      sci.imageColorSpace = m_format.colorSpace;
+      sci.imageExtent = m_extent;
       sci.imageArrayLayers = 1;
       sci.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
       sci.preTransform = capabilities.currentTransform;
@@ -59,16 +59,16 @@ Swapchain::Swapchain(const Device &dev,
       }
       return vk::raii::SwapchainKHR(dev.logical(), sci);
     })),
-    _images(_swapchain.getImages()),
+    m_images(m_swapchain.getImages()),
     // === Create ImageViews
-    _imageViews(std::invoke([&]() {
+    m_imageViews(std::invoke([&]() {
       vector<vk::raii::ImageView> ret;
-      ret.reserve(_images.size());
-      for (auto image : _images) {
+      ret.reserve(m_images.size());
+      for (auto image : m_images) {
         vk::ImageViewCreateInfo ci;
         ci.image = image;
         ci.viewType = vk::ImageViewType::e2D;
-        ci.format = _format.format;
+        ci.format = m_format.format;
         ci.components.r = vk::ComponentSwizzle::eIdentity;
         ci.components.g = vk::ComponentSwizzle::eIdentity;
         ci.components.b = vk::ComponentSwizzle::eIdentity;
@@ -84,7 +84,7 @@ Swapchain::Swapchain(const Device &dev,
       return ret;
     }))
 {
-  log::dbg("Swapchain created with extent {}x{}", _extent.width, _extent.height);
+  log::dbg("Swapchain created with extent {}x{}", m_extent.width, m_extent.height);
 }
 
 uint32_t Swapchain::nextImageIndex(const vk::raii::Semaphore &imgAvailable,
@@ -93,9 +93,9 @@ uint32_t Swapchain::nextImageIndex(const vk::raii::Semaphore &imgAvailable,
 {
   optional<pair<vk::Result, uint32_t>> res;
   if (fence != nullptr) {
-    res = _swapchain.acquireNextImage(timeout, *imgAvailable, *fence->handle());
+    res = m_swapchain.acquireNextImage(timeout, *imgAvailable, *fence->handle());
   } else {
-    res = _swapchain.acquireNextImage(timeout, *imgAvailable);
+    res = m_swapchain.acquireNextImage(timeout, *imgAvailable);
   }
   switch (res->first) {
     case vk::Result::eSuccess:
@@ -119,7 +119,7 @@ void Swapchain::present(const vk::raii::Queue &presentQueue,
   info.waitSemaphoreCount = 1;
   info.pWaitSemaphores = &(*renderComplete);
   info.swapchainCount = 1;
-  info.pSwapchains = &(*_swapchain);
+  info.pSwapchains = &(*m_swapchain);
   info.pImageIndices = &imageIndex;
   info.pResults = nullptr;
 
@@ -139,8 +139,8 @@ void Swapchain::present(const vk::raii::Queue &presentQueue,
 
 Swapchain::~Swapchain()
 {
-  if (*_swapchain != vk::SwapchainKHR{}) {
-    vulkanDev->logical().waitIdle();
+  if (*m_swapchain != vk::SwapchainKHR{}) {
+    m_device->logical().waitIdle();
     log::dbg("Destroying swapchain");
   }
 }

@@ -21,16 +21,16 @@ class GlfwWindow;
 class InadequateSwapchainException : public std::exception {
  public:
   InadequateSwapchainException(std::string_view error, vk::Result res) :
-      err{error}, r{res}
+      m_err{error}, m_res{res}
   {
   }
 
-  const char *what() const noexcept override { return err.c_str(); }
-  vk::Result result() const noexcept { return r; }
+  const char *what() const noexcept override { return m_err.c_str(); }
+  vk::Result result() const noexcept { return m_res; }
 
  private:
-  std::string err{};
-  vk::Result r;
+  std::string m_err;
+  vk::Result m_res;
 };
 
 /**
@@ -76,18 +76,18 @@ class Swapchain {
                uint32_t imageIndex) const;
 
   // Accessors
-  const vk::raii::SwapchainKHR &swapchain() const { return _swapchain; }
-  const std::vector<vk::raii::ImageView> &images() const { return _imageViews; }
-  const vk::SurfaceFormatKHR &format() const { return _format; }
-  const vk::Extent2D &extent() const { return _extent; }
+  const vk::raii::SwapchainKHR &swapchain() const { return m_swapchain; }
+  const std::vector<vk::raii::ImageView> &images() const { return m_imageViews; }
+  const vk::SurfaceFormatKHR &format() const { return m_format; }
+  const vk::Extent2D &extent() const { return m_extent; }
 
  private:
-  const Device *vulkanDev;
-  vk::SurfaceFormatKHR _format;
-  vk::Extent2D _extent;
-  vk::raii::SwapchainKHR _swapchain;
-  std::vector<vk::Image> _images;
-  std::vector<vk::raii::ImageView> _imageViews;
+  const Device *m_device;
+  vk::SurfaceFormatKHR m_format;
+  vk::Extent2D m_extent;
+  vk::raii::SwapchainKHR m_swapchain;
+  std::vector<vk::Image> m_images;
+  std::vector<vk::raii::ImageView> m_imageViews;
 };
 
 }  // namespace seng::rendering
