@@ -16,14 +16,14 @@ Entity::Entity(Application& app, Scene& s, std::string n) :
     scene(std::addressof(s)),
     id(INDEX_COUNTER++),
     name(std::move(n)),
-    transform(std::make_unique<components::Transform>(*this))
+    transform(std::make_unique<Transform>(*this))
 {
   transform->initialize();
 }
 
 Entity::~Entity() = default;
 
-void Entity::setTransform(std::unique_ptr<components::Transform>&& t)
+void Entity::setTransform(std::unique_ptr<Transform>&& t)
 {
   if (t != nullptr) {
     transform = std::move(t);
@@ -41,7 +41,7 @@ void Entity::untypedInsert(const ComponentIdType& id,
   }
 }
 
-bool Entity::checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr)
+bool Entity::checkAndWarnCompPtr(std::unique_ptr<BaseComponent>& ptr)
 {
   if (ptr == nullptr) {
     seng::log::warning("Passing null component, ignoring. Something's wrong...");
@@ -49,8 +49,7 @@ bool Entity::checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr
   return ptr == nullptr;
 }
 
-void Entity::removeWithIterByPtr(ComponentMap::iterator it,
-                                 const components::BaseComponent* ptr)
+void Entity::removeWithIterByPtr(ComponentMap::iterator it, const BaseComponent* ptr)
 {
   if (it == components.end()) {
     seng::log::warning("Attempting to remove component type that is not attached");
