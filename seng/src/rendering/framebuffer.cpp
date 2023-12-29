@@ -19,10 +19,10 @@ Framebuffer::Framebuffer(const Device &dev,
                          const RenderPass &pass,
                          vk::Extent2D size,
                          const vector<vk::ImageView> &attachments) :
-    vulkanDev(std::addressof(dev)),
-    vulkanRenderPass(std::addressof(pass)),
-    attachments(attachments),
-    _handle(std::invoke([&]() {
+    m_device(std::addressof(dev)),
+    m_renderPass(std::addressof(pass)),
+    m_attachments(attachments),
+    m_handle(std::invoke([&]() {
       vk::FramebufferCreateInfo info{};
       info.renderPass = *pass.handle();
       info.setAttachments(attachments);
@@ -55,5 +55,5 @@ vector<Framebuffer> Framebuffer::fromSwapchain(const Device &dev,
 
 Framebuffer::~Framebuffer()
 {
-  if (*_handle != vk::Framebuffer{}) log::dbg("Destroying framebuffer");
+  if (*m_handle != vk::Framebuffer{}) log::dbg("Destroying framebuffer");
 }

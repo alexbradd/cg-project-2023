@@ -34,7 +34,7 @@ class Framebuffer {
   Framebuffer& operator=(Framebuffer&&) = default;
 
   // Accessors
-  const vk::raii::Framebuffer& handle() const { return _handle; }
+  const vk::raii::Framebuffer& handle() const { return m_handle; }
 
   /**
    * Create and allocate a new framebuffers taking as attachments the views from the
@@ -46,10 +46,10 @@ class Framebuffer {
                                                 const Image& depthBuffer);
 
  private:
-  const Device* vulkanDev;
-  const RenderPass* vulkanRenderPass;
-  std::vector<vk::ImageView> attachments;
-  vk::raii::Framebuffer _handle;
+  const Device* m_device;
+  const RenderPass* m_renderPass;
+  std::vector<vk::ImageView> m_attachments;
+  vk::raii::Framebuffer m_handle;
 };
 
 }  // namespace seng::rendering
