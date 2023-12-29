@@ -10,6 +10,7 @@ using namespace seng::components;
 using namespace std;
 
 uint64_t Entity::INDEX_COUNTER = 0;
+const Entity::ComponentList Entity::EMPTY_VECTOR;
 
 Entity::Entity(Application& app, Scene& s, std::string n) :
     application(std::addressof(app)),

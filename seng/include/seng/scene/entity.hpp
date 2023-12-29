@@ -5,7 +5,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -80,40 +79,22 @@ class Entity {
   const std::unique_ptr<components::Transform>& getTransform() const { return transform; }
 
   /**
-   * Return an iterator to the start of a vector of owned pointers to
+   * Return a reference to a vector of owned pointers to
    * Components of type T attached to the Entity. If no component of the given
-   * type can be found, nullopt is returned.
+   * type can be found, an empty vector is returned.
    *
-   * IMPORTANT: please note that modifications to the attached Component list may
-   * invalidate the returned iterator. If for some reason one wants to keep the
-   * iterator, it is advised to copy the needed range using ComponentList's range
-   * constructor.
+   * IMPORTANT: please note that modifications to the Component list may
+   * invalidate any iterators for the returned vectors. If one wants to keep
+   * a reference to one or more Component, cache the pointers
    */
   template <typename T>
-  std::optional<ComponentList::const_iterator> componentsOfTypeBegin() const
+  const ComponentList& componentsOfType() const
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
 
     auto it = components.find(T::componentId());
-    if (it == components.end()) return std::nullopt;
-    return std::make_optional(it->second.begin());
-  }
-
-  /**
-   * Return a past-the-end iterator of a vector of owned pointers to
-   * Components of type T attached to the Entity. If no component of the given
-   * type can be found, nullopt is returned.
-   *
-   * IMPORTANT: see `componentsOfTypeBegin` for considerations.
-   */
-  template <typename T>
-  std::optional<ComponentList::const_iterator> componentsOfTypeEnd() const
-  {
-    ASSERT_SUBCLASS_OF_COMPONENT(T);
-
-    auto it = components.find(T::componentId());
-    if (it == components.end()) return std::nullopt;
-    return std::make_optional(it->second.end());
+    if (it == components.end()) return EMPTY_VECTOR;
+    return it->second;
   }
 
   /**
@@ -158,6 +139,8 @@ class Entity {
   ComponentMap components;
 
   static uint64_t INDEX_COUNTER;
+  static const ComponentList EMPTY_VECTOR;
+
   void removeWithIterByPtr(ComponentMap::iterator it,
                            const components::BaseComponent* ptr);
   bool checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr);
