@@ -10,15 +10,14 @@ using namespace seng;
 using namespace seng::components;
 using namespace glm;
 
-Transform::Transform(scene::Entity& e, vec3 pos, vec3 scale, vec3 rotation) :
-    BaseComponent(e)
+Transform::Transform(scene::Entity& e, vec3 p, vec3 s, vec3 r) : BaseComponent(e)
 {
-  setPos(pos.x, pos.y, pos.z);
-  setScale(scale.x, scale.y, scale.x);
-  setRotation(rotation.x, rotation.y, rotation.z);
+  position(p.x, p.y, p.z);
+  scale(s.x, s.y, s.x);
+  rotation(r.x, r.y, r.z);
 }
 
-void Transform::setPos(float x, float y, float z)
+void Transform::position(float x, float y, float z)
 {
   m_pos = vec3(x, y, z);
 }
@@ -33,7 +32,7 @@ void Transform::translate(glm::vec3 pos)
   m_pos += pos;
 }
 
-void Transform::setScale(float x, float y, float z)
+void Transform::scale(float x, float y, float z)
 {
   x = x == 0.0f ? 1.0 : x;
   y = y == 0.0f ? 1.0 : y;
@@ -41,7 +40,7 @@ void Transform::setScale(float x, float y, float z)
   m_scale = vec3(x, y, z);
 }
 
-void Transform::setRotation(float xAngle, float yAngle, float zAngle)
+void Transform::rotation(float xAngle, float yAngle, float zAngle)
 {
   // Quaternion can be created from euler angles with the Pitch-Yaw-Roll order
   m_rotation = glm::quat(vec3(yAngle, zAngle, xAngle));

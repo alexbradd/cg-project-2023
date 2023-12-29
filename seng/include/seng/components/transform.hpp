@@ -93,19 +93,19 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   /**
    * Set the position in the scene for this transform.
    */
-  void setPos(float x = 0.0f, float y = 0.0f, float z = 0.0f);
+  void position(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
   /**
    * Apply a scale to the transform along the x, y, or z axes.
    *
    * Note: zero-ing out any of the coordinates translates to a noop.
    */
-  void setScale(float x = 1.0f, float y = 1.0f, float z = 1.0f);
+  void scale(float x = 1.0f, float y = 1.0f, float z = 1.0f);
 
   /**
    * Sets the rotation of this transform to the given angles (in radians).
    */
-  void setRotation(float x = 0.0f, float y = 0.0f, float z = 0.0f);
+  void rotation(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
   /**
    * Return the unitary vector representing the forward direction of this transform
@@ -131,9 +131,9 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   glm::vec3 eulerAngles() const;
 
  private:
-  glm::vec3 _pos;
-  glm::vec3 _scale;
-  glm::quat _rotation;
+  glm::vec3 m_pos;
+  glm::vec3 m_scale;
+  glm::quat m_rotation;
 };
 
 };  // namespace seng::components
