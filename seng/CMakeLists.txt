@@ -33,6 +33,7 @@ target_sources(${PROJECT_NAME}
     ./src/components/camera.cpp
     ./src/components/scene_config_component_factory.cpp
     ./src/components/script.cpp
+    ./src/components/toggle.cpp
     ./src/components/transform.cpp
     ./src/input_manager.cpp
     ./src/log.cpp
