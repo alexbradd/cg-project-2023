@@ -2,7 +2,6 @@
 #include <seng/rendering/glfw_window.hpp>
 
 #include <functional>
-#include <stdexcept>
 #include <vector>
 
 using namespace seng;
@@ -21,12 +20,11 @@ static int intoRange(KeyCode code)
   return intoRange(toInt(code));
 }
 
-InputManager::InputManager(rendering::GlfwWindow* window) :
+InputManager::InputManager(rendering::GlfwWindow& window) :
     // window is initialized later
     m_dirty(false), m_staging(KEY_RANGE, false), m_stored(KEY_RANGE, false)
 {
-  if (window == nullptr) throw std::runtime_error("Window should not be null");
-  window->onKeyEvent([&](GLFWwindow*, int key, int, int action, int) {
+  window.onKeyEvent([&](GLFWwindow*, int key, int, int action, int) {
     if (key == -1) return;
     if (action == toInt(KeyEvent::ePress)) {
       m_dirty = true;
@@ -36,7 +34,7 @@ InputManager::InputManager(rendering::GlfwWindow* window) :
       m_staging[intoRange(key)] = false;
     }
   });
-  this->m_window = window;
+  this->m_window = std::addressof(window);
 }
 
 void InputManager::updateEvents()

@@ -34,7 +34,7 @@ class InputManager {
 
  public:
   /// Construct a new InputManager
-  InputManager(rendering::GlfwWindow *window);
+  InputManager(rendering::GlfwWindow &window);
   InputManager(InputManager &&) = delete;
   InputManager(const InputManager &) = delete;
 

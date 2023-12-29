@@ -29,7 +29,7 @@ void Application::run(unsigned int width, unsigned int height)
   });
 
   m_vulkan = make_unique<Renderer>(conf, *m_glfwWindow);
-  m_inputManager = make_unique<InputManager>(m_glfwWindow.get());
+  m_inputManager = make_unique<InputManager>(*m_glfwWindow);
   m_scene = make_unique<Scene>(*this);
   m_scene->loadFromDisk("default");
 
