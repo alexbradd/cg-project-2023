@@ -157,11 +157,10 @@ class Entity {
   std::unique_ptr<components::Transform> transform;
   ComponentMap components;
 
+  static uint64_t INDEX_COUNTER;
   void removeWithIterByPtr(ComponentMap::iterator it,
                            const components::BaseComponent* ptr);
   bool checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr);
-
-  static uint64_t INDEX_COUNTER;
 
   /**
    * Constructor for a new entity with the given name and position in the origin.
