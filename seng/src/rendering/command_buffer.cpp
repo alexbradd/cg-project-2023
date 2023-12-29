@@ -29,7 +29,7 @@ CommandBuffer::CommandBuffer(const Device &dev,
 {
 }
 
-CommandBuffer::CommandBuffer(vk::raii::CommandBuffer &&b) : buf(std::move(b))
+CommandBuffer::CommandBuffer(vk::raii::CommandBuffer &&b) : m_buf(std::move(b))
 {
   log::dbg("Allocated command buffer");
 }
@@ -75,12 +75,12 @@ void CommandBuffer::begin(SingleUse single,
   if (simultaneous == SimultaneousUse::eOn)
     info.flags |= vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
-  buf.begin(info);
+  m_buf.begin(info);
 }
 
 void CommandBuffer::end() const
 {
-  buf.end();
+  m_buf.end();
 }
 
 void CommandBuffer::recordSingleUse(const Device &dev,
@@ -104,12 +104,12 @@ void CommandBuffer::recordSingleUse(const Device &dev,
 
 void CommandBuffer::reset() const
 {
-  buf.reset();
+  m_buf.reset();
 }
 
 CommandBuffer::~CommandBuffer()
 {
-  if (*buf != vk::CommandBuffer{}) {
+  if (*m_buf != vk::CommandBuffer{}) {
     log::dbg("Deallocating command buffer");
   }
 }

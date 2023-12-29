@@ -1,7 +1,8 @@
 #pragma once
 
-#include <functional>
 #include <vulkan/vulkan_raii.hpp>
+
+#include <functional>
 
 namespace seng::rendering {
 
@@ -52,7 +53,7 @@ class CommandBuffer {
   void reset() const;
 
   // Access the underlying handle
-  const vk::raii::CommandBuffer& buffer() const { return buf; }
+  const vk::raii::CommandBuffer& buffer() const { return m_buf; }
 
   /**
    * Factory method for allocating multiple command buffers with one call.
@@ -75,7 +76,7 @@ class CommandBuffer {
 
  private:
   CommandBuffer(vk::raii::CommandBuffer&& buf);
-  vk::raii::CommandBuffer buf;
+  vk::raii::CommandBuffer m_buf;
 };
 
 }  // namespace seng::rendering
