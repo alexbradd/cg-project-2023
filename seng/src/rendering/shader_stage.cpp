@@ -22,16 +22,16 @@ ShaderStage::ShaderStage(const Device &dev,
                          const string &shaderLoadPath,
                          string name,
                          ShaderStage::Type type) :
-    vulkanDev(std::addressof(dev)),
-    typ(type),
-    name(std::move(name)),
-    code(std::invoke([&]() {
+    m_device(std::addressof(dev)),
+    m_type(type),
+    m_name(std::move(name)),
+    m_code(std::invoke([&]() {
       namespace fs = std::filesystem;
 
       fs::path shaderDir(shaderLoadPath);
       const char *suffix;
       string filename;
-      switch (typ) {
+      switch (m_type) {
         case ShaderStage::Type::eVertex:
           suffix = VERT_SUFFIX;
           break;
@@ -39,13 +39,14 @@ ShaderStage::ShaderStage(const Device &dev,
           suffix = FRAG_SUFFIX;
           break;
       }
-      filename = this->name + suffix;
+      filename = this->m_name + suffix;
 
       return seng::internal::readFile((shaderDir / filename).string());
     })),
-    moduleCreateInfo{{}, code.size(), reinterpret_cast<const uint32_t *>(code.data())},
-    module(dev.logical(), moduleCreateInfo),
-    stageCreateInfo(std::invoke([&]() {
+    m_moduleCreateInfo{
+        {}, m_code.size(), reinterpret_cast<const uint32_t *>(m_code.data())},
+    m_module(dev.logical(), m_moduleCreateInfo),
+    m_stageCreateInfo(std::invoke([&]() {
       vk::ShaderStageFlagBits flags{};
       switch (type) {
         case ShaderStage::Type::eVertex:
@@ -55,7 +56,7 @@ ShaderStage::ShaderStage(const Device &dev,
           flags = vk::ShaderStageFlagBits::eFragment;
           break;
       }
-      return vk::PipelineShaderStageCreateInfo{{}, flags, *module, "main"};
+      return vk::PipelineShaderStageCreateInfo{{}, flags, *m_module, "main"};
     }))
 {
   switch (type) {
@@ -70,5 +71,5 @@ ShaderStage::ShaderStage(const Device &dev,
 
 ShaderStage::~ShaderStage()
 {
-  if (*module != vk::ShaderModule{}) log::dbg("Destroying shader module");
+  if (*m_module != vk::ShaderModule{}) log::dbg("Destroying shader module");
 }

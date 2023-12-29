@@ -34,16 +34,19 @@ class ShaderStage {
   ShaderStage& operator=(ShaderStage&&) = default;
 
   // Accessors
-  const vk::PipelineShaderStageCreateInfo& createInfo() const { return stageCreateInfo; }
+  const vk::PipelineShaderStageCreateInfo& createInfo() const
+  {
+    return m_stageCreateInfo;
+  }
 
  private:
-  const Device* vulkanDev;
-  Type typ;
-  std::string name;
-  std::vector<char> code;
-  vk::ShaderModuleCreateInfo moduleCreateInfo;
-  vk::raii::ShaderModule module;
-  vk::PipelineShaderStageCreateInfo stageCreateInfo;
+  const Device* m_device;
+  Type m_type;
+  std::string m_name;
+  std::vector<char> m_code;
+  vk::ShaderModuleCreateInfo m_moduleCreateInfo;
+  vk::raii::ShaderModule m_module;
+  vk::PipelineShaderStageCreateInfo m_stageCreateInfo;
 };
 
 }  // namespace seng::rendering
