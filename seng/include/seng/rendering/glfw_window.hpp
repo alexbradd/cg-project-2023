@@ -66,9 +66,9 @@ class GlfwWindow {
   void onKeyEvent(std::function<void(GLFWwindow *, int, int, int, int)> cb);
 
   // getters for various properties
-  const std::string &appName() const { return _appName; }
-  unsigned int width() const { return _width; }
-  unsigned int height() const { return _height; }
+  const std::string &appName() const { return m_appName; }
+  unsigned int width() const { return m_width; }
+  unsigned int height() const { return m_height; }
 
   std::vector<const char *> extensions() const;
   std::pair<unsigned int, unsigned int> framebufferSize() const;
@@ -89,11 +89,11 @@ class GlfwWindow {
   vk::raii::SurfaceKHR createVulkanSurface(vk::raii::Instance &) const;
 
  private:
-  GLFWwindow *ptr;
-  std::string _appName;
-  unsigned int _width, _height;
-  std::vector<std::function<void(GLFWwindow *, int, int)>> _onResizeCbs;
-  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>> _onKeyEvent;
+  GLFWwindow *m_ptr;
+  std::string m_appName;
+  unsigned int m_width, m_height;
+  std::vector<std::function<void(GLFWwindow *, int, int)>> m_resizeCbs;
+  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>> m_keyEventCb;
 
   static void resizeCallback(GLFWwindow *window, int w, int h);
   static void onKeyCallback(
