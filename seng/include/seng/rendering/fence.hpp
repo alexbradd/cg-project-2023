@@ -16,14 +16,14 @@ class Device;
  */
 class FenceWaitException : std::exception {
  public:
-  FenceWaitException(std::string_view error, vk::Result res) : err{error}, r{res} {}
+  FenceWaitException(std::string_view error, vk::Result res) : m_err{error}, m_res{res} {}
 
-  const char* what() const noexcept override { return err.c_str(); }
-  vk::Result result() const noexcept { return r; }
+  const char* what() const noexcept override { return m_err.c_str(); }
+  vk::Result result() const noexcept { return m_res; }
 
  private:
-  std::string err;
-  vk::Result r;
+  std::string m_err;
+  vk::Result m_res;
 };
 
 /**
@@ -58,13 +58,13 @@ class Fence {
   void reset();
 
   // Accessors
-  const vk::raii::Fence& handle() const { return _handle; }
-  bool signaled() const { return _signaled; }
+  const vk::raii::Fence& handle() const { return m_handle; }
+  bool signaled() const { return m_signaled; }
 
  private:
-  const Device* vulkanDev;
-  bool _signaled;
-  vk::raii::Fence _handle;
+  const Device* m_device;
+  bool m_signaled;
+  vk::raii::Fence m_handle;
 };
 
 }  // namespace seng::rendering

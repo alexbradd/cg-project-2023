@@ -12,25 +12,25 @@ using namespace seng::rendering;
 using namespace std;
 
 Fence::Fence(const Device &device, bool signaled) :
-    vulkanDev(std::addressof(device)),
-    _signaled(signaled),
+    m_device(std::addressof(device)),
+    m_signaled(signaled),
     // Create the handle
-    _handle(std::invoke([&]() {
+    m_handle(std::invoke([&]() {
       vk::FenceCreateInfo info{};
       if (signaled) info.flags |= vk::FenceCreateFlagBits::eSignaled;
-      return vk::raii::Fence(vulkanDev->logical(), info);
+      return vk::raii::Fence(m_device->logical(), info);
     }))
 {
 }
 
 void Fence::wait(uint64_t timeout)
 {
-  if (!_signaled) {
-    auto res = vulkanDev->logical().waitForFences(*_handle, true, timeout);
+  if (!m_signaled) {
+    auto res = m_device->logical().waitForFences(*m_handle, true, timeout);
     string err;
     switch (res) {
       case vk::Result::eSuccess:
-        _signaled = true;
+        m_signaled = true;
         break;
       case vk::Result::eTimeout:
         err = "VulkanFence.wait - Timed out";
@@ -56,8 +56,8 @@ void Fence::wait(uint64_t timeout)
 
 void Fence::reset()
 {
-  if (_signaled) {
-    vulkanDev->logical().resetFences(*_handle);
-    _signaled = false;
+  if (m_signaled) {
+    m_device->logical().resetFences(*m_handle);
+    m_signaled = false;
   }
 }
