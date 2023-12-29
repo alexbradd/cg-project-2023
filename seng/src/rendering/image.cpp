@@ -30,10 +30,10 @@ static vk::raii::ImageView createView(const vk::raii::Device &device,
 }
 
 Image::Image(const Device &dev, const Image::CreateInfo &info) :
-    info(info),
-    vulkanDev(std::addressof(dev)),
+    m_info(info),
+    m_device(std::addressof(dev)),
     // Create image handle
-    handle(std::invoke([&]() {
+    m_handle(std::invoke([&]() {
       vk::ImageCreateInfo ci{};
       ci.imageType = vk::ImageType::e2D;
       ci.extent = vk::Extent3D{info.extent, 1};
@@ -48,8 +48,8 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
       return vk::raii::Image(dev.logical(), ci);
     })),
     // Allocate memory
-    memory(std::invoke([&]() {
-      vk::MemoryRequirements requirements(handle.getMemoryRequirements());
+    m_memory(std::invoke([&]() {
+      vk::MemoryRequirements requirements(m_handle.getMemoryRequirements());
       uint32_t memoryIndex =
           dev.findMemoryIndex(requirements.memoryTypeBits, info.memoryFlags);
 
@@ -58,27 +58,27 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
       ai.memoryTypeIndex = memoryIndex;
 
       vk::raii::DeviceMemory ret(dev.logical(), ai);
-      handle.bindMemory(*ret, 0);
+      m_handle.bindMemory(*ret, 0);
 
       return ret;
     })),
     // Create the view if told to do so
-    view()
+    m_view()
 {
   if (info.createView)
-    view = ::createView(dev.logical(), handle, info.format, info.aspectFlags);
+    m_view = ::createView(dev.logical(), m_handle, info.format, info.aspectFlags);
   log::dbg("Created new image {}", info.createView ? "with view" : "without view");
 }
 
 void Image::createView()
 {
-  if (view.has_value()) return;
-  view = ::createView(vulkanDev->logical(), handle, info.format, info.aspectFlags);
+  if (m_view.has_value()) return;
+  m_view = ::createView(m_device->logical(), m_handle, m_info.format, m_info.aspectFlags);
 }
 
 Image::~Image()
 {
   // Just checking if the device handle is valid is enough
   // since all or none handles are valid
-  if (*handle != vk::Image{}) log::dbg("Destroying image");
+  if (*m_handle != vk::Image{}) log::dbg("Destroying image");
 }
