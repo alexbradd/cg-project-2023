@@ -135,10 +135,7 @@ class Entity {
   void insertComponent(std::unique_ptr<T>&& comp_ptr)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
-    if (!checkAndWarnCompPtr(comp_ptr)) {
-      components[T::componentId()].push_back(std::move(comp_ptr));
-      components[T::componentId()].back()->initialize();
-    }
+    untypedInsert(T::componentId(), std::forward(comp_ptr));
   }
 
   /**
@@ -171,6 +168,12 @@ class Entity {
    * Private since users shoud use the appropriate method in SceneGraph.
    */
   Entity(Application& app, Scene& scene, std::string name);
+
+  /**
+   * Private, untyped implementation of insertion
+   */
+  void untypedInsert(const components::ComponentIdType& id,
+                     std::unique_ptr<components::BaseComponent>&& cmp);
 
   void setTransform(std::unique_ptr<components::Transform>&& transform);
 

@@ -85,7 +85,7 @@ Entity *SceneGraph::newEntity(const YAML::Node &node)
       std::string id = comp["id"].as<string>();
       std::unique_ptr<BaseComponent> ptr =
           SceneConfigComponentFactory::create(*ret, id, comp);
-      ret->insertComponent(std::move(ptr));
+      ret->untypedInsert(id, std::move(ptr));
     }
   }
   return ret;

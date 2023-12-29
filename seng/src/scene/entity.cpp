@@ -29,6 +29,15 @@ void Entity::setTransform(std::unique_ptr<components::Transform>&& t)
   }
 }
 
+void Entity::untypedInsert(const ComponentIdType& id,
+                           std::unique_ptr<BaseComponent>&& cmp)
+{
+  if (!checkAndWarnCompPtr(cmp)) {
+    components[id].push_back(std::move(cmp));
+    components[id].back()->initialize();
+  }
+}
+
 bool Entity::checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr)
 {
   if (ptr == nullptr) {
