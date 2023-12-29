@@ -59,9 +59,9 @@ class InputManager {
   bool keyHold(KeyCode key) const;
 
  private:
-  const rendering::GlfwWindow *window;
-  bool dirty;  // used for avoiding useless copying
-  std::vector<bool> staging, stored;
+  const rendering::GlfwWindow *m_window;
+  bool m_dirty;  // used for avoiding useless copying
+  std::vector<bool> m_staging, m_stored;
 
   /**
    * Commit the staging buffer and pool new events.
