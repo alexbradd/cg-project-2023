@@ -40,8 +40,8 @@ class Pipeline {
   Pipeline& operator=(const Pipeline&) = delete;
   Pipeline& operator=(Pipeline&&) = default;
 
-  const vk::raii::Pipeline& handle() const { return pipeline; }
-  const vk::raii::PipelineLayout& layout() const { return pipelineLayout; }
+  const vk::raii::Pipeline& handle() const { return m_pipeline; }
+  const vk::raii::PipelineLayout& layout() const { return m_layout; }
 
   /**
    * Bind the pipeline at the given bind point on the given command buffer
@@ -49,10 +49,10 @@ class Pipeline {
   void bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const;
 
  private:
-  const Device* vulkanDevice;
-  const RenderPass* vulkanRenderPass;
-  vk::raii::PipelineLayout pipelineLayout;
-  vk::raii::Pipeline pipeline;
+  const Device* m_device;
+  const RenderPass* m_renderPass;
+  vk::raii::PipelineLayout m_layout;
+  vk::raii::Pipeline m_pipeline;
 };
 
 }  // namespace seng::rendering

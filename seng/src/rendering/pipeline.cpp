@@ -22,9 +22,9 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
                                          const Pipeline::CreateInfo& info);
 
 Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info) :
-    vulkanDevice(std::addressof(device)),
-    vulkanRenderPass(std::addressof(pass)),
-    pipelineLayout(std::invoke([&]() {
+    m_device(std::addressof(device)),
+    m_renderPass(std::addressof(pass)),
+    m_layout(std::invoke([&]() {
       vk::PipelineLayoutCreateInfo layoutInfo{};
 
       // Push constants
@@ -40,7 +40,7 @@ Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info
       layoutInfo.pSetLayouts = info.descriptorSetLayouts.data();
       return vk::raii::PipelineLayout(device.logical(), layoutInfo);
     })),
-    pipeline(createPipeline(device, pass, pipelineLayout, info))
+    m_pipeline(createPipeline(device, pass, m_layout, info))
 {
   log::dbg("Created pipeline");
 }
@@ -135,10 +135,10 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
 
 void Pipeline::bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const
 {
-  buffer.buffer().bindPipeline(bind, *pipeline);
+  buffer.buffer().bindPipeline(bind, *m_pipeline);
 }
 
 Pipeline::~Pipeline()
 {
-  if (*pipeline != vk::Pipeline{}) log::dbg("Destroying pipeline");
+  if (*m_pipeline != vk::Pipeline{}) log::dbg("Destroying pipeline");
 }
