@@ -14,7 +14,7 @@ ScriptComponent::ScriptComponent(scene::Entity &entity) : BaseComponent(entity) 
 
 void ScriptComponent::initialize()
 {
-  auto &s = entity->getScene();
+  auto &s = entity->scene();
 
   earlyUpdateToken = s.listen(scene::SceneEvents::EARLY_UPDATE,
                               std::bind(&ScriptComponent::onEarlyUpdate, this, _1));
@@ -29,7 +29,7 @@ ScriptComponent::~ScriptComponent()
 {
   if (!entity) return;  // We are in a moved-from state
 
-  auto &s = entity->getScene();
+  auto &s = entity->scene();
 
   s.unlisten(earlyUpdateToken);
   s.unlisten(updateToken);

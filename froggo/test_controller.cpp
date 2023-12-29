@@ -3,8 +3,8 @@
 #include <seng/components/definitions.hpp>
 #include <seng/components/script.hpp>
 #include <seng/components/transform.hpp>
-#include <seng/input_manager.hpp>
 #include <seng/input_enums.hpp>
+#include <seng/input_manager.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
 
@@ -33,8 +33,8 @@ class TestController : public components::ScriptComponent,
 
   void scriptInitialize() override
   {
-    t = entity->getTransform().get();
-    inputManager = entity->getApplication().input().get();
+    t = entity->transform().get();
+    inputManager = entity->application().input().get();
   }
 
   void onUpdate(float deltaTime) override
@@ -63,7 +63,7 @@ class TestController : public components::ScriptComponent,
     else if (inputManager->keyHold(seng::KeyCode::eRight))
       t->rotate(0.0f, glm::radians(-1.0f), 0.0f);
 
-    if (inputManager->keyDown(seng::KeyCode::eEsc)) entity->getApplication().stop();
+    if (inputManager->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
   }
 
  private:

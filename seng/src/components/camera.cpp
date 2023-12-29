@@ -37,7 +37,7 @@ Camera::Camera(Entity& entity, float near, float far, float fov, bool main) :
 
 void Camera::initialize()
 {
-  auto& window = entity->getApplication().window();
+  auto& window = entity->application().window();
 
   auto windowSize = window->framebufferSize();
   _aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
@@ -46,7 +46,7 @@ void Camera::initialize()
 
   cameras.push_back(this);
 
-  if (registerAsMain) entity->getScene().setMainCamera(this);
+  if (registerAsMain) entity->scene().setMainCamera(this);
 }
 
 Camera::~Camera()
@@ -67,7 +67,7 @@ glm::mat4 Camera::projectionMatrix() const
 
 glm::mat4 Camera::viewMatrix() const
 {
-  return glm::inverse(entity->getTransform()->toMat4());
+  return glm::inverse(entity->transform()->toMat4());
 }
 
 void Camera::resize(int width, int height)

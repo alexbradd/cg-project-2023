@@ -29,7 +29,7 @@ class Scene;
  *
  * Every entity has always at least one component: a Transform. The entity's
  * transform gets "special treatment" by having its own bespoke accessor
- * (`getTransform`). The main reason for this is that the most frequent change
+ * (`transform`). The main reason for this is that the most frequent change
  * of an Entity's state will be to its Transform, so reducing lookup cost is
  * important.
  *
@@ -66,20 +66,17 @@ class Entity {
   friend bool operator!=(const Entity& lhs, const Entity& rhs) { return !(lhs == rhs); }
 
   // Accessors
-  const Application& getApplication() const { return *m_app; }
-  Application& getApplication() { return *m_app; }
+  const Application& application() const { return *m_app; }
+  Application& application() { return *m_app; }
 
   /// Return the scene this entity is instantiated in
-  const Scene& getScene() const { return *m_scene; }
+  const Scene& scene() const { return *m_scene; }
   /// Return the scene this entity is instantiated in
-  Scene& getScene() { return *m_scene; }
+  Scene& scene() { return *m_scene; }
 
-  const uint64_t& getId() const { return m_id; }
-  const std::string& getName() const { return m_name; }
-  const std::unique_ptr<components::Transform>& getTransform() const
-  {
-    return m_transform;
-  }
+  const uint64_t& id() const { return m_id; }
+  const std::string& name() const { return m_name; }
+  const std::unique_ptr<components::Transform>& transform() const { return m_transform; }
 
   /**
    * Return a reference to a vector of owned pointers to
@@ -160,7 +157,7 @@ class Entity {
   void untypedInsert(const components::ComponentIdType& id,
                      std::unique_ptr<components::BaseComponent>&& cmp);
 
-  void setTransform(std::unique_ptr<components::Transform>&& transform);
+  void transform(std::unique_ptr<components::Transform>&& transform);
 
   friend class SceneGraph;
 };
@@ -175,7 +172,7 @@ struct hash<seng::scene::Entity> {
   std::size_t operator()(const seng::scene::Entity& entity) const
   {
     hash<uint64_t> hasher;
-    return hasher(entity.getId());
+    return hasher(entity.id());
   }
 };
 

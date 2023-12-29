@@ -22,20 +22,20 @@ SceneGraph::EntityList::const_iterator SceneGraph::findByName(
     const std::string &name) const
 {
   return std::find_if(entities.begin(), entities.end(),
-                      [&](const auto &elem) { return elem.getName() == name; });
+                      [&](const auto &elem) { return elem.name() == name; });
 }
 
 SceneGraph::EntityList::iterator SceneGraph::findByName(const std::string &name)
 {
   return std::find_if(entities.begin(), entities.end(),
-                      [&](const auto &elem) { return elem.getName() == name; });
+                      [&](const auto &elem) { return elem.name() == name; });
 }
 
 std::vector<const Entity *> SceneGraph::findAllByName(const std::string &name) const
 {
   vector<const Entity *> ptrs;
   for (const auto &e : entities) {
-    if (e.getName() == name) ptrs.push_back(std::addressof(e));
+    if (e.name() == name) ptrs.push_back(std::addressof(e));
   }
   return ptrs;
 }
@@ -44,7 +44,7 @@ std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
 {
   vector<Entity *> ptrs;
   for (auto &e : entities) {
-    if (e.getName() == name) ptrs.push_back(std::addressof(e));
+    if (e.name() == name) ptrs.push_back(std::addressof(e));
   }
   return ptrs;
 }
@@ -72,7 +72,7 @@ Entity *SceneGraph::newEntity(const YAML::Node &node)
     auto &t = node["transform"];
     auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
     auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
-    ret->setTransform(std::move(concrete));
+    ret->transform(std::move(concrete));
   }
 
   if (node["components"] && node["components"].IsSequence()) {
