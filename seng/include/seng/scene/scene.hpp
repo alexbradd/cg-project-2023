@@ -70,7 +70,6 @@ class SceneEventToken {
  */
 class Scene {
  public:
-  using EventHandlerType = std::tuple<std::uint64_t, std::function<void(float)>>;
   /// Typedef for the collection holding all entities in the scene
   using EntityList = std::list<Entity>;
 
@@ -205,6 +204,8 @@ class Scene {
   void fireEventType(SceneEvents event, float delta) const;
 
  private:
+  using EventHandlerType = std::tuple<std::uint64_t, std::function<void(float)>>;
+
   Application *m_app;
   rendering::Renderer *m_renderer;
 
