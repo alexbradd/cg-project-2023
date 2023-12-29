@@ -78,17 +78,17 @@ class Scene {
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  const components::Camera *camera() const { return m_mainCamera; }
+  const components::Camera *mainCamera() const { return m_mainCamera; }
 
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  components::Camera *camera() { return m_mainCamera; }
+  components::Camera *mainCamera() { return m_mainCamera; }
 
   /**
    * Registers the given camera as the camera that will be used for drawing.
    */
-  void setMainCamera(components::Camera *cam);
+  void mainCamera(components::Camera *cam);
 
   /**
    * Parse the scene YAML from disk and set the state of this scene to the

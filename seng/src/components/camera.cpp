@@ -46,7 +46,7 @@ void Camera::initialize()
 
   cameras.push_back(this);
 
-  if (registerAsMain) entity->scene().setMainCamera(this);
+  if (registerAsMain) entity->scene().mainCamera(this);
 }
 
 Camera::~Camera()
