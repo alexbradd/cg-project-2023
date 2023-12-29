@@ -14,27 +14,27 @@ using namespace seng::scene;
 using namespace std;
 
 SceneGraph::SceneGraph(Application &app, Scene &scene) :
-    app(std::addressof(app)), scene(std::addressof(scene))
+    m_app(std::addressof(app)), m_scene(std::addressof(scene))
 {
 }
 
 SceneGraph::EntityList::const_iterator SceneGraph::findByName(
     const std::string &name) const
 {
-  return std::find_if(entities.begin(), entities.end(),
+  return std::find_if(m_entities.begin(), m_entities.end(),
                       [&](const auto &elem) { return elem.name() == name; });
 }
 
 SceneGraph::EntityList::iterator SceneGraph::findByName(const std::string &name)
 {
-  return std::find_if(entities.begin(), entities.end(),
+  return std::find_if(m_entities.begin(), m_entities.end(),
                       [&](const auto &elem) { return elem.name() == name; });
 }
 
 std::vector<const Entity *> SceneGraph::findAllByName(const std::string &name) const
 {
   vector<const Entity *> ptrs;
-  for (const auto &e : entities) {
+  for (const auto &e : m_entities) {
     if (e.name() == name) ptrs.push_back(std::addressof(e));
   }
   return ptrs;
@@ -43,7 +43,7 @@ std::vector<const Entity *> SceneGraph::findAllByName(const std::string &name) c
 std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
 {
   vector<Entity *> ptrs;
-  for (auto &e : entities) {
+  for (auto &e : m_entities) {
     if (e.name() == name) ptrs.push_back(std::addressof(e));
   }
   return ptrs;
@@ -51,8 +51,8 @@ std::vector<Entity *> SceneGraph::findAllByName(const std::string &name)
 
 Entity *SceneGraph::newEntity(std::string name)
 {
-  entities.push_back(Entity(*app, *scene, name));
-  return &entities.back();
+  m_entities.push_back(Entity(*m_app, *m_scene, name));
+  return &m_entities.back();
 }
 
 Entity *SceneGraph::newEntity(const YAML::Node &node)
@@ -94,7 +94,7 @@ Entity *SceneGraph::newEntity(const YAML::Node &node)
 
 void SceneGraph::remove(EntityList::const_iterator i)
 {
-  entities.erase(i);
+  m_entities.erase(i);
 }
 
 void SceneGraph::remove(const Entity *e)
@@ -103,8 +103,8 @@ void SceneGraph::remove(const Entity *e)
     seng::log::warning("Tried to remove a null entity... Something is wrong");
     return;
   }
-  auto it = std::find(entities.begin(), entities.end(), *e);
-  if (it == entities.end()) {
+  auto it = std::find(m_entities.begin(), m_entities.end(), *e);
+  if (it == m_entities.end()) {
     seng::log::warning(
         "Tried to remove an entity not registered in the scene graph... Something is "
         "wrong");
@@ -116,7 +116,7 @@ void SceneGraph::remove(const Entity *e)
 void SceneGraph::remove(const string &name)
 {
   auto it = findByName(name);
-  if (it == entities.end()) {
+  if (it == m_entities.end()) {
     seng::log::warning("Could not find an entity with the given name to remove");
     return;
   }
@@ -125,5 +125,5 @@ void SceneGraph::remove(const string &name)
 
 void SceneGraph::clear()
 {
-  entities.clear();
+  m_entities.clear();
 }

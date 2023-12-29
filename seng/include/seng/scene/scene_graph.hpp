@@ -118,9 +118,9 @@ class SceneGraph {
   void clear();
 
  private:
-  Application *app;
-  Scene *scene;
-  EntityList entities;
+  Application *m_app;
+  Scene *m_scene;
+  EntityList m_entities;
 };
 
 }  // namespace seng::scene
