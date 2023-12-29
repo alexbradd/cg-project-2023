@@ -18,14 +18,14 @@ Buffer::Buffer(const Device &dev,
                vk::DeviceSize size,
                vk::MemoryPropertyFlags memFlags,
                bool bind) :
-    vulkanDev(std::addressof(dev)),
-    usage(usage),
-    size(size),
-    handle(
+    m_device(std::addressof(dev)),
+    m_usage(usage),
+    m_size(size),
+    m_handle(
         vk::raii::Buffer(dev.logical(), {{}, size, usage, vk::SharingMode::eExclusive})),
-    memRequirements(handle.getMemoryRequirements()),
-    memIndex(dev.findMemoryIndex(memRequirements.memoryTypeBits, memFlags)),
-    memory(dev.logical(), vk::MemoryAllocateInfo{memRequirements.size, memIndex})
+    m_memRequirements(m_handle.getMemoryRequirements()),
+    m_memIndex(dev.findMemoryIndex(m_memRequirements.memoryTypeBits, memFlags)),
+    m_memory(dev.logical(), vk::MemoryAllocateInfo{m_memRequirements.size, m_memIndex})
 {
   log::dbg("Allocated buffer");
   if (bind) this->bind(0);
@@ -33,7 +33,7 @@ Buffer::Buffer(const Device &dev,
 
 void Buffer::bind(vk::DeviceSize offset) const
 {
-  handle.bindMemory(*memory, offset);
+  m_handle.bindMemory(*m_memory, offset);
 }
 
 void Buffer::resize(vk::DeviceSize size,
@@ -41,36 +41,36 @@ void Buffer::resize(vk::DeviceSize size,
                     const vk::raii::CommandPool &pool)
 {
   // Create new buffer
-  vk::BufferCreateInfo newInfo{{}, size, usage, vk::SharingMode::eExclusive};
-  vk::raii::Buffer newBuffer(vulkanDev->logical(), newInfo);
+  vk::BufferCreateInfo newInfo{{}, size, m_usage, vk::SharingMode::eExclusive};
+  vk::raii::Buffer newBuffer(m_device->logical(), newInfo);
 
   // Allocate new buffer
   vk::MemoryRequirements newMemRequirements(newBuffer.getMemoryRequirements());
-  vk::MemoryAllocateInfo newAllocateInfo{newMemRequirements.size, memIndex};
-  vk::raii::DeviceMemory newMemory(vulkanDev->logical(), newAllocateInfo);
+  vk::MemoryAllocateInfo newAllocateInfo{newMemRequirements.size, m_memIndex};
+  vk::raii::DeviceMemory newMemory(m_device->logical(), newAllocateInfo);
   newBuffer.bindMemory(*newMemory, 0);
 
   // Copy old contents to new buffer
-  this->rawCopy(newBuffer, {0, 0, this->size}, pool, queue);
-  vulkanDev->logical().waitIdle();
+  this->rawCopy(newBuffer, {0, 0, this->m_size}, pool, queue);
+  m_device->logical().waitIdle();
 
   // Replace the old handles (RAII takes care of deallocation)
-  this->size = size;
-  this->memRequirements = newMemRequirements;
-  this->memory = std::move(newMemory);
-  this->handle = std::move(newBuffer);
+  this->m_size = size;
+  this->m_memRequirements = newMemRequirements;
+  this->m_memory = std::move(newMemory);
+  this->m_handle = std::move(newBuffer);
 }
 
 void *Buffer::lockMemory(vk::DeviceSize offset,
                          vk::DeviceSize size,
                          vk::MemoryMapFlags flags) const
 {
-  return memory.mapMemory(offset, size, flags);
+  return m_memory.mapMemory(offset, size, flags);
 }
 
 void Buffer::unlockMemory() const
 {
-  memory.unmapMemory();
+  m_memory.unmapMemory();
 }
 
 void Buffer::load(const void *data,
@@ -90,8 +90,8 @@ void Buffer::rawCopy(const vk::raii::Buffer &dest,
                      [[maybe_unused]] const vk::raii::Fence *fence) const
 {
   queue.waitIdle();
-  CommandBuffer::recordSingleUse(*vulkanDev, pool, queue, [&](auto &buf) {
-    buf.buffer().copyBuffer(*handle, *dest, copyRegion);
+  CommandBuffer::recordSingleUse(*m_device, pool, queue, [&](auto &buf) {
+    buf.buffer().copyBuffer(*m_handle, *dest, copyRegion);
   });
 }
 
@@ -101,10 +101,10 @@ void Buffer::copy(const Buffer &dest,
                   const vk::raii::Queue &queue,
                   const vk::raii::Fence *fence) const
 {
-  rawCopy(dest.handle, copyRegion, pool, queue, fence);
+  rawCopy(dest.m_handle, copyRegion, pool, queue, fence);
 }
 
 Buffer::~Buffer()
 {
-  if (*handle != vk::Buffer{}) log::dbg("Destroying buffer");
+  if (*m_handle != vk::Buffer{}) log::dbg("Destroying buffer");
 }

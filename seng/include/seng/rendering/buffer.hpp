@@ -20,12 +20,11 @@ class Buffer {
   /**
    * Allocate a new buffer, also bind it if instructed to do so.
    */
-  Buffer(
-      const Device &dev,
-      vk::BufferUsageFlags usage,
-      vk::DeviceSize size,
-      vk::MemoryPropertyFlags memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal,
-      bool bind = true);
+  Buffer(const Device &dev,
+         vk::BufferUsageFlags usage,
+         vk::DeviceSize size,
+         vk::MemoryPropertyFlags memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal,
+         bool bind = true);
   Buffer(const Buffer &) = delete;
   Buffer(Buffer &&) = default;
   ~Buffer();
@@ -33,7 +32,7 @@ class Buffer {
   Buffer &operator=(const Buffer &) = delete;
   Buffer &operator=(Buffer &&) = default;
 
-  const vk::raii::Buffer &buffer() const { return handle; }
+  const vk::raii::Buffer &buffer() const { return m_handle; }
 
   /**
    * Bind the buffer at the give offset
@@ -78,13 +77,13 @@ class Buffer {
             const vk::raii::Fence *fence = nullptr) const;
 
  private:
-  const Device *vulkanDev;
-  vk::BufferUsageFlags usage;
-  vk::DeviceSize size;
-  vk::raii::Buffer handle;
-  vk::MemoryRequirements memRequirements;
-  uint32_t memIndex;
-  vk::raii::DeviceMemory memory;
+  const Device *m_device;
+  vk::BufferUsageFlags m_usage;
+  vk::DeviceSize m_size;
+  vk::raii::Buffer m_handle;
+  vk::MemoryRequirements m_memRequirements;
+  uint32_t m_memIndex;
+  vk::raii::DeviceMemory m_memory;
 
   /**
    * Copy a region of this buffer into one of the destination buffer.
