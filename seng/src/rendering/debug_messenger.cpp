@@ -8,22 +8,22 @@ using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
-DebugMessenger::DebugMessenger(Instance &instance, bool allocate)
-    : m_debugMessenger() {
+DebugMessenger::DebugMessenger(Instance &instance, bool allocate) : m_debugMessenger()
+{
   if (allocate)
-    m_debugMessenger =
-        make_unique<DebugUtilsMessengerEXT>(instance, createInfo());
+    m_debugMessenger = make_unique<DebugUtilsMessengerEXT>(instance, createInfo());
 }
 
-vk::DebugUtilsMessengerCreateInfoEXT DebugMessenger::createInfo() {
+vk::DebugUtilsMessengerCreateInfoEXT DebugMessenger::createInfo()
+{
   using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
   using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
 
   vk::DebugUtilsMessengerCreateInfoEXT ci{};
   vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
       Severity::eVerbose | Severity::eWarning | Severity::eError);
-  vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
-      Type::eGeneral | Type::ePerformance | Type::eValidation);
+  vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(Type::eGeneral | Type::ePerformance |
+                                                     Type::eValidation);
   ci.messageSeverity = severityFlags;
   ci.messageType = messageTypeFlags;
   ci.pfnUserCallback = debugCallback;
@@ -34,7 +34,8 @@ VkBool32 DebugMessenger::debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT,
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    void *) {
+    void *)
+{
   switch (messageSeverity) {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
       break;
