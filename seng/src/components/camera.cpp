@@ -1,5 +1,6 @@
 #include <seng/application.hpp>
 #include <seng/components/camera.hpp>
+#include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/scene/entity.hpp>

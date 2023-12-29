@@ -1,4 +1,5 @@
 #include <seng/components/scene_config_component_factory.hpp>
+#include <seng/components/transform.hpp>
 #include <seng/components/utils.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>

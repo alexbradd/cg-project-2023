@@ -1,10 +1,8 @@
 #pragma once
 
-#include <seng/components/base_component.hpp>
-#include <seng/components/transform.hpp>
+#include <seng/components/definitions.hpp>
 #include <seng/components/utils.hpp>
 
-#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -18,6 +16,7 @@ class Application;
 
 namespace seng::components {
 class BaseComponent;
+class Transform;
 };  // namespace seng::components
 
 namespace seng::scene {
@@ -55,6 +54,7 @@ class Entity {
 
   Entity& operator=(const Entity&) = delete;
   Entity& operator=(Entity&&) = default;
+  ~Entity();
 
   /// Equality operator overload. Since entities have unique IDs in the scene,
   /// we simply compare the ids.

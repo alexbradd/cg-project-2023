@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>
@@ -19,6 +20,8 @@ Entity::Entity(Application& app, Scene& s, std::string n) :
 {
   transform->initialize();
 }
+
+Entity::~Entity() = default;
 
 void Entity::setTransform(std::unique_ptr<components::Transform>&& t)
 {
