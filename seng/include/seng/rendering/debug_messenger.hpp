@@ -17,7 +17,7 @@ class DebugMessenger {
   static vk::DebugUtilsMessengerCreateInfoEXT createInfo();
 
  private:
-  std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> debugMessenger;
+  std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> m_debugMessenger;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

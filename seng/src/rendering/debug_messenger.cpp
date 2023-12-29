@@ -9,9 +9,9 @@ using namespace seng::rendering;
 using namespace vk::raii;
 
 DebugMessenger::DebugMessenger(Instance &instance, bool allocate)
-    : debugMessenger() {
+    : m_debugMessenger() {
   if (allocate)
-    debugMessenger =
+    m_debugMessenger =
         make_unique<DebugUtilsMessengerEXT>(instance, createInfo());
 }
 
