@@ -39,17 +39,17 @@ static void uploadTo(const Device &device,
 Mesh::Mesh(const Renderer &renderer,
            const std::vector<Vertex> &vertices,
            const std::vector<uint32_t> &indices) :
-    vertices(renderer.getDevice(), vertexBufferUsage, vertices.size() * sizeof(Vertex)),
-    indices(renderer.getDevice(), indexBufferUsage, indices.size() * sizeof(uint32_t)),
-    count(indices.size())
+    m_vertices(renderer.getDevice(), vertexBufferUsage, vertices.size() * sizeof(Vertex)),
+    m_indices(renderer.getDevice(), indexBufferUsage, indices.size() * sizeof(uint32_t)),
+    m_count(indices.size())
 {
   const auto &device = renderer.getDevice();
   const auto &cmdPool = renderer.getCommandPool();
   const auto &queue = device.graphicsQueue();
 
-  uploadTo(device, cmdPool, queue, this->vertices, vertices.size() * sizeof(Vertex), 0,
+  uploadTo(device, cmdPool, queue, this->m_vertices, vertices.size() * sizeof(Vertex), 0,
            vertices.data());
-  uploadTo(device, cmdPool, queue, this->indices, indices.size() * sizeof(uint32_t), 0,
+  uploadTo(device, cmdPool, queue, this->m_indices, indices.size() * sizeof(uint32_t), 0,
            indices.data());
 }
 

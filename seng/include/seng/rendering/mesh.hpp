@@ -30,9 +30,9 @@ class Mesh {
   Mesh &operator=(Mesh &&) = default;
 
   // Accessors
-  const Buffer &vertexBuffer() const { return vertices; }
-  const Buffer &indexBuffer() const { return indices; }
-  uint32_t indexCount() const { return count; }
+  const Buffer &vertexBuffer() const { return m_vertices; }
+  const Buffer &indexBuffer() const { return m_indices; }
+  uint32_t indexCount() const { return m_count; }
 
   /**
    * Factory method that creates a mesh by loading the model with the given name.
@@ -45,9 +45,9 @@ class Mesh {
                            std::string name);
 
  private:
-  Buffer vertices;
-  Buffer indices;
-  uint32_t count;
+  Buffer m_vertices;
+  Buffer m_indices;
+  uint32_t m_count;
 
   /**
    * Private constructor. Users must go through the `loadFromDisk()` factory method.
