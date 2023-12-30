@@ -1,6 +1,5 @@
 #pragma once
 
-#include <seng/application_config.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/primitive_types.hpp>
 
@@ -41,7 +40,7 @@ class Mesh {
    * filename construction is done like this: `${assetPath}/${name}.obj`
    */
   static Mesh loadFromDisk(const Renderer &renderer,
-                           const ApplicationConfig &config,
+                           const std::string &assetPath,
                            std::string name);
 
  private:

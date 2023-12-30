@@ -99,7 +99,7 @@ void Scene::loadFromDisk(std::string sceneName)
     auto meshes = sceneConfig["Meshes"];
     for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
       std::string name = i->as<string>();
-      m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, config, name));
+      m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, config.assetPath, name));
     }
   }
 

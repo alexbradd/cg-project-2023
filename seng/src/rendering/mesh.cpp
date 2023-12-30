@@ -1,4 +1,3 @@
-#include <seng/application_config.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -54,11 +53,10 @@ Mesh::Mesh(const Renderer &renderer,
 }
 
 Mesh Mesh::loadFromDisk(const Renderer &renderer,
-                        const ApplicationConfig &config,
+                        const std::string &assetPath,
                         std::string name)
 {
-  std::string modelPath{filesystem::path{config.assetPath} /
-                        filesystem::path{name + ".obj"}};
+  std::string modelPath{filesystem::path{assetPath} / filesystem::path{name + ".obj"}};
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
