@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <list>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -80,6 +81,15 @@ class Scene {
 
   Scene &operator=(const Scene &) = delete;
   Scene &operator=(Scene &&) = delete;
+
+  /**
+   * Parse the scene YAML corresponding to the scene with the given name from disk
+   * and create a new instance maching it.
+   *
+   * Scenes are searched inside the `scenePath`. Filename construction is done
+   * like this: `${scenePath}/${sceneName}.yml`.
+   */
+  static std::unique_ptr<Scene> loadFromDisk(Application &app, std::string sceneName);
 
   /**
    * Find the first Entity in the scene graph with the given name. If no such
@@ -165,15 +175,6 @@ class Scene {
    * Registers the given camera as the camera that will be used for drawing.
    */
   void mainCamera(components::Camera *cam);
-
-  /**
-   * Parse the scene YAML from disk and set the state of this scene to the
-   * parsed one.
-   *
-   * Scenes are searched inside the `scenePath`. Filename construction is done
-   * like this: `${scenePath}/${sceneName}.yml`.
-   */
-  void loadFromDisk(std::string sceneName);
 
   /**
    * Draw the scene's contents into the currently on-going frame reprsented by the

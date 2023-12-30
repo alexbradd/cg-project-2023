@@ -51,17 +51,10 @@ vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
   return vk::raii::DescriptorSetLayout(device.logical(), info);
 }
 
-void Scene::loadFromDisk(std::string sceneName)
+std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneName)
 {
-  // clear old state
-  m_stages.clear();
-  m_shaders.clear();
-  // TODO: clear old instances
-  m_meshes.clear();
-  removeAllEntities();
-  m_mainCamera = nullptr;
-
-  auto &config = m_app->config();
+  std::unique_ptr<Scene> s = std::make_unique<Scene>(app);
+  auto &config = s->m_app->config();
 
   // Parse config file
   filesystem::path scene{filesystem::path{config.scenePath} /
@@ -69,9 +62,9 @@ void Scene::loadFromDisk(std::string sceneName)
   YAML::Node sceneConfig = YAML::LoadFile(scene.string());
 
   if (sceneConfig["Shaders"] && sceneConfig["Shaders"].IsSequence()) {
-    auto s = sceneConfig["Shaders"];
-    for (YAML::const_iterator i = s.begin(); i != s.end(); ++i) {
-      parseShader(config.shaderPath, *i);
+    auto shaders = sceneConfig["Shaders"];
+    for (YAML::const_iterator i = shaders.begin(); i != shaders.end(); ++i) {
+      s->parseShader(config.shaderPath, *i);
     }
   }
 
@@ -82,14 +75,16 @@ void Scene::loadFromDisk(std::string sceneName)
   if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
     auto meshes = sceneConfig["Meshes"];
     for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++)
-      parseMesh(config.assetPath, *i);
+      s->parseMesh(config.assetPath, *i);
   }
 
   // Load entities
   if (sceneConfig["Entities"] && sceneConfig["Entities"].IsSequence()) {
     auto e = sceneConfig["Entities"];
-    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) parseEntity(*i);
+    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) s->parseEntity(*i);
   }
+
+  return s;
 }
 
 void Scene::parseShader(const string &shaderPath, const YAML::Node &shader)
