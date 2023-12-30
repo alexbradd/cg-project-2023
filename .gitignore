@@ -3,6 +3,8 @@ build/
 .gdb_history
 .gdbinit
 
+.vscode/
+
 # From github/gitignore/CMake
 CMakeLists.txt.user
 CMakeCache.txt
