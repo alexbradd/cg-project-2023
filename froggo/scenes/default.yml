@@ -1,7 +1,7 @@
 Shaders:
-  - name: Test
-    vertName: vert
-    fragName: frag
+  - name: test
+    vert: simple_vert
+    frag: simple_frag
 
 ShaderInstances:
   - name: test

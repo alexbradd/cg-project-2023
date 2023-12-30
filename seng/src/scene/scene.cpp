@@ -10,24 +10,21 @@
 #include <seng/scene/scene.hpp>
 
 #include <yaml-cpp/yaml.h>
-#include <tuple>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
 #include <functional>
 #include <memory>
-#include <unordered_set>
+#include <string>
+#include <tuple>
 
 using namespace seng::scene;
 using namespace seng::rendering;
 using namespace std;
 
-#define VERT_NAME "simple_vert"
-#define FRAG_NAME "simple_frag"
-#define SHADER_NAME "default"
-
-// Initializer functions
+// Misc functions
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
+static bool isYamlNodeValidShader(const YAML::Node &node);
 
 uint64_t Scene::EVENT_INDEX = 0;
 
@@ -69,43 +66,41 @@ void Scene::loadFromDisk(std::string sceneName)
   filesystem::path scene{filesystem::path{config.scenePath} /
                          filesystem::path{sceneName + ".yml"}};
   YAML::Node sceneConfig = YAML::LoadFile(scene.string());
-  /* unordered_set<string> shaderStageNames; */
-  /* unordered_set<string> shaderNames; */
-  // TODO: how to go about instances?
-  unordered_set<string> meshNames;
 
-  // TODO: Shaders
-  if (sceneConfig["Shaders"]) seng::log::dbg("Got shaders");
+  if (sceneConfig["Shaders"] && sceneConfig["Shaders"].IsSequence()) {
+    auto s = sceneConfig["Shaders"];
+    for (YAML::const_iterator i = s.begin(); i != s.end(); ++i) {
+      auto &shader = *i;
+      if (!isYamlNodeValidShader(shader)) {
+        seng::log::warning("Malformed YAML shader, skipping");
+        continue;
+      }
 
-  // TODO: Shaders isntances
-  if (sceneConfig["ShaderInstances"]) seng::log::dbg("Got shader instances");
+      std::string vertName = shader["vert"].as<string>();
+      m_stages.try_emplace(vertName, m_renderer->device(), config.shaderPath, vertName,
+                           ShaderStage::Type::eVertex);
 
-  // Parse mesh list
-  if (sceneConfig["Meshes"]) {
-    auto meshes = sceneConfig["Meshes"];
-    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
-      meshNames.insert(i->as<string>());
+      std::string fragName = shader["frag"].as<string>();
+      m_stages.try_emplace(fragName, m_renderer->device(), config.shaderPath, fragName,
+                           ShaderStage::Type::eFragment);
+
+      std::string shaderName = shader["name"].as<string>();
+      vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};
+      m_shaders.try_emplace(shaderName, m_renderer->device(), m_renderer->renderPass(),
+                            m_globalDescriptorSetLayout, shaderName, s);
     }
   }
 
-  // Load ShaderStages
-  // FIXME: stub
-  m_stages.try_emplace(VERT_NAME, m_renderer->device(), config.shaderPath, VERT_NAME,
-                       ShaderStage::Type::eVertex);
-  m_stages.try_emplace(FRAG_NAME, m_renderer->device(), config.shaderPath, FRAG_NAME,
-                       ShaderStage::Type::eFragment);
+  // TODO: Shaders instances
+  if (sceneConfig["ShaderInstances"]) seng::log::dbg("Got shader instances");
 
-  // Load ObjectShaders
-  // FIXME: stub
-  vector<const ShaderStage *> s{&m_stages.at(VERT_NAME), &m_stages.at(FRAG_NAME)};
-  m_shaders.try_emplace(SHADER_NAME, m_renderer->device(), m_renderer->renderPass(),
-                        m_globalDescriptorSetLayout, SHADER_NAME, s);
-
-  // TODO: load shader instances
-
-  // Load meshes
-  for (const auto &s : meshNames) {
-    m_meshes.emplace(s, Mesh::loadFromDisk(*m_renderer, config, s));
+  // Parse mesh list
+  if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
+    auto meshes = sceneConfig["Meshes"];
+    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
+      std::string name = i->as<string>();
+      m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, config, name));
+    }
   }
 
   // Load entities
@@ -113,6 +108,12 @@ void Scene::loadFromDisk(std::string sceneName)
     auto e = sceneConfig["Entities"];
     for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) newEntity(*i);
   }
+}
+
+bool isYamlNodeValidShader(const YAML::Node &node)
+{
+  return node.IsMap() && node["name"] && node["name"].IsScalar() && node["vert"] &&
+         node["vert"].IsScalar() && node["frag"] && node["frag"].IsScalar();
 }
 
 Scene::EntityList::const_iterator Scene::findByName(const std::string &name) const
@@ -236,22 +237,26 @@ void Scene::mainCamera(components::Camera *cam)
 void Scene::draw(const FrameHandle &handle)
 {
   const auto &cmd = m_renderer->getCommandBuffer(handle);
-  auto &shader = m_shaders.at(SHADER_NAME);  // FIXME: stub
 
   if (m_mainCamera == nullptr) return;
 
-  shader.globalUniformObject().projection = m_mainCamera->projectionMatrix();
-  shader.globalUniformObject().view = m_mainCamera->viewMatrix();
-  shader.uploadGlobalState(
-      cmd, m_renderer->getDescriptorSet(handle, *m_globalDescriptorSetLayout));
+  for (auto &shaderNamePair : m_shaders) {
+    auto &shader = shaderNamePair.second;
 
-  for (const auto &mesh : m_meshes) {  // FIXME: should be per game object not per mesh
-    shader.updateModelState(cmd, glm::mat4(1));
-    cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0});
-    cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0,
-                                 vk::IndexType::eUint32);
-    m_shaders.at(SHADER_NAME).use(cmd);  // FIXME: stub
-    cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
+    shader.globalUniformObject().projection = m_mainCamera->projectionMatrix();
+    shader.globalUniformObject().view = m_mainCamera->viewMatrix();
+    shader.uploadGlobalState(
+        cmd, m_renderer->getDescriptorSet(handle, *m_globalDescriptorSetLayout));
+
+    // FIXME: should be per entity rendererd with the shader not per mesh
+    for (const auto &mesh : m_meshes) {
+      shader.updateModelState(cmd, glm::mat4(1));
+      cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0});
+      cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0,
+                                   vk::IndexType::eUint32);
+      shader.use(cmd);
+      cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
+    }
   }
 }
 
