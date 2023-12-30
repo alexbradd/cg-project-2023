@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #include <string>
 #include <vector>
 
@@ -29,14 +26,12 @@ std::vector<T> many(typename std::vector<T>::size_type n, Args &&...args)
 
 /**
  * Helper function to combine a given hash with a generated hash for the input param.
- *
- * Taken straight out of Vulkan-Samples's `framework/common/helper.h`
  */
 template <class T>
 inline void hashCombine(size_t &seed, const T &v)
 {
   std::hash<T> hasher;
-  glm::detail::hash_combine(seed, hasher(v));
+  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 }  // namespace seng::internal

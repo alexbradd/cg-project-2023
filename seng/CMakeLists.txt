@@ -26,6 +26,12 @@ find_package(glfw3 3.3 REQUIRED)
 # find_package(fmt REQUIRED)
 # find_package(glm REQUIRED)
 
+target_compile_definitions(glm
+  INTERFACE
+    GLM_FORCE_DEPTH_ZERO_TO_ONE
+    GLM_FORCE_RADIANS
+)
+
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
