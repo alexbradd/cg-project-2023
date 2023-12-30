@@ -62,6 +62,7 @@ void Scene::loadFromDisk(std::string sceneName)
   m_mainCamera = nullptr;
 
   auto &config = m_app->config();
+
   // Parse config file
   filesystem::path scene{filesystem::path{config.scenePath} /
                          filesystem::path{sceneName + ".yml"}};
@@ -70,24 +71,7 @@ void Scene::loadFromDisk(std::string sceneName)
   if (sceneConfig["Shaders"] && sceneConfig["Shaders"].IsSequence()) {
     auto s = sceneConfig["Shaders"];
     for (YAML::const_iterator i = s.begin(); i != s.end(); ++i) {
-      auto &shader = *i;
-      if (!isYamlNodeValidShader(shader)) {
-        seng::log::warning("Malformed YAML shader, skipping");
-        continue;
-      }
-
-      std::string vertName = shader["vert"].as<string>();
-      m_stages.try_emplace(vertName, m_renderer->device(), config.shaderPath, vertName,
-                           ShaderStage::Type::eVertex);
-
-      std::string fragName = shader["frag"].as<string>();
-      m_stages.try_emplace(fragName, m_renderer->device(), config.shaderPath, fragName,
-                           ShaderStage::Type::eFragment);
-
-      std::string shaderName = shader["name"].as<string>();
-      vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};
-      m_shaders.try_emplace(shaderName, m_renderer->device(), m_renderer->renderPass(),
-                            m_globalDescriptorSetLayout, shaderName, s);
+      parseShader(config.shaderPath, *i);
     }
   }
 
@@ -97,23 +81,84 @@ void Scene::loadFromDisk(std::string sceneName)
   // Parse mesh list
   if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
     auto meshes = sceneConfig["Meshes"];
-    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++) {
-      std::string name = i->as<string>();
-      m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, config.assetPath, name));
-    }
+    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++)
+      parseMesh(config.assetPath, *i);
   }
 
   // Load entities
   if (sceneConfig["Entities"] && sceneConfig["Entities"].IsSequence()) {
     auto e = sceneConfig["Entities"];
-    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) newEntity(*i);
+    for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) parseEntity(*i);
   }
+}
+
+void Scene::parseShader(const string &shaderPath, const YAML::Node &shader)
+{
+  if (!isYamlNodeValidShader(shader)) {
+    seng::log::warning("Malformed YAML shader, skipping");
+    return;
+  }
+
+  std::string vertName = shader["vert"].as<string>();
+  m_stages.try_emplace(vertName, m_renderer->device(), shaderPath, vertName,
+                       ShaderStage::Type::eVertex);
+
+  std::string fragName = shader["frag"].as<string>();
+  m_stages.try_emplace(fragName, m_renderer->device(), shaderPath, fragName,
+                       ShaderStage::Type::eFragment);
+
+  std::string shaderName = shader["name"].as<string>();
+  vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};
+  m_shaders.try_emplace(shaderName, m_renderer->device(), m_renderer->renderPass(),
+                        m_globalDescriptorSetLayout, shaderName, s);
 }
 
 bool isYamlNodeValidShader(const YAML::Node &node)
 {
   return node.IsMap() && node["name"] && node["name"].IsScalar() && node["vert"] &&
          node["vert"].IsScalar() && node["frag"] && node["frag"].IsScalar();
+}
+
+void Scene::parseMesh(const std::string &assetPath, const YAML::Node &node)
+{
+  std::string name = node.as<string>();
+  m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, assetPath, name));
+}
+
+void Scene::parseEntity(const YAML::Node &node)
+{
+  using namespace seng::components;
+
+  if (!node.IsMap()) {
+    seng::log::warning("Malformed YAML node");
+    return;
+  }
+
+  std::string name = "Entity";
+  if (node["name"] && node["name"].IsScalar()) name = node["name"].as<string>();
+  Entity *ret = newEntity(name);
+
+  if (node["transform"] && node["transform"].IsMap()) {
+    auto &t = node["transform"];
+    auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
+    auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
+    ret->transform(std::move(concrete));
+  }
+
+  if (node["components"] && node["components"].IsSequence()) {
+    auto &comps = node["components"];
+    for (YAML::const_iterator i = comps.begin(); i != comps.end(); ++i) {
+      auto &comp = *i;
+      if (!comp.IsMap() || !comp["id"] || !comp["id"].IsScalar()) {
+        seng::log::warning("Malformed YAML component, skipping...");
+        continue;
+      }
+      std::string id = comp["id"].as<string>();
+      std::unique_ptr<BaseComponent> ptr =
+          SceneConfigComponentFactory::create(*ret, id, comp);
+      ret->untypedInsert(id, std::move(ptr));
+    }
+  }
 }
 
 Scene::EntityList::const_iterator Scene::findByName(const std::string &name) const
@@ -150,43 +195,6 @@ Entity *Scene::newEntity(std::string name)
 {
   m_entities.push_back(Entity(*m_app, *this, name));
   return &m_entities.back();
-}
-
-Entity *Scene::newEntity(const YAML::Node &node)
-{
-  using namespace seng::components;
-
-  if (!node.IsMap()) {
-    seng::log::warning("Malformed YAML node");
-    return nullptr;
-  }
-
-  std::string name = "Entity";
-  if (node["name"] && node["name"].IsScalar()) name = node["name"].as<string>();
-  Entity *ret = newEntity(name);
-
-  if (node["transform"] && node["transform"].IsMap()) {
-    auto &t = node["transform"];
-    auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
-    auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
-    ret->transform(std::move(concrete));
-  }
-
-  if (node["components"] && node["components"].IsSequence()) {
-    auto &comps = node["components"];
-    for (YAML::const_iterator i = comps.begin(); i != comps.end(); ++i) {
-      auto &comp = *i;
-      if (!comp.IsMap() || !comp["id"] || !comp["id"].IsScalar()) {
-        seng::log::warning("Malformed YAML component, skipping...");
-        continue;
-      }
-      std::string id = comp["id"].as<string>();
-      std::unique_ptr<BaseComponent> ptr =
-          SceneConfigComponentFactory::create(*ret, id, comp);
-      ret->untypedInsert(id, std::move(ptr));
-    }
-  }
-  return ret;
 }
 
 void Scene::removeEntity(EntityList::const_iterator i)

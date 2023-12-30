@@ -128,12 +128,6 @@ class Scene {
   Entity *newEntity(std::string name);
 
   /**
-   * Create a new Entity into the scene graph from the given config node. If the
-   * node is malformed, nullptr will be returned.
-   */
-  Entity *newEntity(const YAML::Node &node);
-
-  /**
    * Delete the corresponding Entity from the scene graph.
    *
    * N.B. This incurs linear search time.
@@ -225,6 +219,10 @@ class Scene {
   std::unordered_map<SceneEvents, std::vector<EventHandlerType>> m_eventHandlers;
 
   static uint64_t EVENT_INDEX;
+
+  void parseShader(const std::string &shaderPath, const YAML::Node &node);
+  void parseMesh(const std::string &assetPath, const YAML::Node &node);
+  void parseEntity(const YAML::Node &node);
 };
 
 };  // namespace seng::scene
