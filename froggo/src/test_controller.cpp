@@ -17,6 +17,8 @@
 
 using namespace seng;
 
+size_t TestController::s_sceneIndex = 0;
+
 std::unique_ptr<components::BaseComponent> TestController::createFromConfig(
     scene::Entity &entity, const YAML::Node &node)
 {
@@ -44,6 +46,10 @@ void TestController::onUpdate(float deltaTime)
 
   // Misc
   if (m_input->keyDown(seng::KeyCode::eEnter)) recenter();
+  if (m_input->keyDown(seng::KeyCode::eKeyM)) {
+    s_sceneIndex = (s_sceneIndex + 1) % m_scenes.size();
+    entity->application().switchScene(m_scenes[s_sceneIndex]);
+  }
   if (m_input->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
 }
 

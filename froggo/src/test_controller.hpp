@@ -42,6 +42,9 @@ class TestController : public seng::components::ScriptComponent,
   seng::components::Transform *m_transform;
   seng::InputManager *m_input;
 
+  std::array<std::string, 2> m_scenes{"default", "other"};
+  static size_t s_sceneIndex;  // Static so that it can persist between scenes
+
   void handleMovement();
   void handleRotation();
   void recenter();
