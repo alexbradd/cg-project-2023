@@ -3,8 +3,9 @@ project(froggo)
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
-    main.cpp
-    test_controller.cpp
+    ./src/camera_orchestrator.cpp
+    ./src/main.cpp
+    ./src/test_controller.cpp
 )
 target_compile_features(${PROJECT_NAME}
   PRIVATE
