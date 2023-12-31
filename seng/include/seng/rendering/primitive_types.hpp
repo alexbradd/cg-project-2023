@@ -1,5 +1,6 @@
 #pragma once
 
+#include <seng/hashes.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
@@ -70,32 +71,6 @@ struct GlobalUniformObject {
 
 // Adapted from vulkan-tutorial.com's chapter about loading models
 namespace std {
-template <typename T, glm::qualifier Q>
-struct hash<glm::vec<2, T, Q>> {
-  size_t operator()(glm::vec<2, T, Q> const& v)
-  {
-    using seng::internal::hashCombine;
-    size_t seed = 0;
-    hash<T> hasher;
-    hashCombine(seed, hasher(v.x));
-    hashCombine(seed, hasher(v.y));
-    return seed;
-  }
-};
-
-template <typename T, glm::qualifier Q>
-struct hash<glm::vec<3, T, Q>> {
-  size_t operator()(glm::vec<3, T, Q> const& v)
-  {
-    using seng::internal::hashCombine;
-    size_t seed = 0;
-    hash<T> hasher;
-    hashCombine(seed, hasher(v.x));
-    hashCombine(seed, hasher(v.y));
-    return seed;
-  }
-};
-
 template <>
 struct hash<seng::rendering::Vertex> {
   size_t operator()(seng::rendering::Vertex const& vertex) const

@@ -7,6 +7,7 @@
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/hashes.hpp>
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
@@ -20,21 +21,6 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-
-// Copied from Vulkan-Samples. Needed so that we can put a DescriptorSetLayout handle in a
-// hashmap
-namespace std {
-template <>
-struct hash<vk::DescriptorSetLayout> {
-  std::size_t operator()(const vk::DescriptorSetLayout &descriptorSetLayout) const
-  {
-    std::size_t result = 0;
-    seng::internal::hashCombine(result,
-                                static_cast<VkDescriptorSetLayout>(descriptorSetLayout));
-    return result;
-  }
-};
-}  // namespace std
 
 namespace seng::rendering {
 
