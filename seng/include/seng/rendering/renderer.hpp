@@ -89,6 +89,11 @@ class Renderer {
   void requestDescriptorSet(vk::DescriptorSetLayout layout);
 
   /**
+   * Destroy the allocated descriptor set with the given layout
+   */
+  void clearDescriptorSet(vk::DescriptorSetLayout layout);
+
+  /**
    * Destroy all allocated descriptor sets and clear the pool.
    */
   void clearDescriptorSets();

@@ -211,30 +211,26 @@ void Renderer::signalResize()
 
 void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
 {
-  // Check if any of the frames do not have the layout registered.
-  // We can also "optimize" and check only one since we always keep them in sync,
-  // but just to be safe from inconsistent states.
-  bool notFound = false;
   for (auto &f : m_frames) {
     auto iter = f.descriptorSets.find(layout);
-    if (iter == f.descriptorSets.end()) {
-      notFound = true;
-      break;
-    }
-  }
-  // If the descriptor layout has not been founmd in some frames, allocate the
-  // map entries
-  if (notFound) {
-    for (auto &f : m_frames) {
-      array<vk::DescriptorSetLayout, 1> descs{layout};
 
-      vk::DescriptorSetAllocateInfo info{};
-      info.descriptorPool = *m_descriptorPool;
-      info.setSetLayouts(descs);
-      vk::raii::DescriptorSets sets(m_device.logical(), info);
-      f.descriptorSets.emplace(layout, std::move(sets[0]));
-    }
+    // If a descriptor set for the given layout has already been allocated,
+    // skip the frame (should never happen)
+    if (iter != f.descriptorSets.end()) continue;
+
+    array<vk::DescriptorSetLayout, 1> descs{layout};
+
+    vk::DescriptorSetAllocateInfo info{};
+    info.descriptorPool = *m_descriptorPool;
+    info.setSetLayouts(descs);
+    vk::raii::DescriptorSets sets(m_device.logical(), info);
+    f.descriptorSets.emplace(layout, std::move(sets[0]));
   }
+}
+
+void Renderer::clearDescriptorSet(vk::DescriptorSetLayout layout)
+{
+  for (auto &f : m_frames) f.descriptorSets.erase(layout);
 }
 
 void Renderer::clearDescriptorSets()
