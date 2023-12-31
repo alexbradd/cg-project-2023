@@ -49,13 +49,13 @@ void TestController::onUpdate(float deltaTime)
   }
 
   if (m_input->keyHold(seng::KeyCode::eUp))
-    m_transform->rotate(glm::radians(1.0f), 0.0f, 0.0f);
+    m_transform->rotate(glm::radians(1.0f), m_transform->right());
   else if (m_input->keyHold(seng::KeyCode::eDown))
-    m_transform->rotate(glm::radians(-1.0f), 0.0f, 0.0f);
+    m_transform->rotate(glm::radians(-1.0f), m_transform->right());
   else if (m_input->keyHold(seng::KeyCode::eLeft))
-    m_transform->rotate(0.0f, glm::radians(1.0f), 0.0f);
+    m_transform->rotate(glm::radians(1.0f), m_transform->up());
   else if (m_input->keyHold(seng::KeyCode::eRight))
-    m_transform->rotate(0.0f, glm::radians(-1.0f), 0.0f);
+    m_transform->rotate(glm::radians(-1.0f), m_transform->up());
 
   if (m_input->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
 }
