@@ -298,6 +298,6 @@ Scene::~Scene()
     m_renderer->device().logical().waitIdle();
 
     // Clear requested resources
-    m_renderer->clearDescriptorSets();
+    m_renderer->clearDescriptorSet(*m_globalDescriptorSetLayout);
   }
 }

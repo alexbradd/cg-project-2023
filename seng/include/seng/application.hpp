@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <seng/application_config.hpp>
 
 #include <memory>
@@ -55,6 +56,11 @@ class Application {
    */
   void stop();
 
+  /**
+   * Switch to the scene with the given name. The switch will be done before the start of
+   * the next frame.
+   */
+  void switchScene(const std::string &name);
 
  private:
   ApplicationConfig conf;
@@ -63,6 +69,8 @@ class Application {
   std::unique_ptr<rendering::Renderer> m_vulkan;
   std::unique_ptr<InputManager> m_inputManager;
   std::unique_ptr<scene::Scene> m_scene;
+
+  std::optional<std::string> m_newSceneName;
 };
 
 }  // namespace seng

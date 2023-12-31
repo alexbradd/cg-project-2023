@@ -30,11 +30,18 @@ void Application::run(unsigned int width, unsigned int height)
 
   m_vulkan = make_unique<Renderer>(conf, *m_glfwWindow);
   m_inputManager = make_unique<InputManager>(*m_glfwWindow);
-  m_scene = Scene::loadFromDisk(*this, "default");
+
+  switchScene("default");
 
   Timestamp lastFrame = Clock::now();
   while (!m_glfwWindow->shouldClose()) {
     try {
+      if (m_newSceneName.has_value()) {
+        m_scene = nullptr;  // destroys the current scene
+        m_scene = Scene::loadFromDisk(*this, *m_newSceneName);
+        m_newSceneName.reset();
+      }
+
       bool executed = m_vulkan->scopedFrame([&](auto& handle) {
         float deltaTime = inSeconds(Clock::now() - lastFrame);
 
@@ -49,6 +56,7 @@ void Application::run(unsigned int width, unsigned int height)
         m_scene->draw(handle);
         m_scene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
       });
+
       if (!executed)
         continue;
       else
@@ -67,6 +75,11 @@ void Application::run(unsigned int width, unsigned int height)
 void Application::stop()
 {
   if (m_glfwWindow) m_glfwWindow->close();
+}
+
+void Application::switchScene(const std::string& name)
+{
+  m_newSceneName = name;
 }
 
 Application::~Application() = default;
