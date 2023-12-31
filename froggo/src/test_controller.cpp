@@ -11,6 +11,7 @@
 #include <seng/rendering/glfw_window.hpp>
 
 #include <yaml-cpp/yaml.h>
+#include <glm/gtx/norm.hpp>
 
 #include <memory>
 
@@ -29,33 +30,58 @@ void TestController::scriptInitialize()
 {
   m_transform = entity->transform().get();
   m_input = entity->application().input().get();
+
+  initial_pos = m_transform->position();
+  initial_rot = m_transform->quaternion();
 }
 
 void TestController::onUpdate(float deltaTime)
 {
-  if (m_input->keyHold(seng::KeyCode::eKeyA))
-    m_transform->translate(-m_transform->right() * m_speed * deltaTime);
-  if (m_input->keyHold(seng::KeyCode::eKeyD))
-    m_transform->translate(m_transform->right() * m_speed * deltaTime);
-  if (m_input->keyHold(seng::KeyCode::eKeyW))
-    m_transform->translate(-m_transform->forward() * m_speed * deltaTime);
-  if (m_input->keyHold(seng::KeyCode::eKeyS))
-    m_transform->translate(m_transform->forward() * m_speed * deltaTime);
+  m_delta = deltaTime;
+
+  handleRotation();
+  handleMovement();
+
+  // Misc
+  if (m_input->keyDown(seng::KeyCode::eEnter)) recenter();
+  if (m_input->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
+}
+
+void TestController::handleMovement()
+{
+  glm::vec3 moveDirection(0.0f);
+
+  if (m_input->keyHold(seng::KeyCode::eKeyA)) moveDirection += -m_transform->right();
+  if (m_input->keyHold(seng::KeyCode::eKeyD)) moveDirection += m_transform->right();
+  if (m_input->keyHold(seng::KeyCode::eKeyW)) moveDirection += -m_transform->forward();
+  if (m_input->keyHold(seng::KeyCode::eKeyS)) moveDirection += m_transform->forward();
   if (m_input->keyHold(seng::KeyCode::eSpace)) {
     if (m_input->keyHold(seng::KeyCode::eModLeftShift))
-      m_transform->translate(-m_transform->up() * m_speed * deltaTime);
+      moveDirection += -m_transform->up();
     else
-      m_transform->translate(m_transform->up() * m_speed * deltaTime);
+      moveDirection += m_transform->up();
   }
 
-  if (m_input->keyHold(seng::KeyCode::eUp))
-    m_transform->rotate(glm::radians(1.0f), m_transform->right());
-  else if (m_input->keyHold(seng::KeyCode::eDown))
-    m_transform->rotate(glm::radians(-1.0f), m_transform->right());
-  else if (m_input->keyHold(seng::KeyCode::eLeft))
-    m_transform->rotate(glm::radians(1.0f), m_transform->up());
-  else if (m_input->keyHold(seng::KeyCode::eRight))
-    m_transform->rotate(glm::radians(-1.0f), m_transform->up());
+  if (glm::length2(moveDirection) > 0.0) moveDirection = glm::normalize(moveDirection);
 
-  if (m_input->keyDown(seng::KeyCode::eEsc)) entity->application().stop();
+  m_transform->translate(moveDirection * m_speed * m_delta);
+}
+
+void TestController::handleRotation()
+{
+  float rot_amount = glm::radians(m_rot * m_delta);
+  if (m_input->keyHold(seng::KeyCode::eUp))
+    m_transform->rotate(rot_amount, m_transform->right());
+  if (m_input->keyHold(seng::KeyCode::eDown))
+    m_transform->rotate(-rot_amount, m_transform->right());
+  if (m_input->keyHold(seng::KeyCode::eLeft))
+    m_transform->rotate(rot_amount, components::Transform::worldUp());
+  if (m_input->keyHold(seng::KeyCode::eRight))
+    m_transform->rotate(-rot_amount, components::Transform::worldUp());
+}
+
+void TestController::recenter()
+{
+  m_transform->position(initial_pos);
+  m_transform->rotation(initial_rot);
 }

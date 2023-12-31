@@ -31,7 +31,18 @@ class TestController : public seng::components::ScriptComponent,
   void onUpdate(float deltaTime) override;
 
  private:
-  float m_speed = 5.0f;
+  float m_delta;
+
+  glm::vec3 initial_pos;
+  glm::quat initial_rot;
+
+  float m_speed = 7.0f;
+  float m_rot = 70.0f;
+
   seng::components::Transform *m_transform;
   seng::InputManager *m_input;
+
+  void handleMovement();
+  void handleRotation();
+  void recenter();
 };
