@@ -43,7 +43,7 @@ class ScriptComponent : public ToggleComponent {
    * Run on the EARLY_UPDATE event if the component is active.
    *
    * In this stage, we are at the earliest point in time: the frame has just been
-   * started, events have not been yet polled and updated.
+   * started.
    */
   virtual void onEarlyUpdate([[maybe_unused]] float deltaTime) {}
 

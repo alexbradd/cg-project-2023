@@ -35,6 +35,7 @@ Scene::Scene(Application &app) :
     m_mainCamera(nullptr)
 {
   m_renderer->requestDescriptorSet(*m_globalDescriptorSetLayout);
+  seng::log::dbg("Created new scene");
 }
 
 vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
@@ -59,7 +60,15 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
   // Parse config file
   filesystem::path scene{filesystem::path{config.scenePath} /
                          filesystem::path{sceneName + ".yml"}};
-  YAML::Node sceneConfig = YAML::LoadFile(scene.string());
+
+  YAML::Node sceneConfig;
+
+  try {
+    sceneConfig = YAML::LoadFile(scene.string());
+  } catch (exception &e) {
+    seng::log::error("Unable to load scene: {}", e.what());
+    return nullptr;
+  }
 
   if (sceneConfig["Shaders"] && sceneConfig["Shaders"].IsSequence()) {
     auto shaders = sceneConfig["Shaders"];
@@ -297,5 +306,6 @@ Scene::~Scene()
 
     // Clear requested resources
     m_renderer->clearDescriptorSet(*m_globalDescriptorSetLayout);
+    seng::log::dbg("Deallocated scene");
   }
 }

@@ -37,29 +37,32 @@ void Application::run(unsigned int width, unsigned int height)
     try {
       if (m_newSceneName.has_value()) {
         m_scene = nullptr;  // destroys the current scene
-        m_scene = Scene::loadFromDisk(*this, *m_newSceneName);
+        auto newScene = Scene::loadFromDisk(*this, *m_newSceneName);
+        if (newScene != nullptr) m_scene = std::move(newScene);
         m_newSceneName.reset();
       }
 
-      bool executed = m_vulkan->scopedFrame([&](auto& handle) {
-        float deltaTime = inSeconds(Clock::now() - lastFrame);
+      m_inputManager->updateEvents();
+      if (m_scene != nullptr) {
+        bool executed = m_vulkan->scopedFrame([&](auto& handle) {
+          float deltaTime = inSeconds(Clock::now() - lastFrame);
 
-        // Early update
-        m_scene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
-        m_inputManager->updateEvents();
+          // Early update
+          m_scene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
 
-        // Update
-        m_scene->fireEventType(SceneEvents::UPDATE, deltaTime);
+          // Update
+          m_scene->fireEventType(SceneEvents::UPDATE, deltaTime);
+          m_scene->draw(handle);
 
-        // Late update
-        m_scene->draw(handle);
-        m_scene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
-      });
+          // Late update
+          m_scene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
+        });
 
-      if (!executed)
-        continue;
-      else
-        lastFrame = Clock::now();
+        if (!executed)
+          continue;
+        else
+          lastFrame = Clock::now();
+      }
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
