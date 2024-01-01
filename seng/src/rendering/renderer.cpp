@@ -45,7 +45,7 @@ Renderer::RenderTarget::RenderTarget(const Device &device,
     depthBuffer(createDepthBuffer(device, extent)),
     framebuffer(device, pass, extent, {swapchainImage, **depthBuffer.imageView()})
 {
-  log::info("Allocated render target");
+  log::dbg("Allocated render target");
 }
 
 Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent2D extent)
@@ -70,7 +70,7 @@ Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) 
     descriptorSets(),
     imageIndex(-1)
 {
-  log::info("Allocated resources for a frame");
+  log::dbg("Allocated resources for a frame");
 }
 
 // Definitions for FrameHandle
@@ -148,7 +148,7 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
       many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT, m_device, m_commandPool);
   m_targets.reserve(m_swapchain.images().size());
 
-  log::info("Vulkan context is up and running!");
+  log::dbg("Vulkan context is up and running!");
 }
 
 vk::raii::Instance createInstance(const vk::raii::Context &context,
@@ -338,7 +338,7 @@ void Renderer::endFrame(FrameHandle &handle)
     m_swapchain.present(m_device.presentQueue(), m_device.graphicsQueue(),
                         frame.queueCompleteSem, frame.imageIndex);
   } catch (const InadequateSwapchainException &e) {
-    log::info("Error while presenting: swapchain out of date. Recreating...");
+    log::dbg("Error while presenting: swapchain out of date. Recreating...");
     recreateSwapchain();
   }
 
@@ -380,7 +380,7 @@ void Renderer::recreateSwapchain()
 
   // Start the creation process
   m_recreatingSwap = true;
-  log::info("Started swapchain recreation");
+  log::dbg("Started swapchain recreation");
 
   // Wait for any pending work to finish and flush out temporary data
   m_device.logical().waitIdle();
@@ -403,7 +403,7 @@ void Renderer::recreateSwapchain()
 
   // Finish the recreation process
   m_recreatingSwap = false;
-  log::info("Finished swapchain recreation");
+  log::dbg("Finished swapchain recreation");
 }
 
 Renderer::~Renderer()
@@ -412,6 +412,6 @@ Renderer::~Renderer()
   // since all objects are valid or none are.
   if (*m_instance != vk::Instance{}) {
     m_device.logical().waitIdle();
-    log::info("Destroying vulkan context");
+    log::dbg("Destroying vulkan context");
   }
 }
