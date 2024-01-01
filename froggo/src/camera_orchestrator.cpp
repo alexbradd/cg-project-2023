@@ -1,12 +1,10 @@
 #include "camera_orchestrator.hpp"
+#include "test_controller.hpp"
 
 #include <seng/application.hpp>
 #include <seng/components/base_component.hpp>
 #include <seng/components/camera.hpp>
-#include <seng/components/definitions.hpp>
 #include <seng/components/script.hpp>
-#include <seng/components/transform.hpp>
-#include <seng/components/utils.hpp>
 #include <seng/input_enums.hpp>
 #include <seng/input_manager.hpp>
 #include <seng/log.hpp>
@@ -31,12 +29,12 @@ void CameraOrchestrator::scriptInitialize()
   auto entityCam2 = entity->scene().findByName("cam2");
 
   m_cam1 = entity->scene().mainCamera();
-  m_controller1 = concretePtr<TestController>(
-      entityCam1->componentsOfType<TestController>().front().get());
+  m_controller1 =
+      entityCam1->componentsOfType<TestController>().front().sureGet<TestController>();
 
-  m_cam2 = concretePtr<Camera>(entityCam2->componentsOfType<Camera>().front().get());
-  m_controller2 = concretePtr<TestController>(
-      entityCam2->componentsOfType<TestController>().front().get());
+  m_cam2 = entityCam2->componentsOfType<Camera>().front().sureGet<Camera>();
+  m_controller2 =
+      entityCam2->componentsOfType<TestController>().front().sureGet<TestController>();
 
   m_input = entity->application().input().get();
 }

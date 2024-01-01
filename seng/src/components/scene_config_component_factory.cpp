@@ -1,8 +1,8 @@
+#include <seng/components/component_ptr.hpp>
 #include <seng/components/definitions.hpp>
 #include <seng/components/scene_config_component_factory.hpp>
 #include <seng/log.hpp>
 
-#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -34,8 +34,9 @@ bool SceneConfigComponentFactory::registerComponent(const ComponentIdType &name,
   return false;
 }
 
-std::unique_ptr<BaseComponent> SceneConfigComponentFactory::create(
-    Entity &entity, const std::string &name, const YAML::Node &configNode)
+ComponentPtr SceneConfigComponentFactory::create(Entity &entity,
+                                                 const std::string &name,
+                                                 const YAML::Node &configNode)
 {
   auto &store = configCreateFuncs();
   auto it = store.find(name);

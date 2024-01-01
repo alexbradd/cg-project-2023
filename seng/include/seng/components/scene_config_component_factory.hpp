@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seng/components/base_component.hpp>
+#include <seng/components/component_ptr.hpp>
 #include <seng/components/definitions.hpp>
 
 #include <memory>
@@ -38,9 +39,9 @@ class SceneConfigComponentFactory {
    * Create an instance of the Component identified by `name` from the given YAML
    * node.
    */
-  static std::unique_ptr<BaseComponent> create(Entity &entity,
-                                               const std::string &name,
-                                               const YAML::Node &configNode);
+  static ComponentPtr create(Entity &entity,
+                             const std::string &name,
+                             const YAML::Node &configNode);
 
  private:
   /// Convenience alias

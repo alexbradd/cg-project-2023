@@ -1,7 +1,7 @@
 #pragma once
 
-#include <seng/components/definitions.hpp>
-#include <seng/components/utils.hpp>
+#include <seng/components/component_ptr.hpp>
+#include <seng/components/transform.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -12,8 +12,6 @@
 namespace seng {
 class Application;
 class Scene;
-class BaseComponent;
-class Transform;
 
 /**
  * An entity in a scene's scene graph.
@@ -36,7 +34,7 @@ class Transform;
 class Entity {
  public:
   /// Alias for a vector of unique_ptr to components
-  using ComponentList = std::vector<std::unique_ptr<BaseComponent>>;
+  using ComponentList = std::vector<ComponentPtr>;
 
   /// Alias for the Component store
   using ComponentMap = std::unordered_map<std::string, ComponentList>;
@@ -70,7 +68,7 @@ class Entity {
 
   const uint64_t& id() const { return m_id; }
   const std::string& name() const { return m_name; }
-  const std::unique_ptr<Transform>& transform() const { return m_transform; }
+  Transform* transform() const { return m_transform.sureGet<Transform>(); }
 
   /**
    * Return a reference to a vector of owned pointers to
@@ -81,45 +79,31 @@ class Entity {
    * invalidate any iterators for the returned vectors. If one wants to keep
    * a reference to one or more Component, cache the pointers
    */
-  template <typename T>
+  template <typename T, typename = IfComponent<T>>
   const ComponentList& componentsOfType() const
   {
-    ASSERT_SUBCLASS_OF_COMPONENT(T);
-
     auto it = m_components.find(T::componentId());
     if (it == m_components.end()) return EMPTY_VECTOR;
     return it->second;
   }
 
   /**
-   * Create a new component of type T in-place.
+   * Create a new component of type T in-place. This function will add the
+   * reference to this Entity as the first argument to the called constructor.
    */
-  template <typename T, typename... Args>
+  template <typename T, typename = IfComponent<T>, typename... Args>
   void emplaceComponent(Args&&... args)
   {
-    ASSERT_SUBCLASS_OF_COMPONENT(T);
-    m_components[T::componentId()].emplace_back(std::make_unique<T>(args...));
+    m_components[T::componentId()].emplace_back(*this, std::make_unique<T>(args...));
     m_components[T::componentId()].back()->initialize();
-  }
-
-  /**
-   * Insert a new component of type T referenced by a owning pointer. This
-   * operation moves the pointer into the Entity.
-   */
-  template <typename T>
-  void insertComponent(std::unique_ptr<T>&& comp_ptr)
-  {
-    ASSERT_SUBCLASS_OF_COMPONENT(T);
-    untypedInsert(T::componentId(), std::forward(comp_ptr));
   }
 
   /**
    * Destroy the component of type T stored at the given pointer location.
    */
-  template <typename T>
+  template <typename T, typename = IfComponent<T>>
   void removeComponent(const BaseComponent* comp_ptr)
   {
-    ASSERT_SUBCLASS_OF_COMPONENT(T);
     auto it = m_components.find(T::componentId());
     removeWithIterByPtr(it, comp_ptr);
   }
@@ -129,14 +113,15 @@ class Entity {
   Scene* m_scene;
   uint64_t m_id;
   std::string m_name;
-  std::unique_ptr<Transform> m_transform;
+  ComponentPtr m_transform;
   ComponentMap m_components;
 
   static uint64_t INDEX_COUNTER;
   static const ComponentList EMPTY_VECTOR;
 
+  void transform(ComponentPtr&& transform);
   void removeWithIterByPtr(ComponentMap::iterator it, const BaseComponent* ptr);
-  bool checkAndWarnCompPtr(std::unique_ptr<BaseComponent>& ptr);
+  bool checkAndWarnCompPtr(ComponentPtr& ptr);
 
   /**
    * Constructor for a new entity with the given name and position in the origin.
@@ -147,9 +132,7 @@ class Entity {
   /**
    * Private, untyped implementation of insertion
    */
-  void untypedInsert(const ComponentIdType& id, std::unique_ptr<BaseComponent>&& cmp);
-
-  void transform(std::unique_ptr<Transform>&& transform);
+  void untypedInsert(const ComponentIdType& id, ComponentPtr&& cmp);
 
   friend class Scene;
 };

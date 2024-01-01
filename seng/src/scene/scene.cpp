@@ -143,8 +143,7 @@ void Scene::parseEntity(const YAML::Node &node)
   if (node["transform"] && node["transform"].IsMap()) {
     auto &t = node["transform"];
     auto ptr = SceneConfigComponentFactory::create(*ret, Transform::componentId(), t);
-    auto concrete = concreteUniquePtr<Transform>(std::move(ptr));
-    ret->transform(std::move(concrete));
+    ret->transform(std::move(ptr));
   }
 
   if (node["components"] && node["components"].IsSequence()) {
@@ -156,8 +155,7 @@ void Scene::parseEntity(const YAML::Node &node)
         continue;
       }
       std::string id = comp["id"].as<string>();
-      std::unique_ptr<BaseComponent> ptr =
-          SceneConfigComponentFactory::create(*ret, id, comp);
+      auto ptr = SceneConfigComponentFactory::create(*ret, id, comp);
       ret->untypedInsert(id, std::move(ptr));
     }
   }

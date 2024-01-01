@@ -1,3 +1,4 @@
+#include <seng/components/component_ptr.hpp>
 #include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>
@@ -23,7 +24,7 @@ Entity::Entity(Application& app, Scene& s, std::string n) :
 
 Entity::~Entity() = default;
 
-void Entity::transform(std::unique_ptr<Transform>&& t)
+void Entity::transform(ComponentPtr&& t)
 {
   if (t != nullptr) {
     m_transform = std::move(t);
@@ -32,8 +33,7 @@ void Entity::transform(std::unique_ptr<Transform>&& t)
   }
 }
 
-void Entity::untypedInsert(const ComponentIdType& id,
-                           std::unique_ptr<BaseComponent>&& cmp)
+void Entity::untypedInsert(const ComponentIdType& id, ComponentPtr&& cmp)
 {
   if (!checkAndWarnCompPtr(cmp)) {
     m_components[id].push_back(std::move(cmp));
@@ -41,7 +41,7 @@ void Entity::untypedInsert(const ComponentIdType& id,
   }
 }
 
-bool Entity::checkAndWarnCompPtr(std::unique_ptr<BaseComponent>& ptr)
+bool Entity::checkAndWarnCompPtr(ComponentPtr& ptr)
 {
   if (ptr == nullptr) {
     seng::log::warning("Passing null component, ignoring. Something's wrong...");

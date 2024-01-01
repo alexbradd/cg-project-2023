@@ -30,7 +30,7 @@ std::unique_ptr<BaseComponent> TestController::createFromConfig(Entity &entity,
 
 void TestController::scriptInitialize()
 {
-  m_transform = entity->transform().get();
+  m_transform = entity->transform();
   m_input = entity->application().input().get();
 
   initial_pos = m_transform->position();
