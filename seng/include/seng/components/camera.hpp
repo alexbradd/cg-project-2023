@@ -48,9 +48,6 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   DECLARE_COMPONENT_ID("Camera");
   static std::unique_ptr<BaseComponent> createFromConfig(Entity& e, const YAML::Node&);
 
-  // Overrides
-  void initialize() override;
-
   // Getters
   float aspectRatio() const { return m_aspectRatio; }
   float nearPlane() const { return m_near; }
@@ -78,7 +75,6 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   glm::mat4 viewMatrix() const;
 
  private:
-  bool m_registerAsMain;
   float m_aspectRatio;
   float m_near;
   float m_far;

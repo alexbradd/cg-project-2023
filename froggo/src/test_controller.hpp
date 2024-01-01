@@ -13,10 +13,7 @@
 class TestController : public seng::ScriptComponent,
                        public seng::ConfigParsableComponent<TestController> {
  public:
-  TestController(seng::Entity &entity, bool enabled = true) :
-      seng::ScriptComponent(entity, enabled)
-  {
-  }
+  TestController(seng::Entity &entity, bool enabled = true);
   TestController(const TestController &) = delete;
   TestController(TestController &&) = delete;
 
@@ -27,7 +24,6 @@ class TestController : public seng::ScriptComponent,
   static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
                                                                const YAML::Node &node);
 
-  void scriptInitialize() override;
   void onUpdate(float deltaTime) override;
 
  private:

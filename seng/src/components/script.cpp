@@ -9,12 +9,7 @@ using namespace seng;
 
 using namespace std::placeholders;
 
-ScriptComponent::ScriptComponent(Entity &entity, bool enabled) :
-    ToggleComponent(entity, enabled)
-{
-}
-
-void ScriptComponent::initialize()
+ScriptComponent::ScriptComponent(Entity &e, bool enabled) : ToggleComponent(e, enabled)
 {
   auto &s = entity->scene();
 
@@ -24,7 +19,6 @@ void ScriptComponent::initialize()
       s.listen(SceneEvents::UPDATE, std::bind(&ScriptComponent::onUpdateImpl, this, _1));
   m_lateUpdateToken = s.listen(SceneEvents::UPDATE,
                                std::bind(&ScriptComponent::onLateUpdateImpl, this, _1));
-  scriptInitialize();
 }
 
 // Not very efficient implementation but it works.

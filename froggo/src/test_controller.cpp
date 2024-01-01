@@ -28,7 +28,7 @@ std::unique_ptr<BaseComponent> TestController::createFromConfig(Entity &entity,
   return std::make_unique<TestController>(entity, enabled);
 }
 
-void TestController::scriptInitialize()
+TestController::TestController(Entity &e, bool enabled) : ScriptComponent(e, enabled)
 {
   m_transform = entity->transform();
   m_input = entity->application().input().get();

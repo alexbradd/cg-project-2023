@@ -20,7 +20,6 @@ class CameraOrchestrator : public seng::ScriptComponent,
   static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
                                                                const YAML::Node &node);
 
-  void scriptInitialize() override;
   void onUpdate(float delta) override;
 
  private:

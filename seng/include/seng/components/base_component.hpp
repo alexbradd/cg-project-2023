@@ -30,13 +30,7 @@ class BaseComponent {
  public:
   DECLARE_COMPONENT_ID("__BaseComponent");
 
-  /**
-   * Constructor.
-   *
-   * Overloaded constructors should not do anything more than set the needed
-   * parameters. Any interactions with the other engine systems should be done
-   * in `initialize()` or other initialization functions.
-   */
+  /// Constructor
   BaseComponent(Entity &entity) : entity(std::addressof(entity)) {}
   BaseComponent(const BaseComponent &) = delete;
   BaseComponent(BaseComponent &&) = delete;
@@ -45,14 +39,6 @@ class BaseComponent {
   BaseComponent &operator=(BaseComponent &&) = delete;
 
   virtual ~BaseComponent() = default;
-
-  /**
-   * Initialize this component.
-   *
-   * All systems and reference are guaranteed to be correct when this function is
-   * called, maning it is safe to do anything inside.
-   */
-  virtual void initialize() {}
 
  protected:
   Entity *const entity;

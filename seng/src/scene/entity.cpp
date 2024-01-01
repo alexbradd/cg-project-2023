@@ -19,7 +19,6 @@ Entity::Entity(Application& app, Scene& s, std::string n) :
     m_name(std::move(n)),
     m_transform(std::make_unique<Transform>(*this))
 {
-  m_transform->initialize();
 }
 
 Entity::~Entity() = default;
@@ -37,7 +36,6 @@ void Entity::untypedInsert(const ComponentIdType& id, ComponentPtr&& cmp)
 {
   if (!checkAndWarnCompPtr(cmp)) {
     m_components[id].push_back(std::move(cmp));
-    m_components[id].back()->initialize();
   }
 }
 

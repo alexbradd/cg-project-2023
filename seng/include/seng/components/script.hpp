@@ -28,18 +28,6 @@ class ScriptComponent : public ToggleComponent {
   DECLARE_COMPONENT_ID("ScriptComponent");
 
   /**
-   * Override of BaseComponent's `initialize()`. It has been marked final since
-   * it is used for internal setup and users are expected to extend
-   * `scriptInitialize()` instead, which serves an identical purpose.
-   */
-  virtual void initialize() override final;
-
-  /**
-   * Component initialization routine.
-   */
-  virtual void scriptInitialize() {}
-
-  /**
    * Run on the EARLY_UPDATE event if the component is active.
    *
    * In this stage, we are at the earliest point in time: the frame has just been

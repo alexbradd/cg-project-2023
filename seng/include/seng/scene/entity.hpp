@@ -95,7 +95,6 @@ class Entity {
   void emplaceComponent(Args&&... args)
   {
     m_components[T::componentId()].emplace_back(*this, std::make_unique<T>(args...));
-    m_components[T::componentId()].back()->initialize();
   }
 
   /**

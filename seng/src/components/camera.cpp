@@ -24,17 +24,12 @@ using namespace std::placeholders;
 
 std::vector<Camera*> Camera::cameras;
 
-Camera::Camera(Entity& entity, float near, float far, float fov, bool main) :
-    BaseComponent(entity)
+Camera::Camera(Entity& e, float near, float far, float fov, bool main) : BaseComponent(e)
 {
   m_near = near;
   m_far = far;
   m_fov = fov;
-  m_registerAsMain = main;
-}
 
-void Camera::initialize()
-{
   auto& window = entity->application().window();
 
   auto windowSize = window->framebufferSize();
@@ -44,7 +39,7 @@ void Camera::initialize()
 
   cameras.push_back(this);
 
-  if (m_registerAsMain) entity->scene().mainCamera(this);
+  if (main) entity->scene().mainCamera(this);
 }
 
 Camera::~Camera()

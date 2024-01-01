@@ -16,14 +16,13 @@
 
 using namespace seng;
 
-CameraOrchestrator::CameraOrchestrator(Entity &entity) : ScriptComponent(entity) {}
 std::unique_ptr<BaseComponent> CameraOrchestrator::createFromConfig(
     Entity &entity, [[maybe_unused]] const YAML::Node &node)
 {
   return std::make_unique<CameraOrchestrator>(entity);
 }
 
-void CameraOrchestrator::scriptInitialize()
+CameraOrchestrator::CameraOrchestrator(seng::Entity &e) : ScriptComponent(e)
 {
   auto entityCam1 = entity->scene().findByName("cam1");
   auto entityCam2 = entity->scene().findByName("cam2");
