@@ -11,15 +11,9 @@
 
 namespace seng {
 class Application;
-};
-
-namespace seng::components {
+class Scene;
 class BaseComponent;
 class Transform;
-};  // namespace seng::components
-
-namespace seng::scene {
-class Scene;
 
 /**
  * An entity in a scene's scene graph.
@@ -42,7 +36,7 @@ class Scene;
 class Entity {
  public:
   /// Alias for a vector of unique_ptr to components
-  using ComponentList = std::vector<std::unique_ptr<components::BaseComponent>>;
+  using ComponentList = std::vector<std::unique_ptr<BaseComponent>>;
 
   /// Alias for the Component store
   using ComponentMap = std::unordered_map<std::string, ComponentList>;
@@ -76,7 +70,7 @@ class Entity {
 
   const uint64_t& id() const { return m_id; }
   const std::string& name() const { return m_name; }
-  const std::unique_ptr<components::Transform>& transform() const { return m_transform; }
+  const std::unique_ptr<Transform>& transform() const { return m_transform; }
 
   /**
    * Return a reference to a vector of owned pointers to
@@ -123,7 +117,7 @@ class Entity {
    * Destroy the component of type T stored at the given pointer location.
    */
   template <typename T>
-  void removeComponent(const components::BaseComponent* comp_ptr)
+  void removeComponent(const BaseComponent* comp_ptr)
   {
     ASSERT_SUBCLASS_OF_COMPONENT(T);
     auto it = m_components.find(T::componentId());
@@ -135,15 +129,14 @@ class Entity {
   Scene* m_scene;
   uint64_t m_id;
   std::string m_name;
-  std::unique_ptr<components::Transform> m_transform;
+  std::unique_ptr<Transform> m_transform;
   ComponentMap m_components;
 
   static uint64_t INDEX_COUNTER;
   static const ComponentList EMPTY_VECTOR;
 
-  void removeWithIterByPtr(ComponentMap::iterator it,
-                           const components::BaseComponent* ptr);
-  bool checkAndWarnCompPtr(std::unique_ptr<components::BaseComponent>& ptr);
+  void removeWithIterByPtr(ComponentMap::iterator it, const BaseComponent* ptr);
+  bool checkAndWarnCompPtr(std::unique_ptr<BaseComponent>& ptr);
 
   /**
    * Constructor for a new entity with the given name and position in the origin.
@@ -154,22 +147,21 @@ class Entity {
   /**
    * Private, untyped implementation of insertion
    */
-  void untypedInsert(const components::ComponentIdType& id,
-                     std::unique_ptr<components::BaseComponent>&& cmp);
+  void untypedInsert(const ComponentIdType& id, std::unique_ptr<BaseComponent>&& cmp);
 
-  void transform(std::unique_ptr<components::Transform>&& transform);
+  void transform(std::unique_ptr<Transform>&& transform);
 
   friend class Scene;
 };
 
-};  // namespace seng::scene
+};  // namespace seng
 
 namespace std {
 
 // Template instantiation for hash<>, so that we can use entities in sets and maps
 template <>
-struct hash<seng::scene::Entity> {
-  std::size_t operator()(const seng::scene::Entity& entity) const
+struct hash<seng::Entity> {
+  std::size_t operator()(const seng::Entity& entity) const
   {
     hash<uint64_t> hasher;
     return hasher(entity.id());

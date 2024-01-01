@@ -11,11 +11,8 @@
 #include <glm/vec3.hpp>
 
 using namespace seng;
-using namespace seng::components;
-using namespace glm;
 
-Transform::Transform(scene::Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) :
-    BaseComponent(e)
+Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseComponent(e)
 {
   position(p);
   scale(s);
@@ -82,13 +79,13 @@ glm::vec3 Transform::right() const
   return this->toMat4()[0];
 }
 
-mat4 Transform::toMat4() const
+glm::mat4 Transform::toMat4() const
 {
   return glm::translate(glm::mat4(1.0f), m_pos) *
          glm::toMat4(glm::normalize(m_rotation)) * glm::scale(glm::mat4(1.0f), m_scale);
 }
 
-std::unique_ptr<BaseComponent> Transform::createFromConfig(scene::Entity& entity,
+std::unique_ptr<BaseComponent> Transform::createFromConfig(Entity& entity,
                                                            const YAML::Node& node)
 {
   glm::vec3 pos = DEFAULT_POS;

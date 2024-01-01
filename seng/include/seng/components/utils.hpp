@@ -4,13 +4,13 @@
 #include <type_traits>
 
 /// Assert that type `typ` is a subclass of BaseComponent
-#define ASSERT_SUBCLASS_OF_COMPONENT(typ)                                       \
-  do {                                                                          \
-    static_assert(std::is_base_of<seng::components::BaseComponent, typ>::value, \
-                  "Type must be subclass of seng::components::BaseComponent");  \
+#define ASSERT_SUBCLASS_OF_COMPONENT(typ)                                      \
+  do {                                                                         \
+    static_assert(std::is_base_of<seng::BaseComponent, typ>::value,            \
+                  "Type must be subclass of seng::components::BaseComponent"); \
   } while (0)
 
-namespace seng::components {
+namespace seng {
 
 class BaseComponent;
 
@@ -39,4 +39,4 @@ Concrete* concretePtr(BaseComponent* ptr)
   return static_cast<Concrete*>(ptr);
 }
 
-}  // namespace seng::components
+}  // namespace seng

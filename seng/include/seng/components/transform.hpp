@@ -12,11 +12,8 @@ namespace YAML {
 class Node;
 };
 
-namespace seng::scene {
+namespace seng {
 class Entity;
-};
-
-namespace seng::components {
 
 /**
  * Enumeration representing the coordinate system to use in caluclations.
@@ -51,7 +48,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   /**
    * Create a new transform with the given position, scale and rotation
    */
-  Transform(scene::Entity& entity,
+  Transform(Entity& entity,
             glm::vec3 pos = DEFAULT_POS,
             glm::vec3 scale = DEFAULT_SCALE,
             glm::vec3 rotation = DEFAULT_ROT);
@@ -62,7 +59,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   Transform& operator=(Transform&&) = delete;
 
   DECLARE_COMPONENT_ID("Transform");
-  static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& entity,
+  static std::unique_ptr<BaseComponent> createFromConfig(Entity& entity,
                                                          const YAML::Node& node);
 
   /**
@@ -189,4 +186,4 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   glm::quat m_rotation;
 };
 
-};  // namespace seng::components
+};  // namespace seng

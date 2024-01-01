@@ -1,12 +1,11 @@
-#include <algorithm>
 #include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/scene/entity.hpp>
 
+#include <algorithm>
 #include <memory>
 
-using namespace seng::scene;
-using namespace seng::components;
+using namespace seng;
 using namespace std;
 
 uint64_t Entity::INDEX_COUNTER = 0;

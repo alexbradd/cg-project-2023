@@ -6,11 +6,10 @@
 #include <functional>
 
 using namespace seng;
-using namespace seng::components;
 
 using namespace std::placeholders;
 
-ScriptComponent::ScriptComponent(scene::Entity &entity, bool enabled) :
+ScriptComponent::ScriptComponent(Entity &entity, bool enabled) :
     ToggleComponent(entity, enabled)
 {
 }
@@ -19,11 +18,11 @@ void ScriptComponent::initialize()
 {
   auto &s = entity->scene();
 
-  m_earlyUpdateToken = s.listen(scene::SceneEvents::EARLY_UPDATE,
+  m_earlyUpdateToken = s.listen(SceneEvents::EARLY_UPDATE,
                                 std::bind(&ScriptComponent::onEarlyUpdateImpl, this, _1));
-  m_updateToken = s.listen(scene::SceneEvents::UPDATE,
-                           std::bind(&ScriptComponent::onUpdateImpl, this, _1));
-  m_lateUpdateToken = s.listen(scene::SceneEvents::UPDATE,
+  m_updateToken =
+      s.listen(SceneEvents::UPDATE, std::bind(&ScriptComponent::onUpdateImpl, this, _1));
+  m_lateUpdateToken = s.listen(SceneEvents::UPDATE,
                                std::bind(&ScriptComponent::onLateUpdateImpl, this, _1));
   scriptInitialize();
 }

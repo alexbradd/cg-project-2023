@@ -5,11 +5,7 @@
 #include <seng/scene/scene.hpp>
 
 namespace seng {
-namespace scene {
 class Entity;
-}
-
-namespace components {
 
 /**
  * Base class for user-definable arbitrary scripts
@@ -21,7 +17,7 @@ namespace components {
 class ScriptComponent : public ToggleComponent {
  public:
   /// Constructor
-  ScriptComponent(scene::Entity &entity, bool enabled = true);
+  ScriptComponent(Entity &entity, bool enabled = true);
   ScriptComponent(const ScriptComponent &) = delete;
   ScriptComponent(ScriptComponent &&) = delete;
   ~ScriptComponent();
@@ -69,13 +65,11 @@ class ScriptComponent : public ToggleComponent {
   virtual void onLateUpdate([[maybe_unused]] float deltaTime) {}
 
  private:
-  scene::SceneEventToken m_earlyUpdateToken, m_updateToken, m_lateUpdateToken;
+  SceneEventToken m_earlyUpdateToken, m_updateToken, m_lateUpdateToken;
 
   void onEarlyUpdateImpl(float deltaTime);
   void onUpdateImpl(float deltaTime);
   void onLateUpdateImpl(float deltaTime);
 };
-
-};  // namespace components
 
 };  // namespace seng

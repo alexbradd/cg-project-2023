@@ -18,8 +18,6 @@
 #include <vector>
 
 using namespace seng;
-using namespace seng::scene;
-using namespace seng::components;
 using namespace std;
 
 using namespace std::placeholders;

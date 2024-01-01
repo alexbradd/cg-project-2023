@@ -12,11 +12,8 @@ namespace YAML {
 class Node;
 };
 
-namespace seng::scene {
+namespace seng {
 class Entity;
-};  // namespace seng::scene
-
-namespace seng::components {
 
 /**
  * Static factory for creating Components from the scene config file.
@@ -28,7 +25,7 @@ namespace seng::components {
 class SceneConfigComponentFactory {
  public:
   /// Function type to be implemented by parseable components.
-  using TConfigCreateFunc = std::unique_ptr<BaseComponent> (*)(scene::Entity &,
+  using TConfigCreateFunc = std::unique_ptr<BaseComponent> (*)(Entity &,
                                                                const YAML::Node &);
 
  public:
@@ -41,7 +38,7 @@ class SceneConfigComponentFactory {
    * Create an instance of the Component identified by `name` from the given YAML
    * node.
    */
-  static std::unique_ptr<BaseComponent> create(scene::Entity &entity,
+  static std::unique_ptr<BaseComponent> create(Entity &entity,
                                                const std::string &name,
                                                const YAML::Node &configNode);
 
@@ -80,4 +77,4 @@ template <typename T>
 bool ConfigParsableComponent<T>::registered =
     SceneConfigComponentFactory::registerComponent(T::componentId(), T::createFromConfig);
 
-};  // namespace seng::components
+};  // namespace seng

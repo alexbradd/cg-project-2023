@@ -10,12 +10,7 @@
 #include <vector>
 
 namespace seng {
-
-namespace scene {
 class Entity;
-};  // namespace scene
-
-namespace components {
 
 /**
  * Component representing the device through which we view the scene.
@@ -38,7 +33,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   static constexpr float DEFAULT_FOV = glm::radians(45.0f);
   static constexpr bool DEFAULT_MAIN = false;
 
-  Camera(scene::Entity& entity,
+  Camera(Entity& entity,
          float near = DEFAULT_NEAR,
          float far = DEFAULT_FAR,
          float fov = DEFAULT_FOV,
@@ -51,8 +46,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   Camera& operator=(Camera&&) = delete;
 
   DECLARE_COMPONENT_ID("Camera");
-  static std::unique_ptr<BaseComponent> createFromConfig(scene::Entity& e,
-                                                         const YAML::Node&);
+  static std::unique_ptr<BaseComponent> createFromConfig(Entity& e, const YAML::Node&);
 
   // Overrides
   void initialize() override;
@@ -102,5 +96,4 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   mutable glm::mat4 m_projection;
 };
 
-};  // namespace components
 };  // namespace seng

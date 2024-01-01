@@ -12,9 +12,7 @@ class GlfwWindow;
 class Renderer;
 }  // namespace rendering
 
-namespace scene {
 class Scene;
-}  // namespace scene
 
 class InputManager;
 
@@ -40,7 +38,7 @@ class Application {
   const ApplicationConfig &config() const { return conf; }
   const std::unique_ptr<rendering::Renderer> &renderer() const { return m_vulkan; }
   const std::unique_ptr<rendering::GlfwWindow> &window() const { return m_glfwWindow; }
-  const std::unique_ptr<scene::Scene> &currentScene() const { return m_scene; }
+  const std::unique_ptr<Scene> &currentScene() const { return m_scene; }
   const std::unique_ptr<InputManager> &input() const { return m_inputManager; }
 
   /**
@@ -68,7 +66,7 @@ class Application {
   std::unique_ptr<rendering::GlfwWindow> m_glfwWindow;
   std::unique_ptr<rendering::Renderer> m_vulkan;
   std::unique_ptr<InputManager> m_inputManager;
-  std::unique_ptr<scene::Scene> m_scene;
+  std::unique_ptr<Scene> m_scene;
 
   std::optional<std::string> m_newSceneName;
 };

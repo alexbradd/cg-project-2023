@@ -3,7 +3,8 @@
 #include <seng/components/base_component.hpp>
 #include <seng/components/definitions.hpp>
 
-namespace seng::components {
+namespace seng {
+class Entity;
 
 /**
  * Add support for enabling/disabling.
@@ -11,7 +12,7 @@ namespace seng::components {
 class ToggleComponent : public BaseComponent {
  public:
   /// Constructor
-  ToggleComponent(scene::Entity &entity, bool enabled = true);
+  ToggleComponent(Entity &entity, bool enabled = true);
   ToggleComponent(const ToggleComponent &) = delete;
   ToggleComponent(ToggleComponent &&) = delete;
 
@@ -54,4 +55,4 @@ class ToggleComponent : public BaseComponent {
   bool m_enabled;
 };
 
-}  // namespace seng::components
+}  // namespace seng

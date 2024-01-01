@@ -19,8 +19,8 @@ using namespace seng;
 
 size_t TestController::s_sceneIndex = 0;
 
-std::unique_ptr<components::BaseComponent> TestController::createFromConfig(
-    scene::Entity &entity, const YAML::Node &node)
+std::unique_ptr<BaseComponent> TestController::createFromConfig(Entity &entity,
+                                                                const YAML::Node &node)
 {
   bool enabled = true;
 
@@ -81,9 +81,9 @@ void TestController::handleRotation()
   if (m_input->keyHold(seng::KeyCode::eDown))
     m_transform->rotate(-rot_amount, m_transform->right());
   if (m_input->keyHold(seng::KeyCode::eLeft))
-    m_transform->rotate(rot_amount, components::Transform::worldUp());
+    m_transform->rotate(rot_amount, Transform::worldUp());
   if (m_input->keyHold(seng::KeyCode::eRight))
-    m_transform->rotate(-rot_amount, components::Transform::worldUp());
+    m_transform->rotate(-rot_amount, Transform::worldUp());
 }
 
 void TestController::recenter()

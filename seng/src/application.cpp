@@ -15,7 +15,6 @@
 using namespace std;
 using namespace seng;
 using namespace seng::rendering;
-using namespace seng::scene;
 
 Application::Application() : Application(ApplicationConfig{}) {}
 Application::Application(ApplicationConfig& config) : conf{config} {}

@@ -4,11 +4,8 @@
 
 #include <memory>
 
-namespace seng::scene {
+namespace seng {
 class Entity;
-};  // namespace seng::scene
-
-namespace seng::components {
 
 /**
  * Root of the Component inheritance tree.
@@ -40,7 +37,7 @@ class BaseComponent {
    * parameters. Any interactions with the other engine systems should be done
    * in `initialize()` or other initialization functions.
    */
-  BaseComponent(scene::Entity &entity) : entity(std::addressof(entity)) {}
+  BaseComponent(Entity &entity) : entity(std::addressof(entity)) {}
   BaseComponent(const BaseComponent &) = delete;
   BaseComponent(BaseComponent &&) = delete;
 
@@ -58,7 +55,7 @@ class BaseComponent {
   virtual void initialize() {}
 
  protected:
-  scene::Entity *const entity;
+  Entity *const entity;
 };
 
-};  // namespace seng::components
+};  // namespace seng

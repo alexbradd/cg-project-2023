@@ -17,11 +17,10 @@
 #include <memory>
 
 using namespace seng;
-using namespace seng::components;
 
-CameraOrchestrator::CameraOrchestrator(scene::Entity &entity) : ScriptComponent(entity) {}
+CameraOrchestrator::CameraOrchestrator(Entity &entity) : ScriptComponent(entity) {}
 std::unique_ptr<BaseComponent> CameraOrchestrator::createFromConfig(
-    scene::Entity &entity, [[maybe_unused]] const YAML::Node &node)
+    Entity &entity, [[maybe_unused]] const YAML::Node &node)
 {
   return std::make_unique<CameraOrchestrator>(entity);
 }

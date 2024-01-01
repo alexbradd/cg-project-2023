@@ -6,11 +6,10 @@
 #include <seng/components/scene_config_component_factory.hpp>
 #include <seng/components/script.hpp>
 
-class CameraOrchestrator
-    : public seng::components::ScriptComponent,
-      public seng::components::ConfigParsableComponent<CameraOrchestrator> {
+class CameraOrchestrator : public seng::ScriptComponent,
+                           public seng::ConfigParsableComponent<CameraOrchestrator> {
  public:
-  CameraOrchestrator(seng::scene::Entity &entity);
+  CameraOrchestrator(seng::Entity &entity);
   CameraOrchestrator(const CameraOrchestrator &) = delete;
   CameraOrchestrator(CameraOrchestrator &&) = delete;
 
@@ -18,15 +17,15 @@ class CameraOrchestrator
   CameraOrchestrator &operator=(CameraOrchestrator &&) = delete;
 
   DECLARE_COMPONENT_ID("CameraOrchestrator");
-  static std::unique_ptr<seng::components::BaseComponent> createFromConfig(
-      seng::scene::Entity &entity, const YAML::Node &node);
+  static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
+                                                               const YAML::Node &node);
 
   void scriptInitialize() override;
   void onUpdate(float delta) override;
 
  private:
-  seng::components::Camera *m_cam1;
-  seng::components::Camera *m_cam2;
+  seng::Camera *m_cam1;
+  seng::Camera *m_cam2;
 
   TestController *m_controller1;
   TestController *m_controller2;

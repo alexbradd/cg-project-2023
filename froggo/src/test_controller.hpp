@@ -10,11 +10,11 @@
 
 #include <memory>
 
-class TestController : public seng::components::ScriptComponent,
-                       public seng::components::ConfigParsableComponent<TestController> {
+class TestController : public seng::ScriptComponent,
+                       public seng::ConfigParsableComponent<TestController> {
  public:
-  TestController(seng::scene::Entity &entity, bool enabled = true) :
-      seng::components::ScriptComponent(entity, enabled)
+  TestController(seng::Entity &entity, bool enabled = true) :
+      seng::ScriptComponent(entity, enabled)
   {
   }
   TestController(const TestController &) = delete;
@@ -24,8 +24,8 @@ class TestController : public seng::components::ScriptComponent,
   TestController &operator=(TestController &&) = delete;
 
   DECLARE_COMPONENT_ID("TestController");
-  static std::unique_ptr<seng::components::BaseComponent> createFromConfig(
-      seng::scene::Entity &entity, const YAML::Node &node);
+  static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
+                                                               const YAML::Node &node);
 
   void scriptInitialize() override;
   void onUpdate(float deltaTime) override;
@@ -39,7 +39,7 @@ class TestController : public seng::components::ScriptComponent,
   float m_speed = 7.0f;
   float m_rot = 70.0f;
 
-  seng::components::Transform *m_transform;
+  seng::Transform *m_transform;
   seng::InputManager *m_input;
 
   std::array<std::string, 2> m_scenes{"default", "other"};

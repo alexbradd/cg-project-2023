@@ -2,10 +2,9 @@
 #include <seng/components/definitions.hpp>
 #include <seng/components/toggle.hpp>
 
-using namespace seng::components;
+using namespace seng;
 
-ToggleComponent::ToggleComponent(scene::Entity &entity, bool enabled) :
-    BaseComponent(entity)
+ToggleComponent::ToggleComponent(Entity &entity, bool enabled) : BaseComponent(entity)
 {
   m_enabled = enabled;
 }

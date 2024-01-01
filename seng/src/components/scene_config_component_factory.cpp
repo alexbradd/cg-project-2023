@@ -7,8 +7,7 @@
 #include <unordered_map>
 
 using namespace std;
-using namespace seng::scene;
-using namespace seng::components;
+using namespace seng;
 
 using TConfigCreateFunc = SceneConfigComponentFactory::TConfigCreateFunc;
 

@@ -18,7 +18,7 @@
 #include <string>
 #include <tuple>
 
-using namespace seng::scene;
+using namespace seng;
 using namespace seng::rendering;
 using namespace std;
 
@@ -122,8 +122,6 @@ void Scene::parseMesh(const std::string &assetPath, const YAML::Node &node)
 
 void Scene::parseEntity(const YAML::Node &node)
 {
-  using namespace seng::components;
-
   if (!node.IsMap()) {
     seng::log::warning("Malformed YAML node");
     return;
@@ -228,7 +226,7 @@ void Scene::removeAllEntities()
   m_entities.clear();
 }
 
-void Scene::mainCamera(components::Camera *cam)
+void Scene::mainCamera(Camera *cam)
 {
   if (cam == nullptr) {
     seng::log::warning("Trying to register null camera");

@@ -22,19 +22,12 @@ class Node;
 
 namespace seng {
 class Application;
+class Camera;
 
 namespace rendering {
 class Renderer;
 class FrameHandle;
 }  // namespace rendering
-
-namespace components {
-class Camera;
-}
-
-};  // namespace seng
-
-namespace seng::scene {
 
 /**
  * Identifies the types of events that the scene will emit:
@@ -164,17 +157,17 @@ class Scene {
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  const components::Camera *mainCamera() const { return m_mainCamera; }
+  const Camera *mainCamera() const { return m_mainCamera; }
 
   /**
    * Return a pointer to the main camera, if one is registered.
    */
-  components::Camera *mainCamera() { return m_mainCamera; }
+  Camera *mainCamera() { return m_mainCamera; }
 
   /**
    * Registers the given camera as the camera that will be used for drawing.
    */
-  void mainCamera(components::Camera *cam);
+  void mainCamera(Camera *cam);
 
   /**
    * Draw the scene's contents into the currently on-going frame reprsented by the
@@ -213,7 +206,7 @@ class Scene {
   std::unordered_map<std::string, rendering::Mesh> m_meshes;
 
   // Scene graph
-  components::Camera *m_mainCamera;
+  Camera *m_mainCamera;
   EntityList m_entities;
 
   // Event dispatcher
@@ -226,4 +219,4 @@ class Scene {
   void parseEntity(const YAML::Node &node);
 };
 
-};  // namespace seng::scene
+};  // namespace seng
