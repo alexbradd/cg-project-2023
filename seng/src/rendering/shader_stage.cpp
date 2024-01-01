@@ -61,10 +61,10 @@ ShaderStage::ShaderStage(const Device &dev,
 {
   switch (type) {
     case ShaderStage::Type::eVertex:
-      log::dbg("Loaded vertex shader named {}", name);
+      log::dbg("Loaded vertex shader named {}", m_name);
       break;
     case ShaderStage::Type::eFragment:
-      log::dbg("Loaded fragment shader named {}", name);
+      log::dbg("Loaded fragment shader named {}", m_name);
       break;
   }
 }
