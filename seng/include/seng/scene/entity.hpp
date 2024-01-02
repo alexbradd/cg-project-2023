@@ -1,7 +1,6 @@
 #pragma once
 
 #include <seng/components/component_ptr.hpp>
-#include <seng/components/transform.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -12,6 +11,7 @@
 namespace seng {
 class Application;
 class Scene;
+class Transform;
 
 /**
  * An entity in a scene's scene graph.
@@ -68,7 +68,7 @@ class Entity {
 
   const uint64_t& id() const { return m_id; }
   const std::string& name() const { return m_name; }
-  Transform* transform() const { return m_transform.sureGet<Transform>(); }
+  Transform* transform() const;
 
   /**
    * Return a reference to a vector of owned pointers to

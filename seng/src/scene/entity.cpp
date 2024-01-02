@@ -23,6 +23,11 @@ Entity::Entity(Application& app, Scene& s, std::string n) :
 
 Entity::~Entity() = default;
 
+Transform* Entity::transform() const
+{
+  return m_transform.sureGet<Transform>();
+}
+
 void Entity::transform(ComponentPtr&& t)
 {
   if (t != nullptr) {
