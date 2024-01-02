@@ -25,13 +25,36 @@ std::vector<T> many(typename std::vector<T>::size_type n, Args &&...args)
 }
 
 /**
- * Helper function to combine a given hash with a generated hash for the input param.
+ * Combine multiple hashes into to the given seed.
+ *
+ * Implementation is adapted from boost's `hash_combine`.
  */
-template <class T>
-inline void hashCombine(size_t &seed, const T &v)
+template <class T, typename... Rest>
+inline void hashCombine(size_t &seed, const T &v, Rest... rest)
 {
   std::hash<T> hasher;
   seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  (hashCombine(seed, rest), ...);
 }
 
 }  // namespace seng::internal
+
+/**
+ * Conveninece macro to specialize hash<> for a given type.
+ *
+ * This macro works for simple un-templated types. For templated types, specialize
+ * hash<> manually.
+ */
+#define MAKE_HASHABLE(type, ...)                \
+  namespace std {                               \
+  template <>                                   \
+  struct hash<type> {                           \
+    std::size_t operator()(const type &t) const \
+    {                                           \
+      using seng::internal::hashCombine;        \
+      std::size_t ret = 0;                      \
+      hashCombine(ret, __VA_ARGS__);            \
+      return ret;                               \
+    }                                           \
+  };                                            \
+  }
