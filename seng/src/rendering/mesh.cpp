@@ -4,6 +4,7 @@
 #include <seng/rendering/renderer.hpp>
 
 #include <tiny_obj_loader.h>
+#include <glm/geometric.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
@@ -77,6 +78,11 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
       vertex.pos = {attrib.vertices[3 * index.vertex_index + 0],
                     attrib.vertices[3 * index.vertex_index + 1],
                     attrib.vertices[3 * index.vertex_index + 2]};
+
+      vertex.normal = {attrib.normals[3 * index.normal_index + 0],
+                       attrib.normals[3 * index.normal_index + 1],
+                       attrib.normals[3 * index.normal_index + 2]};
+      vertex.normal = glm::normalize(vertex.normal);
 
       vertex.texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
                          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};

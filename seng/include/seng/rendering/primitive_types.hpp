@@ -14,22 +14,24 @@ namespace seng::rendering {
  */
 struct Vertex {
   glm::vec3 pos;
+  glm::vec3 normal;
   glm::vec3 color;
   glm::vec2 texCoord;
 
-  static constexpr size_t ATTRIBUTE_COUNT = 3;
+  static constexpr size_t ATTRIBUTE_COUNT = 4;
 
   /**
    * Attribute description (in order):
    *
    * 0. vec3<float> position
-   * 1. vec3<float> vertex color
-   * 2. vec2<float> UV coordinates
+   * 1. vec3<float> normal
+   * 2. vec3<float> vertex color
+   * 3. vec2<float> UV coordinates
    */
   static std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT>
   attributeDescriptions()
   {
-    std::array<vk::VertexInputAttributeDescription, 3> descs{};
+    std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT> descs{};
 
     descs[0].binding = 0;
     descs[0].location = 0;
@@ -39,12 +41,17 @@ struct Vertex {
     descs[1].binding = 0;
     descs[1].location = 1;
     descs[1].format = vk::Format::eR32G32B32Sfloat;
-    descs[1].offset = offsetof(Vertex, color);
+    descs[1].offset = offsetof(Vertex, normal);
 
     descs[2].binding = 0;
     descs[2].location = 2;
-    descs[2].format = vk::Format::eR32G32Sfloat;
-    descs[2].offset = offsetof(Vertex, texCoord);
+    descs[2].format = vk::Format::eR32G32B32Sfloat;
+    descs[2].offset = offsetof(Vertex, color);
+
+    descs[3].binding = 0;
+    descs[3].location = 3;
+    descs[3].format = vk::Format::eR32G32Sfloat;
+    descs[3].offset = offsetof(Vertex, texCoord);
 
     return descs;
   }
