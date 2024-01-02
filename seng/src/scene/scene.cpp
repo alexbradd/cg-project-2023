@@ -270,11 +270,15 @@ void Scene::draw(const FrameHandle &handle)
 
 SceneEventToken Scene::listen(SceneEvents e, std::function<void(float)> h)
 {
-  EventHandlerType handler = make_tuple(EVENT_INDEX++, h);
+  EventHandlerType handler = make_tuple(EVENT_INDEX, h);
   m_eventHandlers[e].push_back(handler);
+
   SceneEventToken tok;
   tok.event = e;
   tok.id = EVENT_INDEX;
+
+  EVENT_INDEX++;
+
   return tok;
 }
 
