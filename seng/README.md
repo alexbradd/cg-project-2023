@@ -7,21 +7,27 @@ Obviously I do not want to create the new Unity or Unreal (5 credits are too
 little even for this), these are the goals I want to achieve with this engine,
 plus those that have been actually implemented:
 
-- [x] Load models via OBJ
+- [x] Load models via OBJ (through `tinyobjloader`)
+- [ ] Loading textures (through `stb_image.h`)
 - [x] Support for multiple scenes
 - [x] Parse scene representations from files
 - [x] Implement a system where the user can extend an object's behaviour with
-      arbitrary scripts (in CPP) (like Unity's MonoBehaviour)
+      arbitrary scripts (in C++) (like Unity's MonoBehaviour)
 - [ ] System to compose different vertex/fragment shaders into different object
       shaders
+- [ ] Parse shader definition from a file
 - [ ] System to create different materials by instantiating object shaders
-- [ ] Loading textures
 - [ ] Global illumination with a single directional light
 
 Things that I want to do if I have time left before the deadline:
 
+- [ ] Mipmapping
+  - [ ] Make it configurable
+- [ ] Multisampling
+  - [ ] Make it configurable
+- [ ] Proper object IDs, not just some static `unsigned long` that gets
+      incremented every time
 - [ ] Proper event system
-- [ ] Global shader definition file to avoid copy-pasting
 - [ ] Some multithreading
 
 ## Some documentation
@@ -32,11 +38,6 @@ Scenes are defined inside of YAML (with `.yaml` extension) files stored in the
 scene folder (specified by application at engine start). A scene is composed of:
 
 - A name, which is equal to the filename without the `.yaml` extension
-- A list of object shaders, each with a name two shader stages (one for vertex
-  and one for fragment) and a list of texture types to pass to the fragment
-  shader
-- A list of shader instances, each of which contains a name and a list of
-  texture paths
 - A light
 - A list of Entities
 
@@ -50,34 +51,27 @@ graphics or any user defined ones). For more info see the section on components.
 Example scene:
 
 ```yaml
-Shaders:
-  - name: simple
-    vert: simple_vert
-    frag: simple_frag
-    textureTypes: [2d]
-
-ShaderInstances:
-  - name: test
-    textures: [diffuse.png]
-
 Light:
   color: [1.0, 1.0, 1.0, 1.0]
   angle: 45
 
 Entities:
-  - name: "cam"
+  - name: cam
     transform:
       position: [0.0, 0.0, 10.0]
     components:
-      - id: "Camera"
+      - id: Camera
         main: true
-  - name: "other"
+  - name: other
     transform:
       position: [0.0, 5.0, 10.0]
     components:
-      - id: "MyAwesomeScript"
+      - id: MyAwesomeScript
         a_parameter: 10
         another_parameter: false
+      - id: MeshRenderer
+        model: suzanne.obj
+        material: test
 ```
 
 #### Footguns
@@ -98,9 +92,6 @@ Yea, I am on a deadline and stuff has a bit of jank.
 
    Keep an eye on which component searches for which during initialization. If
    you have circular dependencies, tough luck, find a way to remove them.
-
-3. Texture order is important since it is the set order the shader will receive
-   them in
 
 ### Component system
 
@@ -136,10 +127,51 @@ available:
 - Component destructor: runs on component removal, be it for entity destruction
   or scene destruction.
 
-### Shader format
+### Shader system
 
-The global uniform buffers are in the first descriptor set and the bindings are
-defined as follows:
+Shaders and shader instances are defined in a YAML file specified at engine start.
+The file contains two keys:
+
+- `Shaders`: a list of object shaders, each with:
+  - A name
+  - Two shader stages (one for vertex and one for fragment)
+  - A list of texture types to pass to the fragment stage
+- `Instances`: a list of shader instances (basically materials), each of which
+  contains:
+  - A name
+  - The name of the shader it instances
+  - A list of texture image paths
+
+Example shader configuration:
+
+```yaml
+Shaders:
+  - name: simple
+    vert: simple_vert
+    frag: simple_frag
+    textureTypes: [2d]
+  - name: complex
+    vert: simple_vert
+    frag: complex_frag
+    textureTypes: [1d, 2d, 2d, 2d, 2d, 3d]
+
+Instances:
+  - name: test
+    instanceOf: simple
+    textures: [diffuse.png]
+```
+
+Texture order in the object shader definition is very important since it will
+define the order in which the descriptor sets will be laid out in the fragment
+stage (more on that in the relevant section). Same goes for the texture paths in
+material definition.
+
+If the instance contains more textures than the declaration, the extra textures
+will simply not be passed and warning will be printed, if it contains less an
+error will be thrown.
+
+The global uniform buffers are in the first descriptor set (set 0) and the
+bindings are defined as follows:
 
 0. Transformation-to-clip-space parameters (bound to the vertex stage):
    - `mat4` projection matrix
@@ -171,5 +203,27 @@ The vertex stage must output (aside from `gl_Position`) the following parameters
 The fragment shader takes as input what the vertex stage feeds it and needs to
 output a `vec4` containing the fragment output color.
 
-Fragment shader parameters (only textures of various dimensions) are passed in
-different sets as defined in the scene YAML.
+Textures are passed in different sets (from 1 onward) in the order defined in the
+shader configuration file.
+
+## Some comments on the engine as a whole
+
+This project has been created as a final project form my uni course, and such
+has been done under a lot of crunch due to other courses and deadlines.
+Moreover, it was my first C++/Vulkan experience coming from a background of
+C/Rust and Java and no prior graphics programming. This means that the code is
+not of the finest quality: coding conventions are all over the place, RAII is
+implemented in a "good enough" way, some APIs may be badly designed and
+inflexible etc... . Still, as a "baby's first game engine" I think it turned out
+pretty good. :)
+
+Some thanks to the tutorials/projects I ~~stole~~ _took inspiration_ from:
+
+- [Vulkan Tutorial](https://vulkan-tutorial.com/)
+- [Vulkan Guide](https://vkguide.dev/)
+- [Vulkan Samples' framework](https://github.com/KhronosGroup/Vulkan-Samples),
+  (or some architectural bits
+- Unity, for some architectural bits like the GameObject/Component system
+- [Kohi engine](https://kohiengine.com/) and the [youtube series](https://www.youtube.com/playlist?list=PLv8Ddw9K0JPg1BEO-RS-0MYs423cvLVtj)
+  (the early bits mainly), for being a nice to follow video tutorial and for
+  some renderer architecture bits
