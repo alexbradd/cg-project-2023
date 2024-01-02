@@ -119,7 +119,7 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
           vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR,
           vk::ImageLayout::eColorAttachmentOptimal,
-          vk::ClearColorValue{0.0f, 0.0f, 1.0f, 0.0f}},
+          vk::ClearColorValue{0.0f, 0.0f, 0.0f, 0.0f}},
          // Depth attachment
          {m_device.depthFormat().format, vk::SampleCountFlagBits::e1,
           vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
