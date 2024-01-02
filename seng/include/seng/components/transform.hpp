@@ -183,6 +183,9 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   glm::vec3 m_pos;
   glm::vec3 m_scale;
   glm::quat m_rotation;
+
+  mutable bool m_dirty;
+  mutable glm::mat4 m_localToWorld;
 };
 
 };  // namespace seng

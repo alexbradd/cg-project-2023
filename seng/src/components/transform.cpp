@@ -14,6 +14,7 @@ using namespace seng;
 
 Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseComponent(e)
 {
+  m_dirty = true;
   position(p);
   scale(s);
   rotation(r);
@@ -21,16 +22,19 @@ Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseCom
 
 void Transform::position(glm::vec3 p)
 {
+  m_dirty = true;
   m_pos = p;
 }
 
 void Transform::translate(glm::vec3 pos)
 {
+  m_dirty = true;
   m_pos += pos;
 }
 
 void Transform::scale(glm::vec3 scale)
 {
+  m_dirty = true;
   scale.x = scale.x == 0.0f ? 1.0 : scale.x;
   scale.y = scale.y == 0.0f ? 1.0 : scale.y;
   scale.z = scale.z == 0.0f ? 1.0 : scale.z;
@@ -39,16 +43,19 @@ void Transform::scale(glm::vec3 scale)
 
 void Transform::rotation(glm::quat r)
 {
+  m_dirty = true;
   m_rotation = r;
 }
 
 void Transform::rotation(glm::vec3 euler)
 {
+  m_dirty = true;
   m_rotation = glm::quat(euler);
 }
 
 void Transform::rotate(glm::vec3 euler, CoordinateSystem ref)
 {
+  m_dirty = true;
   switch (ref) {
     case CoordinateSystem::eWorld:
       m_rotation = glm::quat(euler) * m_rotation;
@@ -61,6 +68,7 @@ void Transform::rotate(glm::vec3 euler, CoordinateSystem ref)
 
 void Transform::rotate(float angle, glm::vec3 axis)
 {
+  m_dirty = true;
   m_rotation = glm::rotate(glm::quat(glm::vec3(0.0, 0.0, 0.0)), angle, axis) * m_rotation;
 }
 
@@ -81,8 +89,13 @@ glm::vec3 Transform::right() const
 
 glm::mat4 Transform::toMat4() const
 {
-  return glm::translate(glm::mat4(1.0f), m_pos) *
-         glm::toMat4(glm::normalize(m_rotation)) * glm::scale(glm::mat4(1.0f), m_scale);
+  if (m_dirty) {
+    m_localToWorld = glm::translate(glm::mat4(1.0f), m_pos) *
+                     glm::toMat4(glm::normalize(m_rotation)) *
+                     glm::scale(glm::mat4(1.0f), m_scale);
+    m_dirty = false;
+  }
+  return m_localToWorld;
 }
 
 DEFINE_CREATE_FROM_CONFIG(Transform, entity, node)
