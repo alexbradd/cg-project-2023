@@ -67,11 +67,8 @@ using AttributeDescriptions =
     std::array<vk::VertexInputAttributeDescription, Vertex::ATTRIBUTE_COUNT>;
 
 struct GlobalUniformObject {
-  glm::mat4 projection;
-  glm::mat4 view;
-  // Align to 256 bytes
-  glm::mat4 reserved0;
-  glm::mat4 reserved1;
+  alignas(16) glm::mat4 projection;
+  alignas(16) glm::mat4 view;
 };
 
 }  // namespace seng::rendering
