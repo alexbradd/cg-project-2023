@@ -85,8 +85,7 @@ glm::mat4 Transform::toMat4() const
          glm::toMat4(glm::normalize(m_rotation)) * glm::scale(glm::mat4(1.0f), m_scale);
 }
 
-std::unique_ptr<BaseComponent> Transform::createFromConfig(Entity& entity,
-                                                           const YAML::Node& node)
+DEFINE_CREATE_FROM_CONFIG(Transform, entity, node)
 {
   glm::vec3 pos = DEFAULT_POS;
   glm::vec3 scale = DEFAULT_SCALE;

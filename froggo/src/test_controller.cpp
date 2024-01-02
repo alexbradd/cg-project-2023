@@ -19,8 +19,7 @@ using namespace seng;
 
 size_t TestController::s_sceneIndex = 0;
 
-std::unique_ptr<BaseComponent> TestController::createFromConfig(Entity &entity,
-                                                                const YAML::Node &node)
+DEFINE_CREATE_FROM_CONFIG(TestController, entity, node)
 {
   bool enabled = true;
 

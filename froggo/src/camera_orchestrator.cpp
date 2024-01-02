@@ -16,8 +16,7 @@
 
 using namespace seng;
 
-std::unique_ptr<BaseComponent> CameraOrchestrator::createFromConfig(
-    Entity &entity, [[maybe_unused]] const YAML::Node &node)
+DEFINE_CREATE_FROM_CONFIG(CameraOrchestrator, entity, )
 {
   return std::make_unique<CameraOrchestrator>(entity);
 }

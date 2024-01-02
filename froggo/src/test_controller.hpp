@@ -8,8 +8,6 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <memory>
-
 class TestController : public seng::ScriptComponent,
                        public seng::ConfigParsableComponent<TestController> {
  public:
@@ -21,8 +19,7 @@ class TestController : public seng::ScriptComponent,
   TestController &operator=(TestController &&) = delete;
 
   DECLARE_COMPONENT_ID("TestController");
-  static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
-                                                               const YAML::Node &node);
+  DECLARE_CREATE_FROM_CONFIG();
 
   void onUpdate(float deltaTime) override;
 

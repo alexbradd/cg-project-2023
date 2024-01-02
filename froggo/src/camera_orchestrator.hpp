@@ -17,8 +17,7 @@ class CameraOrchestrator : public seng::ScriptComponent,
   CameraOrchestrator &operator=(CameraOrchestrator &&) = delete;
 
   DECLARE_COMPONENT_ID("CameraOrchestrator");
-  static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &entity,
-                                                               const YAML::Node &node);
+  DECLARE_CREATE_FROM_CONFIG();
 
   void onUpdate(float delta) override;
 

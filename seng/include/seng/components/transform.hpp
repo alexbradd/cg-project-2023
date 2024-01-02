@@ -59,8 +59,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   Transform& operator=(Transform&&) = delete;
 
   DECLARE_COMPONENT_ID("Transform");
-  static std::unique_ptr<BaseComponent> createFromConfig(Entity& entity,
-                                                         const YAML::Node& node);
+  DECLARE_CREATE_FROM_CONFIG();
 
   /**
    * Converts this transform to a matrix that transforms the local

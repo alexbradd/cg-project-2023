@@ -46,7 +46,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   Camera& operator=(Camera&&) = delete;
 
   DECLARE_COMPONENT_ID("Camera");
-  static std::unique_ptr<BaseComponent> createFromConfig(Entity& e, const YAML::Node&);
+  DECLARE_CREATE_FROM_CONFIG();
 
   // Getters
   float aspectRatio() const { return m_aspectRatio; }
