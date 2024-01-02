@@ -8,6 +8,13 @@
 #include <string>
 #include <unordered_map>
 
+#define DECLARE_CREATE_FROM_CONFIG()                                           \
+  static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &, \
+                                                               const YAML::Node &)
+#define DEFINE_CREATE_FROM_CONFIG(type, entity, node)                               \
+  std::unique_ptr<seng::BaseComponent> type::createFromConfig(seng::Entity &entity, \
+                                                              const YAML::Node &node)
+
 // Fwd decl
 namespace YAML {
 class Node;
