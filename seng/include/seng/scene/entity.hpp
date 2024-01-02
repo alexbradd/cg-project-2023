@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "seng/utils.hpp"
 
 namespace seng {
 class Application;
@@ -138,16 +139,4 @@ class Entity {
 
 };  // namespace seng
 
-namespace std {
-
-// Template instantiation for hash<>, so that we can use entities in sets and maps
-template <>
-struct hash<seng::Entity> {
-  std::size_t operator()(const seng::Entity& entity) const
-  {
-    hash<uint64_t> hasher;
-    return hasher(entity.id());
-  }
-};
-
-};  // namespace std
+MAKE_HASHABLE(seng::Entity, t.id());

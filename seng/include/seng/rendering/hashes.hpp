@@ -4,17 +4,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-// Copied from Vulkan-Samples. Needed so that we can put a DescriptorSetLayout handle in a
-// hashmap
-namespace std {
-template <>
-struct hash<vk::DescriptorSetLayout> {
-  std::size_t operator()(const vk::DescriptorSetLayout &descriptorSetLayout) const
-  {
-    std::size_t result = 0;
-    seng::internal::hashCombine(result,
-                                static_cast<VkDescriptorSetLayout>(descriptorSetLayout));
-    return result;
-  }
-};
-}  // namespace std
+// Adapted from Vulkan-Samples. Needed so that we can put a DescriptorSetLayout
+// handle in a hashmap
+MAKE_HASHABLE(vk::DescriptorSetLayout, static_cast<VkDescriptorSetLayout>(t));

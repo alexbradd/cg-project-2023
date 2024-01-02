@@ -11,9 +11,7 @@ struct hash<glm::vec<2, T, Q>> {
   {
     using seng::internal::hashCombine;
     size_t seed = 0;
-    hash<T> hasher;
-    hashCombine(seed, hasher(v.x));
-    hashCombine(seed, hasher(v.y));
+    hashCombine(seed, v.x, v.y);
     return seed;
   }
 };
@@ -24,9 +22,7 @@ struct hash<glm::vec<3, T, Q>> {
   {
     using seng::internal::hashCombine;
     size_t seed = 0;
-    hash<T> hasher;
-    hashCombine(seed, hasher(v.x));
-    hashCombine(seed, hasher(v.y));
+    hashCombine(seed, v.x, v.y, v.z);
     return seed;
   }
 };

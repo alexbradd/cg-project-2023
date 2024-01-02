@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <seng/hashes.hpp>
 #include <seng/utils.hpp>
 
@@ -73,22 +74,4 @@ struct GlobalUniformObject {
 
 }  // namespace seng::rendering
 
-// Adapted from vulkan-tutorial.com's chapter about loading models
-namespace std {
-template <>
-struct hash<seng::rendering::Vertex> {
-  size_t operator()(seng::rendering::Vertex const& vertex) const
-  {
-    using seng::internal::hashCombine;
-    std::size_t vPos = 0;
-    std::size_t vColor = 0;
-    std::size_t vTexCoord = 0;
-
-    hashCombine(vPos, vertex.pos);
-    hashCombine(vColor, vertex.color);
-    hashCombine(vTexCoord, vertex.texCoord);
-
-    return ((vPos ^ vColor << 1) >> 1) ^ (vTexCoord << 1);
-  }
-};
-}  // namespace std
+MAKE_HASHABLE(seng::rendering::Vertex, t.pos, t.normal, t.color, t.texCoord);
