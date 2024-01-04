@@ -21,13 +21,14 @@ plus those that have been actually implemented:
 
 Things that I want to do if I have time left before the deadline:
 
+- [ ] Proper event system
+- [ ] Shadow mapping
 - [ ] Mipmapping
   - [ ] Make it configurable
 - [ ] Multisampling
   - [ ] Make it configurable
 - [ ] Proper object IDs, not just some static `unsigned long` that gets
       incremented every time
-- [ ] Proper event system
 - [ ] Some multithreading
 
 ## Some documentation
