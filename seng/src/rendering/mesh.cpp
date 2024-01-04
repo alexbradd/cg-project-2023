@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 
 using namespace seng::rendering;
 using namespace std;
@@ -19,6 +20,26 @@ static constexpr vk::BufferUsageFlags vertexBufferUsage =
 static constexpr vk::BufferUsageFlags indexBufferUsage =
     vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
     vk::BufferUsageFlagBits::eTransferDst;
+
+Mesh::Mesh(const Renderer &renderer) :
+    m_renderer(std::addressof(renderer)),
+    m_vertices(),
+    m_indices(),
+    m_vbo(nullopt),
+    m_ibo(nullopt)
+{
+}
+
+Mesh::Mesh(const Renderer &renderer,
+           std::vector<Vertex> &&vertices,
+           std::vector<uint32_t> &&indices) :
+    m_renderer(std::addressof(renderer)),
+    m_vertices(std::move(vertices)),
+    m_indices(std::move(indices)),
+    m_vbo(nullopt),
+    m_ibo(nullopt)
+{
+}
 
 static void uploadTo(const Device &device,
                      const vk::raii::CommandPool &pool,
@@ -36,21 +57,28 @@ static void uploadTo(const Device &device,
   temp.copy(to, {0, offset, size}, pool, queue);
 }
 
-Mesh::Mesh(const Renderer &renderer,
-           const std::vector<Vertex> &vertices,
-           const std::vector<uint32_t> &indices) :
-    m_vertices(renderer.device(), vertexBufferUsage, vertices.size() * sizeof(Vertex)),
-    m_indices(renderer.device(), indexBufferUsage, indices.size() * sizeof(uint32_t)),
-    m_count(indices.size())
+void Mesh::sync()
 {
-  const auto &device = renderer.device();
-  const auto &cmdPool = renderer.commandPool();
+  if (m_vertices.size() == 0 || m_indices.size() == 0) {
+    seng::log::warning("No data to sync... aborting");
+    return;
+  }
+
+  if (!m_vbo.has_value())
+    m_vbo = Buffer(m_renderer->device(), vertexBufferUsage,
+                   m_vertices.size() * sizeof(Vertex));
+  if (!m_ibo.has_value())
+    m_ibo = Buffer(m_renderer->device(), indexBufferUsage,
+                   m_indices.size() * sizeof(uint32_t));
+
+  const auto &device = m_renderer->device();
+  const auto &cmdPool = m_renderer->commandPool();
   const auto &queue = device.graphicsQueue();
 
-  uploadTo(device, cmdPool, queue, this->m_vertices, vertices.size() * sizeof(Vertex), 0,
-           vertices.data());
-  uploadTo(device, cmdPool, queue, this->m_indices, indices.size() * sizeof(uint32_t), 0,
-           indices.data());
+  uploadTo(device, cmdPool, queue, *m_vbo, m_vertices.size() * sizeof(Vertex), 0,
+           m_vertices.data());
+  uploadTo(device, cmdPool, queue, *m_ibo, m_indices.size() * sizeof(uint32_t), 0,
+           m_indices.data());
 }
 
 Mesh Mesh::loadFromDisk(const Renderer &renderer,

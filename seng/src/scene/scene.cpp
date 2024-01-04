@@ -122,7 +122,9 @@ bool isYamlNodeValidShader(const YAML::Node &node)
 void Scene::parseMesh(const std::string &assetPath, const YAML::Node &node)
 {
   std::string name = node.as<string>();
-  m_meshes.emplace(name, Mesh::loadFromDisk(*m_renderer, assetPath, name));
+  auto mesh = Mesh::loadFromDisk(*m_renderer, assetPath, name);
+  mesh.sync();
+  m_meshes.emplace(name, std::move(mesh));
 }
 
 void Scene::parseEntity(const YAML::Node &node)
@@ -254,12 +256,14 @@ void Scene::draw(const FrameHandle &handle)
 
     // FIXME: should be per entity rendererd with the shader not per mesh
     for (const auto &mesh : m_meshes) {
+      if (!mesh.second.synced()) continue;
+
       shader.updateModelState(cmd, glm::mat4(1));
-      cmd.buffer().bindVertexBuffers(0, *mesh.second.vertexBuffer().buffer(), {0});
-      cmd.buffer().bindIndexBuffer(*mesh.second.indexBuffer().buffer(), 0,
+      cmd.buffer().bindVertexBuffers(0, *(*mesh.second.vertexBuffer()).buffer(), {0});
+      cmd.buffer().bindIndexBuffer(*(*mesh.second.indexBuffer()).buffer(), 0,
                                    vk::IndexType::eUint32);
       shader.use(cmd);
-      cmd.buffer().drawIndexed(mesh.second.indexCount(), 1, 0, 0, 0);
+      cmd.buffer().drawIndexed(mesh.second.indices().size(), 1, 0, 0, 0);
     }
   }
 }

@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 namespace seng::rendering {
@@ -22,6 +23,8 @@ class Renderer;
  */
 class Mesh {
  public:
+  /// Create an empty mesh
+  Mesh(const Renderer &renderer);
   Mesh(const Mesh &) = delete;
   Mesh(Mesh &&) = default;
 
@@ -29,9 +32,24 @@ class Mesh {
   Mesh &operator=(Mesh &&) = default;
 
   // Accessors
-  const Buffer &vertexBuffer() const { return m_vertices; }
-  const Buffer &indexBuffer() const { return m_indices; }
-  uint32_t indexCount() const { return m_count; }
+  const std::vector<Vertex> &vertices() const { return m_vertices; }
+  const std::vector<uint32_t> &indices() const { return m_indices; }
+
+  const std::optional<Buffer> &vertexBuffer() const { return m_vbo; }
+  const std::optional<Buffer> &indexBuffer() const { return m_ibo; }
+
+  /// Return true if device buffers are up to date with the ones in host memory
+  bool synced() const { return m_vbo.has_value() && m_ibo.has_value(); }
+
+  /**
+   * Send the in-host-memory mesh data to the device
+   */
+  void sync();
+
+  /**
+   * Clear the vertex and index buffers from the device
+   */
+  void free();
 
   /**
    * Factory method that creates a mesh by loading the model with the given name.
@@ -44,16 +62,16 @@ class Mesh {
                            std::string name);
 
  private:
-  Buffer m_vertices;
-  Buffer m_indices;
-  uint32_t m_count;
+  const Renderer *m_renderer;
+  std::vector<Vertex> m_vertices;
+  std::vector<uint32_t> m_indices;
 
-  /**
-   * Private constructor. Users must go through the `loadFromDisk()` factory method.
-   */
+  std::optional<Buffer> m_vbo;
+  std::optional<Buffer> m_ibo;
+
   Mesh(const Renderer &renderer,
-       const std::vector<Vertex> &vertices,
-       const std::vector<uint32_t> &indices);
+       std::vector<Vertex> &&vertices,
+       std::vector<uint32_t> &&indices);
 };
 
 };  // namespace seng::rendering
