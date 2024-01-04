@@ -8,7 +8,7 @@ ShaderInstances:
     diffusePath: diffuse.png
 
 Meshes:
-  - test1
+  - test1.obj
 
 Entities:
   - name: "cam1"

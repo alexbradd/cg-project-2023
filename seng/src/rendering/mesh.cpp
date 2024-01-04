@@ -86,7 +86,7 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
                         const std::string &assetPath,
                         std::string name)
 {
-  std::string modelPath{filesystem::path{assetPath} / filesystem::path{name + ".obj"}};
+  std::string modelPath{filesystem::path{assetPath} / filesystem::path{name}};
   if (!filesystem::exists(modelPath)) {
     seng::log::error("Could not locate {}, returning empty mesh", name);
     return Mesh(renderer);
