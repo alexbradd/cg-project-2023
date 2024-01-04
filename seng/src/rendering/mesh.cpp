@@ -1,3 +1,4 @@
+#include <seng/log.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -86,6 +87,11 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
                         std::string name)
 {
   std::string modelPath{filesystem::path{assetPath} / filesystem::path{name + ".obj"}};
+  if (!filesystem::exists(modelPath)) {
+    seng::log::error("Could not locate {}, returning empty mesh", name);
+    return Mesh(renderer);
+  }
+
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -93,7 +99,8 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
 
   // Lifted from vulkan-tutorial.com's "Loading models" chapter with minor adaptations
   if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, modelPath.c_str())) {
-    throw std::runtime_error(err);
+    seng::log::error("Could not load {}, returning empty mesh", name);
+    return Mesh(renderer);
   }
 
   std::vector<Vertex> vertices;
