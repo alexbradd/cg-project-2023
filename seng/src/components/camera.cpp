@@ -9,7 +9,7 @@
 // clang-format off
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "glm/trigonometric.hpp"
+#include <glm/trigonometric.hpp>
 // clang-format on
 #include <yaml-cpp/yaml.h>
 

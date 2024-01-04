@@ -2,6 +2,7 @@
 
 #include <seng/components/definitions.hpp>
 #include <seng/components/toggle.hpp>
+#include <seng/hook.hpp>
 #include <seng/scene/scene.hpp>
 
 namespace seng {
@@ -53,7 +54,7 @@ class ScriptComponent : public ToggleComponent {
   virtual void onLateUpdate([[maybe_unused]] float deltaTime) {}
 
  private:
-  SceneEventToken m_earlyUpdateToken, m_updateToken, m_lateUpdateToken;
+  HookToken<float> m_earlyUpdateToken, m_updateToken, m_lateUpdateToken;
 
   void onEarlyUpdateImpl(float deltaTime);
   void onUpdateImpl(float deltaTime);

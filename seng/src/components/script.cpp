@@ -13,12 +13,12 @@ ScriptComponent::ScriptComponent(Entity &e, bool enabled) : ToggleComponent(e, e
 {
   auto &s = entity->scene();
 
-  m_earlyUpdateToken = s.listen(SceneEvents::EARLY_UPDATE,
-                                std::bind(&ScriptComponent::onEarlyUpdateImpl, this, _1));
+  m_earlyUpdateToken =
+      s.onEarlyUpdate().insert(std::bind(&ScriptComponent::onEarlyUpdateImpl, this, _1));
   m_updateToken =
-      s.listen(SceneEvents::UPDATE, std::bind(&ScriptComponent::onUpdateImpl, this, _1));
-  m_lateUpdateToken = s.listen(SceneEvents::UPDATE,
-                               std::bind(&ScriptComponent::onLateUpdateImpl, this, _1));
+      s.onUpdate().insert(std::bind(&ScriptComponent::onUpdateImpl, this, _1));
+  m_lateUpdateToken =
+      s.onLateUpdate().insert(std::bind(&ScriptComponent::onLateUpdateImpl, this, _1));
 }
 
 // Not very efficient implementation but it works.
@@ -42,7 +42,7 @@ ScriptComponent::~ScriptComponent()
 {
   auto &s = entity->scene();
 
-  s.unlisten(m_earlyUpdateToken);
-  s.unlisten(m_updateToken);
-  s.unlisten(m_lateUpdateToken);
+  s.onEarlyUpdate().remove(m_earlyUpdateToken);
+  s.onUpdate().remove(m_updateToken);
+  s.onLateUpdate().remove(m_lateUpdateToken);
 }

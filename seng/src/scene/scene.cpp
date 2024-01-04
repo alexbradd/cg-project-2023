@@ -13,10 +13,8 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
-#include <functional>
 #include <memory>
 #include <string>
-#include <tuple>
 
 using namespace seng;
 using namespace seng::rendering;
@@ -25,8 +23,6 @@ using namespace std;
 // Misc functions
 static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
 static bool isYamlNodeValidShader(const YAML::Node &node);
-
-uint64_t Scene::EVENT_INDEX = 0;
 
 Scene::Scene(Application &app) :
     m_app(std::addressof(app)),
@@ -268,35 +264,17 @@ void Scene::draw(const FrameHandle &handle)
   }
 }
 
-SceneEventToken Scene::listen(SceneEvents e, std::function<void(float)> h)
+void Scene::update(Timestamp lastFrame, const FrameHandle &handle)
 {
-  EventHandlerType handler = make_tuple(EVENT_INDEX, h);
-  m_eventHandlers[e].push_back(handler);
+  float deltaTime = inSeconds(Clock::now() - lastFrame);
+  m_earlyUpdate(deltaTime);
 
-  SceneEventToken tok;
-  tok.event = e;
-  tok.id = EVENT_INDEX;
+  // Update
+  m_update(deltaTime);
+  draw(handle);
 
-  EVENT_INDEX++;
-
-  return tok;
-}
-
-void Scene::unlisten(SceneEventToken tok)
-{
-  auto i = m_eventHandlers.find(tok.event);
-  if (i == m_eventHandlers.end()) return;
-
-  auto end = std::remove_if(i->second.begin(), i->second.end(),
-                            [&](const auto &h) { return tok.id == std::get<0>(h); });
-  i->second.erase(end, i->second.end());
-}
-
-void Scene::fireEventType(SceneEvents event, float delta) const
-{
-  auto i = m_eventHandlers.find(event);
-  if (i == m_eventHandlers.end()) return;
-  for (const auto &ev : i->second) std::get<1>(ev)(delta);
+  // Late update
+  m_lateUpdate(deltaTime);
 }
 
 Scene::~Scene()

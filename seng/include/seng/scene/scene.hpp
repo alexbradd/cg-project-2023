@@ -1,5 +1,6 @@
 #pragma once
 
+#include <seng/hook.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/object_shader.hpp>
@@ -10,7 +11,6 @@
 #include <glm/trigonometric.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <functional>
 #include <list>
 #include <memory>
 #include <string>
@@ -30,35 +30,23 @@ class FrameHandle;
 }  // namespace rendering
 
 /**
- * Identifies the types of events that the scene will emit:
- *
- * 1. EARLY_UPDATE: Runs before input events have been polled
- * 2. UPDATE: Main update event
- * 3. LATE_UPDATE: Runs after the scene is finished drawing.
- */
-enum class SceneEvents { EARLY_UPDATE, UPDATE, LATE_UPDATE };
-
-class SceneEventToken {
- private:
-  SceneEvents event;
-  uint64_t id;
-
-  friend class Scene;
-};
-
-/**
  * A Scene is the container for all resources currently loaded that are not
  * strictly related to the low-level push-frame-to-display, e.g. meshes, materials,
  * entities and other objects.
  *
- * A scene's resources can be divided roughly in two:
- *
- * 1. Stuff necessary for shading (meshes, shader stages, object shaders and shader
- *    instances)
- * 2. Stuff that the user can move around an interact with (entities and the camera)
- *
  * The "stuff that the user can interact with", i.e. entities, are organized in a
  * scene graph. For more info on those, refer to the specific classes.
+ *
+ * Scene provides some hooks into its update cycle. One can register to these
+ * hooks through the provided registrars (see `seng/hook.hpp` for more info).
+ * The three most important hooks for game logic provided are:
+ *
+ * - `onEarlyUpdate`: runs first thing in the update cycle
+ * - `onUpdate`: runs just before scene drawing
+ * - `onLateUpdate`: runs last thing in the update cycle
+ *
+ * Also other hooks into other aspects of a scene's life (e.g. drawing) are exposed.
+ * For more info referer to the specific hooks' documentation.
  *
  * A scene is non-copyable and non movable.
  */
@@ -170,30 +158,39 @@ class Scene {
   void mainCamera(Camera *cam);
 
   /**
+   * Registrar for the "earlyUpdate" hook
+   *
+   * This hook is executed at the earliest point in the update cycle
+   */
+  HookRegistrar<float> &onEarlyUpdate() { return m_earlyUpdate.registrar(); }
+
+  /**
+   * Registrar for the "update" hook
+   *
+   * This hook is executed right in the middle of the scene's update cycle, just
+   * before drawing.
+   */
+  HookRegistrar<float> &onUpdate() { return m_update.registrar(); }
+
+  /**
+   * Registrar for the "lateUpdate" hook
+   *
+   * This hook is registered last thing in the update cycle
+   */
+  HookRegistrar<float> &onLateUpdate() { return m_lateUpdate.registrar(); }
+
+  /**
    * Draw the scene's contents into the currently on-going frame reprsented by the
    * given FrameHandle.
    */
   void draw(const rendering::FrameHandle &handle);
 
   /**
-   * Register for the given event. The handler will receive as input th delta in
-   * seconds between the current frame and the last drawn frame.
+   * Update the current scene
    */
-  SceneEventToken listen(SceneEvents event, std::function<void(float)> cb);
-
-  /**
-   * Unregister for the given event.
-   */
-  void unlisten(SceneEventToken tok);
-
-  /**
-   * Fires the given event.
-   */
-  void fireEventType(SceneEvents event, float delta) const;
+  void update(Timestamp lastFrame, const rendering::FrameHandle &handle);
 
  private:
-  using EventHandlerType = std::tuple<std::uint64_t, std::function<void(float)>>;
-
   Application *m_app;
   rendering::Renderer *m_renderer;
 
@@ -209,10 +206,10 @@ class Scene {
   Camera *m_mainCamera;
   EntityList m_entities;
 
-  // Event dispatcher
-  std::unordered_map<SceneEvents, std::vector<EventHandlerType>> m_eventHandlers;
-
-  static uint64_t EVENT_INDEX;
+  // Hooks
+  Hook<float> m_earlyUpdate;
+  Hook<float> m_update;
+  Hook<float> m_lateUpdate;
 
   void parseShader(const std::string &shaderPath, const YAML::Node &node);
   void parseMesh(const std::string &assetPath, const YAML::Node &node);

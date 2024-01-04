@@ -44,20 +44,8 @@ void Application::run(unsigned int width, unsigned int height)
 
       m_inputManager->updateEvents();
       if (m_scene != nullptr) {
-        bool executed = m_vulkan->scopedFrame([&](auto& handle) {
-          float deltaTime = inSeconds(Clock::now() - lastFrame);
-
-          // Early update
-          m_scene->fireEventType(SceneEvents::EARLY_UPDATE, deltaTime);
-
-          // Update
-          m_scene->fireEventType(SceneEvents::UPDATE, deltaTime);
-          m_scene->draw(handle);
-
-          // Late update
-          m_scene->fireEventType(SceneEvents::LATE_UPDATE, deltaTime);
-        });
-
+        bool executed = m_vulkan->scopedFrame(
+            [&](auto& handle) { m_scene->update(lastFrame, handle); });
         if (!executed)
           continue;
         else
