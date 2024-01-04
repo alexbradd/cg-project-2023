@@ -6,8 +6,6 @@
 #include <seng/rendering/glfw_window.hpp>
 
 #include <cstdint>
-#include <functional>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -45,16 +43,6 @@ void GlfwWindow::close()
 bool GlfwWindow::shouldClose() const
 {
   return glfwWindowShouldClose(m_ptr);
-}
-
-void GlfwWindow::onResize(function<void(GLFWwindow *, int, int)> callback)
-{
-  m_resizeCbs.push_back(callback);
-}
-
-void GlfwWindow::onKeyEvent(function<void(GLFWwindow *, int, int, int, int)> callback)
-{
-  m_keyEventCb = callback;
 }
 
 vector<const char *> GlfwWindow::extensions() const
@@ -98,13 +86,12 @@ void GlfwWindow::resizeCallback(GLFWwindow *window, int w, int h)
   wrapper->m_width = w;
   wrapper->m_height = h;
   if (w == 0 || h == 0) return;
-  for (const auto &onResize : wrapper->m_resizeCbs) onResize(window, w, h);
+  wrapper->m_resize(wrapper, w, h);
 }
 
 void GlfwWindow::onKeyCallback(
     GLFWwindow *window, int key, int scancode, int action, int mods)
 {
   auto wrapper = reinterpret_cast<GlfwWindow *>(glfwGetWindowUserPointer(window));
-  if (wrapper->m_keyEventCb.has_value())
-    (wrapper->m_keyEventCb).value()(window, key, scancode, action, mods);
+  wrapper->m_keyEvent(wrapper, key, scancode, action, mods);
 }

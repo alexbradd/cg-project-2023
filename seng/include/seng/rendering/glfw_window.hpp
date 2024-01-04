@@ -1,7 +1,7 @@
 #pragma once
 
-#include <functional>
-#include <optional>
+#include <seng/hook.hpp>
+
 #include <string>
 #include <vector>
 
@@ -21,6 +21,9 @@ namespace seng::rendering {
  * Since we should have only 1 window, the class calls glfwInit() at instation
  * and glfwTerminate() at destruction.
  *
+ * It provides hooks into usual windowing stuff with the Hook<> class and its
+ * associates (see `seng/hook.hpp` for more info).
+ *
  * It non copyable but movable.
  */
 class GlfwWindow {
@@ -33,11 +36,11 @@ class GlfwWindow {
    */
   GlfwWindow(std::string appName, unsigned int width, unsigned int height);
   GlfwWindow(const GlfwWindow &) = delete;
-  GlfwWindow(GlfwWindow &&) = default;
+  GlfwWindow(GlfwWindow &&) = delete;
   ~GlfwWindow();
 
   GlfwWindow &operator=(const GlfwWindow &) = delete;
-  GlfwWindow &operator=(GlfwWindow &&) = default;
+  GlfwWindow &operator=(GlfwWindow &&) = delete;
 
   /**
    * Return true if the user has request window closure.
@@ -50,20 +53,25 @@ class GlfwWindow {
   void close();
 
   /**
-   * Add the given callback to the list of functions to be run on window resizing.
+   * Registrar for the "resize" hook.
    *
-   * The parameters passed to the callback are the same passed
-   * glfwSetFramebufferSizeCallback().
+   * The parameters passed to the callback called by are the same passed
+   * glfwSetFramebufferSizeCallback(), except for `struct GLFWWindow*`, which
+   * has been replaced with a pointer to this instance.
    */
-  void onResize(std::function<void(GLFWwindow *, int, int)> callback);
+  HookRegistrar<GlfwWindow *, int, int> &onResize() { return m_resize.registrar(); }
 
   /**
-   * Run the given callback on key events.
+   * Registrar for the "keyEvent" hook.
    *
    * The parameters passed to the callback are the same passed
-   * glfwSetKeyCallback().
+   * glfwSetKeyCallback(), except for `struct GLFWWindow*`, which
+   * has been replaced with a pointer to this instance.
    */
-  void onKeyEvent(std::function<void(GLFWwindow *, int, int, int, int)> cb);
+  HookRegistrar<GlfwWindow *, int, int, int, int> &onKeyEvent()
+  {
+    return m_keyEvent.registrar();
+  }
 
   // getters for various properties
   const std::string &appName() const { return m_appName; }
@@ -92,8 +100,9 @@ class GlfwWindow {
   GLFWwindow *m_ptr;
   std::string m_appName;
   unsigned int m_width, m_height;
-  std::vector<std::function<void(GLFWwindow *, int, int)>> m_resizeCbs;
-  std::optional<std::function<void(GLFWwindow *, int, int, int, int)>> m_keyEventCb;
+
+  Hook<GlfwWindow *, int, int> m_resize;
+  Hook<GlfwWindow *, int, int, int, int> m_keyEvent;
 
   static void resizeCallback(GLFWwindow *window, int w, int h);
   static void onKeyCallback(

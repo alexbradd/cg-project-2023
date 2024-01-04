@@ -31,11 +31,10 @@ Camera::Camera(Entity& e, float near, float far, float fov, bool main) : BaseCom
   m_fov = fov;
 
   auto& window = entity->application().window();
+  m_resizeToken = window->onResize().insert(std::bind(&Camera::resize, this, _2, _3));
 
   auto windowSize = window->framebufferSize();
   m_aspectRatio = windowSize.first / static_cast<float>(windowSize.second);
-
-  window->onResize(std::bind(&Camera::resize, this, _2, _3));
 
   cameras.push_back(this);
 
@@ -44,6 +43,7 @@ Camera::Camera(Entity& e, float near, float far, float fov, bool main) : BaseCom
 
 Camera::~Camera()
 {
+  entity->application().window()->onResize().remove(m_resizeToken);
   auto end = std::remove(cameras.begin(), cameras.end(), this);
   cameras.erase(end, cameras.end());
 }

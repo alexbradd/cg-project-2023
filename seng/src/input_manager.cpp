@@ -1,7 +1,6 @@
 #include <seng/input_manager.hpp>
 #include <seng/rendering/glfw_window.hpp>
 
-#include <functional>
 #include <vector>
 
 using namespace seng;
@@ -24,7 +23,7 @@ InputManager::InputManager(rendering::GlfwWindow& window) :
     // window is initialized later
     m_dirty(false), m_staging(KEY_RANGE, false), m_stored(KEY_RANGE, false)
 {
-  window.onKeyEvent([&](GLFWwindow*, int key, int, int action, int) {
+  window.onKeyEvent().insert([&](rendering::GlfwWindow*, int key, int, int action, int) {
     if (key == -1) return;
     if (action == toInt(KeyEvent::ePress)) {
       m_dirty = true;

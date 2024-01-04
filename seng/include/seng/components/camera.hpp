@@ -3,6 +3,8 @@
 #include <seng/components/base_component.hpp>
 #include <seng/components/definitions.hpp>
 #include <seng/components/scene_config_component_factory.hpp>
+#include <seng/hook.hpp>
+#include <seng/rendering/glfw_window.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <glm/trigonometric.hpp>
@@ -79,6 +81,8 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   float m_near;
   float m_far;
   float m_fov;
+
+  HookToken<rendering::GlfwWindow*, int, int> m_resizeToken;
 
   static std::vector<Camera*> cameras;
 

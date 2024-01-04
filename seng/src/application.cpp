@@ -23,7 +23,10 @@ Application::Application(ApplicationConfig&& config) : conf{std::move(config)} {
 void Application::run(unsigned int width, unsigned int height)
 {
   m_glfwWindow = make_unique<GlfwWindow>(conf.appName, width, height);
-  m_glfwWindow->onResize([this](auto, auto, auto) {
+
+  // Don't bother with the token since this callback will live for the
+  // lifetime of the window
+  m_glfwWindow->onResize().insert([&](auto, auto, auto) {
     if (m_vulkan != nullptr) m_vulkan->signalResize();
   });
 
