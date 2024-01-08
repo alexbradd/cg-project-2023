@@ -36,7 +36,8 @@ Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info
       layoutInfo.setPushConstantRanges(pushConstant);
 
       // Layouts
-      layoutInfo.setLayoutCount = 1;
+      // Not using setLayouts since it breaks if passed a vector<>&
+      layoutInfo.setLayoutCount = info.descriptorSetLayouts.size();
       layoutInfo.pSetLayouts = info.descriptorSetLayouts.data();
       return vk::raii::PipelineLayout(device.logical(), layoutInfo);
     })),
