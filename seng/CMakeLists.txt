@@ -50,6 +50,7 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/fence.cpp
     ./src/rendering/framebuffer.cpp
     ./src/rendering/glfw_window.cpp
+    ./src/rendering/global_uniform.cpp
     ./src/rendering/image.cpp
     ./src/rendering/mesh.cpp
     ./src/rendering/object_shader.cpp
