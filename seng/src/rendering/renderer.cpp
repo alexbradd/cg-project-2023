@@ -96,7 +96,7 @@ const std::vector<const char *> Renderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
 
 // TODO: add other sizes
-const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES{{
+const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES = {{
     {vk::DescriptorType::eUniformBuffer, 1024},
 }};
 
@@ -315,9 +315,9 @@ void Renderer::endFrame(FrameHandle &handle)
 
   // Start submitting to queue
   vk::SubmitInfo submitInfo{};
-  std::array<vk::CommandBuffer, 1> commandBuffers{*frame.commandBuffer.buffer()};
-  std::array<vk::Semaphore, 1> queueCompleteSems{*frame.queueCompleteSem};
-  std::array<vk::Semaphore, 1> imageAvailableSems{*frame.imageAvailableSem};
+  std::array<vk::CommandBuffer, 1> commandBuffers = {*frame.commandBuffer.buffer()};
+  std::array<vk::Semaphore, 1> queueCompleteSems = {*frame.queueCompleteSem};
+  std::array<vk::Semaphore, 1> imageAvailableSems = {*frame.imageAvailableSem};
 
   submitInfo.setCommandBuffers(commandBuffers);
   // The semaphore(s) to be signaled when the queue is complete.
@@ -329,7 +329,7 @@ void Renderer::endFrame(FrameHandle &handle)
   // 1:1 ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents
   // subsequent colour attachment writes from executing until the semaphore
   // signals (i.e. one frame is presented at a time)
-  array<vk::PipelineStageFlags, 1> flags{
+  array<vk::PipelineStageFlags, 1> flags = {
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
   submitInfo.setWaitDstStageMask(flags);
 

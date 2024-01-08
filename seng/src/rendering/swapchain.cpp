@@ -49,8 +49,8 @@ Swapchain::Swapchain(const Device &dev,
       sci.oldSwapchain = *old;
 
       if (indices.graphicsFamily != indices.presentFamily) {
-        array<uint32_t, 2> queueFamilyIndices{*indices.graphicsFamily,
-                                              *indices.presentFamily};
+        array<uint32_t, 2> queueFamilyIndices = {*indices.graphicsFamily,
+                                                 *indices.presentFamily};
         sci.imageSharingMode = vk::SharingMode::eConcurrent;
         sci.setQueueFamilyIndices(queueFamilyIndices);
       } else {

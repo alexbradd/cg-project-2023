@@ -96,9 +96,9 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
 
   // Dynamic states
   vk::PipelineDynamicStateCreateInfo dynamicState{};
-  array<vk::DynamicState, 3> dynamicStates{vk::DynamicState::eViewport,
-                                           vk::DynamicState::eScissor,
-                                           vk::DynamicState::eLineWidth};
+  array<vk::DynamicState, 3> dynamicStates = {vk::DynamicState::eViewport,
+                                              vk::DynamicState::eScissor,
+                                              vk::DynamicState::eLineWidth};
   dynamicState.setDynamicStates(dynamicStates);
 
   // Vertex input

@@ -32,7 +32,7 @@ struct Vertex {
   static std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT>
   attributeDescriptions()
   {
-    std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT> descs{};
+    std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT> descs;
 
     descs[0].binding = 0;
     descs[0].location = 0;
