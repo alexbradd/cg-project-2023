@@ -21,31 +21,12 @@ using namespace seng::rendering;
 using namespace std;
 
 // Misc functions
-static vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device);
 static bool isYamlNodeValidShader(const YAML::Node &node);
 
 Scene::Scene(Application &app) :
-    m_app(std::addressof(app)),
-    m_renderer(app.renderer().get()),
-    m_globalDescriptorSetLayout(createGlobalDescriptorLayout(m_renderer->device())),
-    m_mainCamera(nullptr)
+    m_app(std::addressof(app)), m_renderer(app.renderer().get()), m_mainCamera(nullptr)
 {
-  m_renderer->requestDescriptorSet(*m_globalDescriptorSetLayout);
   seng::log::dbg("Created new scene");
-}
-
-vk::raii::DescriptorSetLayout createGlobalDescriptorLayout(const Device &device)
-{
-  vk::DescriptorSetLayoutBinding guboBinding{};
-  guboBinding.binding = 0;
-  guboBinding.descriptorCount = 1;
-  guboBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-  guboBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-  vk::DescriptorSetLayoutCreateInfo info{};
-  info.bindingCount = 1;
-  info.pBindings = &guboBinding;
-  return vk::raii::DescriptorSetLayout(device.logical(), info);
 }
 
 std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneName)
@@ -109,8 +90,8 @@ void Scene::parseShader(const string &shaderPath, const YAML::Node &shader)
 
   std::string shaderName = shader["name"].as<string>();
   vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};
-  m_shaders.try_emplace(shaderName, m_renderer->device(), m_renderer->renderPass(),
-                        m_globalDescriptorSetLayout, shaderName, s);
+  m_shaders.try_emplace(shaderName, *m_renderer, m_renderer->globalUniform(), shaderName,
+                        s);
 }
 
 bool isYamlNodeValidShader(const YAML::Node &node)
@@ -246,13 +227,15 @@ void Scene::draw(const FrameHandle &handle)
 
   if (m_mainCamera == nullptr) return;
 
+  m_renderer->globalUniform().projection().projection = m_mainCamera->projectionMatrix();
+  m_renderer->globalUniform().projection().view = m_mainCamera->viewMatrix();
+  m_renderer->globalUniform().updateIfDirty(handle);
+
   for (auto &shaderNamePair : m_shaders) {
     auto &shader = shaderNamePair.second;
 
-    shader.globalUniformObject().projection = m_mainCamera->projectionMatrix();
-    shader.globalUniformObject().view = m_mainCamera->viewMatrix();
-    shader.uploadGlobalState(
-        cmd, m_renderer->getDescriptorSet(handle, *m_globalDescriptorSetLayout));
+    shader.bindDescriptorSets(handle, cmd);
+    shader.use(cmd);
 
     // FIXME: should be per entity rendererd with the shader not per mesh
     for (const auto &mesh : m_meshes) {
@@ -262,7 +245,6 @@ void Scene::draw(const FrameHandle &handle)
       cmd.buffer().bindVertexBuffers(0, *(*mesh.second.vertexBuffer()).buffer(), {0});
       cmd.buffer().bindIndexBuffer(*(*mesh.second.indexBuffer()).buffer(), 0,
                                    vk::IndexType::eUint32);
-      shader.use(cmd);
       cmd.buffer().drawIndexed(mesh.second.indices().size(), 1, 0, 0, 0);
     }
   }
@@ -283,13 +265,7 @@ void Scene::update(Timestamp lastFrame, const FrameHandle &handle)
 
 Scene::~Scene()
 {
-  // Clear descriptors only if we are not in a moved-from state
-  if (*m_globalDescriptorSetLayout != vk::DescriptorSetLayout{}) {
-    // Ensure that every operation relative to this scene has been completed
-    m_renderer->device().logical().waitIdle();
-
-    // Clear requested resources
-    m_renderer->clearDescriptorSet(*m_globalDescriptorSetLayout);
-    seng::log::dbg("Deallocated scene");
-  }
+  // Ensure that every operation relative to this scene has been completed
+  m_renderer->device().logical().waitIdle();
+  seng::log::dbg("Deallocated scene");
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seng/rendering/buffer.hpp>
+#include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/pipeline.hpp>
 #include <seng/rendering/primitive_types.hpp>
 
@@ -12,7 +13,7 @@
 
 namespace seng::rendering {
 
-class Device;
+class Renderer;
 class ShaderStage;
 class RenderPass;
 class Buffer;
@@ -31,9 +32,8 @@ class ObjectShader {
  public:
   static constexpr int STAGES = 2;
 
-  ObjectShader(const Device& dev,
-               const RenderPass& pass,
-               const vk::raii::DescriptorSetLayout& globalDescriptorSetLayout,
+  ObjectShader(const Renderer& dev,
+               const GlobalUniform& globalDescriptorSetLayout,
                std::string name,
                std::vector<const ShaderStage*> stages);
   ObjectShader(const ObjectShader&) = delete;
@@ -43,19 +43,16 @@ class ObjectShader {
   ObjectShader& operator=(const ObjectShader&) = delete;
   ObjectShader& operator=(ObjectShader&&) = default;
 
-  const GlobalUniformObject& globalUniformObject() const { return m_guo; }
-  GlobalUniformObject& globalUniformObject() { return m_guo; }
-
   /**
    * Use the shader by binding the pipeline in the given command buffer
    */
   void use(const CommandBuffer& buffer) const;
 
   /**
-   * Push the values conntained in the global uniform object to the shader
+   * Bind the descriptor sets allocated for the given frame used by this object
+   * shader.
    */
-  void uploadGlobalState(const CommandBuffer& buf,
-                         const vk::raii::DescriptorSet& descriptor) const;
+  void bindDescriptorSets(const FrameHandle& handle, const CommandBuffer& buf) const;
 
   /**
    * Push the given model matrix to the shader
@@ -63,13 +60,12 @@ class ObjectShader {
   void updateModelState(const CommandBuffer& buf, glm::mat4 model) const;
 
  private:
-  const Device* m_device;
+  const Renderer* m_renderer;
   std::string m_name;
   std::vector<const ShaderStage*> m_stages;
 
+  const GlobalUniform* m_gubo;
   Pipeline m_pipeline;
-  GlobalUniformObject m_guo;
-  Buffer m_gubo;
 };
 
 }  // namespace seng::rendering

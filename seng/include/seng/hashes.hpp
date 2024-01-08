@@ -27,4 +27,15 @@ struct hash<glm::vec<3, T, Q>> {
   }
 };
 
+template <typename T>
+struct hash<vector<T>> {
+  size_t operator()(const vector<T>& v)
+  {
+    using seng::internal::hashCombine;
+    size_t hash{0};
+    for (const auto& i : v) hashCombine(hash, i);
+    return hash;
+  }
+};
+
 }  // namespace std

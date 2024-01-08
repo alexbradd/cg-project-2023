@@ -194,9 +194,6 @@ class Scene {
   Application *m_app;
   rendering::Renderer *m_renderer;
 
-  // Global descriptor layout
-  vk::raii::DescriptorSetLayout m_globalDescriptorSetLayout;
-
   std::unordered_map<std::string, rendering::ShaderStage> m_stages;
   std::unordered_map<std::string, rendering::ObjectShader> m_shaders;
   // TODO: map<string, ObjectShader::Instance> shaderInstances

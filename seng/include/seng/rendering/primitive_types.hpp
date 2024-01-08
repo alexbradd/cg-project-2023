@@ -67,11 +67,6 @@ struct Vertex {
 using AttributeDescriptions =
     std::array<vk::VertexInputAttributeDescription, Vertex::ATTRIBUTE_COUNT>;
 
-struct GlobalUniformObject {
-  alignas(16) glm::mat4 projection;
-  alignas(16) glm::mat4 view;
-};
-
 }  // namespace seng::rendering
 
 MAKE_HASHABLE(seng::rendering::Vertex, t.pos, t.normal, t.color, t.texCoord);

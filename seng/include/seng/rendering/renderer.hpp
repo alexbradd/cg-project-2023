@@ -7,6 +7,7 @@
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
+#include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
@@ -76,6 +77,11 @@ class Renderer {
   const Device &device() const { return m_device; }
   const RenderPass &renderPass() const { return m_renderPass; }
   const vk::raii::CommandPool &commandPool() const { return m_commandPool; }
+  const vk::raii::DescriptorPool &descriptorPool() const { return m_descriptorPool; }
+
+  const vk::raii::DescriptorSetLayout &samplerLayout() const { return m_samplerLayout; }
+  const GlobalUniform &globalUniform() const { return m_gubo; }
+  GlobalUniform &globalUniform() { return m_gubo; }
 
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
@@ -84,14 +90,19 @@ class Renderer {
   void signalResize();
 
   /**
-   * Allocate a new descriptor set with the given layout from the pool.
+   * Allocate a new descriptor set for each frame with the given layout and
+   * attached buffers/images from the pool.
    */
-  void requestDescriptorSet(vk::DescriptorSetLayout layout);
+  void requestDescriptorSet(vk::DescriptorSetLayout layout,
+                            const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+                            const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
   /**
-   * Destroy the allocated descriptor set with the given layout
+   * Destroy the allocated descriptor sets with the given layout and info.
    */
-  void clearDescriptorSet(vk::DescriptorSetLayout layout);
+  void clearDescriptorSet(vk::DescriptorSetLayout layout,
+                          const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+                          const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
   /**
    * Destroy all allocated descriptor sets and clear the pool.
@@ -105,14 +116,18 @@ class Renderer {
   std::optional<FrameHandle> beginFrame();
 
   /**
-   * Fetches a descriptor set with the given layout usable during the current in-progress
-   * frame.
+   * Fetches a descriptor set with the given layout and info usable during the
+   * current in-progress frame.
    *
    * Note: the layout must have been previously registered with a call to
-   * registerDescriptorLayout().
+   * requestDescriptorLayout().
    */
-  const vk::raii::DescriptorSet &getDescriptorSet(const FrameHandle &frame,
-                                                  vk::DescriptorSetLayout layout) const;
+  const vk::raii::DescriptorSet &getDescriptorSet(
+      const FrameHandle &frame,
+      vk::DescriptorSetLayout layout,
+      const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+      const std::vector<vk::DescriptorImageInfo> &imageInfo) const;
+
   /*
    * Get the command buffer of the current in-progress frame. If the passed handle is
    * invalid, a runtime error is thrown.
@@ -165,7 +180,7 @@ class Renderer {
     vk::raii::Semaphore imageAvailableSem;
     vk::raii::Semaphore queueCompleteSem;
     Fence inFlightFence;
-    std::unordered_map<vk::DescriptorSetLayout, vk::raii::DescriptorSet> descriptorSets;
+    std::unordered_map<size_t, vk::raii::DescriptorSet> descriptorSets;
     ssize_t imageIndex;
 
     Frame(const Device &device, const vk::raii::CommandPool &commandPool);
@@ -187,6 +202,9 @@ class Renderer {
 
   std::vector<RenderTarget> m_targets;
   std::vector<Frame> m_frames;
+
+  vk::raii::DescriptorSetLayout m_samplerLayout;
+  GlobalUniform m_gubo;
 
   uint64_t m_fbGeneration = 0;
   uint64_t m_lastFbGeneration = 0;

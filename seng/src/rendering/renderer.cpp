@@ -1,10 +1,12 @@
 #include <seng/application_config.hpp>
+#include <seng/hashes.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/debug_messenger.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/glfw_window.hpp>
+#include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/renderer.hpp>
@@ -139,7 +141,10 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
       info.maxSets = 1024;  // FIXME: not really sure about this
       info.setPoolSizes(Renderer::POOL_SIZES);
       return vk::raii::DescriptorPool(m_device.logical(), info);
-    }))
+    })),
+
+    m_samplerLayout(nullptr),
+    m_gubo(*this)
 {
   // Targets and frames
   for (auto &img : m_swapchain.images())
@@ -150,6 +155,19 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
   m_targets.reserve(m_swapchain.images().size());
 
   log::dbg("Vulkan context is up and running!");
+
+  // Sampler layout info
+  vk::DescriptorSetLayoutBinding samplerBinding{0,
+                                                vk::DescriptorType::eCombinedImageSampler,
+                                                1, vk::ShaderStageFlagBits::eFragment};
+  vk::DescriptorSetLayoutCreateInfo samplerInfo;
+  samplerInfo.setBindings(samplerBinding);
+  m_samplerLayout = vk::raii::DescriptorSetLayout(m_device.logical(), samplerInfo);
+  log::dbg("Allocated sampler set layout");
+
+  // Registering the descriptor sets for the GUBO
+  requestDescriptorSet(*m_gubo.layout(), m_gubo.bufferInfos(), {});
+  log::dbg("Allocated sets for GUBO");
 }
 
 vk::raii::Instance createInstance(const vk::raii::Context &context,
@@ -210,28 +228,38 @@ void Renderer::signalResize()
   m_fbGeneration++;
 }
 
-void Renderer::requestDescriptorSet(vk::DescriptorSetLayout layout)
+void Renderer::requestDescriptorSet(
+    vk::DescriptorSetLayout layout,
+    const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+    const std::vector<vk::DescriptorImageInfo> &imageInfo)
 {
+  size_t hash{0};
+  internal::hashCombine(hash, layout, bufferInfo, imageInfo);
+
   for (auto &f : m_frames) {
-    auto iter = f.descriptorSets.find(layout);
+    auto iter = f.descriptorSets.find(hash);
 
     // If a descriptor set for the given layout has already been allocated,
     // skip the frame (should never happen)
     if (iter != f.descriptorSets.end()) continue;
 
-    array<vk::DescriptorSetLayout, 1> descs{layout};
+    array<vk::DescriptorSetLayout, 1> descs = {layout};
 
     vk::DescriptorSetAllocateInfo info{};
     info.descriptorPool = *m_descriptorPool;
     info.setSetLayouts(descs);
     vk::raii::DescriptorSets sets(m_device.logical(), info);
-    f.descriptorSets.emplace(layout, std::move(sets[0]));
+    f.descriptorSets.emplace(hash, std::move(sets[0]));
   }
 }
 
-void Renderer::clearDescriptorSet(vk::DescriptorSetLayout layout)
+void Renderer::clearDescriptorSet(vk::DescriptorSetLayout layout,
+                                  const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+                                  const std::vector<vk::DescriptorImageInfo> &imageInfo)
 {
-  for (auto &f : m_frames) f.descriptorSets.erase(layout);
+  size_t hash{0};
+  internal::hashCombine(hash, layout, bufferInfo, imageInfo);
+  for (auto &f : m_frames) f.descriptorSets.erase(hash);
 }
 
 void Renderer::clearDescriptorSets()
@@ -289,10 +317,15 @@ optional<FrameHandle> Renderer::beginFrame()
 }
 
 const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
-    const FrameHandle &handle, vk::DescriptorSetLayout layout) const
+    const FrameHandle &handle,
+    vk::DescriptorSetLayout layout,
+    const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+    const std::vector<vk::DescriptorImageInfo> &imageInfo) const
 {
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
-  return m_frames[handle.m_index].descriptorSets.at(layout);
+  size_t hash{0};
+  internal::hashCombine(hash, layout, bufferInfo, imageInfo);
+  return m_frames[handle.m_index].descriptorSets.at(hash);
 }
 
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
@@ -412,7 +445,8 @@ Renderer::~Renderer()
   // Just checking if the instance handle is valid is enough
   // since all objects are valid or none are.
   if (*m_instance != vk::Instance{}) {
-    m_device.logical().waitIdle();
     log::dbg("Destroying vulkan context");
+    m_device.logical().waitIdle();
+    clearDescriptorSets();
   }
 }
