@@ -7,7 +7,6 @@
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/fence.hpp>
 #include <seng/rendering/framebuffer.hpp>
-#include <seng/rendering/hashes.hpp>
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
@@ -15,6 +14,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <vulkan/vulkan_hash.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <array>
