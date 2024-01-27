@@ -172,7 +172,8 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
 
   // Registering the descriptor sets for the GUBO
   log::dbg("Allocating sets for GUBO");
-  requestDescriptorSet(*m_gubo.layout(), m_gubo.bufferInfos(), {});
+  for (size_t i = 0; i < m_frames.size(); i++)
+    requestDescriptorSet(i, *m_gubo.layout(), m_gubo.bufferInfos(), {});
 
   log::dbg("Vulkan context is up and running!");
 }
@@ -236,6 +237,7 @@ void Renderer::signalResize()
 }
 
 void Renderer::requestDescriptorSet(
+    FrameHandle frameHandle,
     vk::DescriptorSetLayout layout,
     const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
     const std::vector<vk::DescriptorImageInfo> &imageInfo)
@@ -243,30 +245,41 @@ void Renderer::requestDescriptorSet(
   size_t hash{0};
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
 
-  for (auto &f : m_frames) {
-    auto iter = f.descriptorSets.find(hash);
-
-    // If a descriptor set for the given layout has already been allocated,
-    // skip the frame (should never happen)
-    if (iter != f.descriptorSets.end()) continue;
-
-    array<vk::DescriptorSetLayout, 1> descs = {layout};
-
-    vk::DescriptorSetAllocateInfo info{};
-    info.descriptorPool = *m_descriptorPool;
-    info.setSetLayouts(descs);
-    vk::raii::DescriptorSets sets(m_device.logical(), info);
-    f.descriptorSets.emplace(hash, std::move(sets[0]));
+  if (frameHandle.invalid(m_frames.size())) {
+    seng::log::error("Trying to insert descriptor set out of bounds, bailing...");
+    return;
   }
+
+  auto &f = m_frames[frameHandle.m_index];
+  auto iter = f.descriptorSets.find(hash);
+
+  // If a descriptor set for the given layout has already been allocated,
+  // skip the frame (should never happen)
+  if (iter != f.descriptorSets.end()) return;
+
+  array<vk::DescriptorSetLayout, 1> descs = {layout};
+
+  vk::DescriptorSetAllocateInfo info{};
+  info.descriptorPool = *m_descriptorPool;
+  info.setSetLayouts(descs);
+  vk::raii::DescriptorSets sets(m_device.logical(), info);
+  f.descriptorSets.emplace(hash, std::move(sets[0]));
 }
 
-void Renderer::clearDescriptorSet(vk::DescriptorSetLayout layout,
+void Renderer::clearDescriptorSet(FrameHandle frameHandle,
+                                  vk::DescriptorSetLayout layout,
                                   const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
                                   const std::vector<vk::DescriptorImageInfo> &imageInfo)
 {
   size_t hash{0};
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
-  for (auto &f : m_frames) f.descriptorSets.erase(hash);
+
+  if (frameHandle.invalid(m_frames.size())) {
+    seng::log::error("Trying to clear descriptor set out of bounds, bailing...");
+    return;
+  }
+
+  m_frames[frameHandle.m_index].descriptorSets.erase(hash);
 }
 
 void Renderer::clearDescriptorSets()

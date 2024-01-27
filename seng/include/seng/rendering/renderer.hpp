@@ -86,6 +86,8 @@ class Renderer {
   const GlobalUniform &globalUniform() const { return m_gubo; }
   GlobalUniform &globalUniform() { return m_gubo; }
 
+  size_t framesInFlight() const { return m_frames.size(); }
+
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
    * to be regenerated.
@@ -93,17 +95,20 @@ class Renderer {
   void signalResize();
 
   /**
-   * Allocate a new descriptor set for each frame with the given layout and
-   * attached buffers/images from the pool.
+   * Allocate a new descriptor set for the frame with the given index
+   * with the given layout and attached buffers/images from the pool.
    */
-  void requestDescriptorSet(vk::DescriptorSetLayout layout,
+  void requestDescriptorSet(FrameHandle frameHandle,
+                            vk::DescriptorSetLayout layout,
                             const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
                             const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
   /**
-   * Destroy the allocated descriptor sets with the given layout and info.
+   * Destroy the allocated descriptor sets with the given layout and info
+   * from the frame with the given index.
    */
-  void clearDescriptorSet(vk::DescriptorSetLayout layout,
+  void clearDescriptorSet(FrameHandle frameHandle,
+                          vk::DescriptorSetLayout layout,
                           const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
                           const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
