@@ -39,10 +39,8 @@ GlobalUniform::GlobalUniform(std::nullptr_t) :
     m_layout(nullptr),
     m_projection{},
     m_projectionBuffer(nullptr),
-    m_projectionInfos{},
     m_light{},
-    m_lightBuffer(nullptr),
-    m_lightInfos{}
+    m_lightBuffer(nullptr)
 {
 }
 
@@ -55,14 +53,12 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
                        renderer.framesInFlight() * sizeof(ProjectionUniform),
                        UNIFORM_MEM_FLAGS,
                        true),
-    m_projectionInfos{},
     m_light{glm::vec4(0.0f), glm::vec3(0.0f), glm::vec4(0.0f), glm::vec3(0.0f)},
     m_lightBuffer(renderer.device(),
                   UNIFORM_USAGE_FLAGS,
                   renderer.framesInFlight() * sizeof(LightingUniform),
                   UNIFORM_MEM_FLAGS,
-                  true),
-    m_lightInfos{}
+                  true)
 {
   std::array<vk::DescriptorSetLayoutBinding, BINDINGS> a = {ProjectionUniform::binding(),
                                                             LightingUniform::binding()};
@@ -74,22 +70,22 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
 
   std::vector<vk::WriteDescriptorSet> writes;
   writes.reserve(BINDINGS * renderer.framesInFlight());
-
-  m_projectionInfos.reserve(renderer.framesInFlight());
-  m_lightInfos.reserve(renderer.framesInFlight());
-
+  m_bufferInfos.reserve(renderer.framesInFlight());
   for (size_t i = 0; i < renderer.framesInFlight(); i++) {
+    m_bufferInfos.emplace_back();
+    m_bufferInfos[i].reserve(BINDINGS);
+
     vk::DescriptorBufferInfo projInfo{*m_projectionBuffer.buffer(),
                                       i * sizeof(ProjectionUniform),
                                       sizeof(ProjectionUniform)};
-    m_projectionInfos.push_back(projInfo);
+    m_bufferInfos[i].push_back(projInfo);
 
     vk::DescriptorBufferInfo lightInfo{
         *m_lightBuffer.buffer(), i * sizeof(LightingUniform), sizeof(LightingUniform)};
-    m_lightInfos.push_back(lightInfo);
+    m_bufferInfos[i].push_back(lightInfo);
 
-    renderer.requestDescriptorSet(i, *m_layout, {projInfo, lightInfo}, {});
-    auto set = *renderer.getDescriptorSet(i, *m_layout, {projInfo, lightInfo}, {});
+    renderer.requestDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
+    auto set = *renderer.getDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
 
     vk::WriteDescriptorSet projWrite{};
     projWrite.dstSet = set;
@@ -97,7 +93,7 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
     projWrite.dstBinding = 0;
     projWrite.dstArrayElement = 0;
     projWrite.descriptorCount = 1;
-    projWrite.setBufferInfo(m_projectionInfos[i]);
+    projWrite.setBufferInfo(m_bufferInfos[i][0]);
     writes.push_back(projWrite);
 
     vk::WriteDescriptorSet lightWrite{};
@@ -106,7 +102,7 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
     lightWrite.dstBinding = 1;
     lightWrite.dstArrayElement = 0;
     lightWrite.descriptorCount = 1;
-    lightWrite.setBufferInfo(m_lightInfos[i]);
+    lightWrite.setBufferInfo(m_bufferInfos[i][1]);
     writes.push_back(lightWrite);
   }
   renderer.device().logical().updateDescriptorSets(writes, {});
@@ -120,11 +116,8 @@ void GlobalUniform::update(const FrameHandle &handle) const
                      sizeof(LightingUniform), {});
 }
 
-const std::vector<vk::DescriptorBufferInfo> GlobalUniform::bufferInfos(
+const std::vector<vk::DescriptorBufferInfo> &GlobalUniform::bufferInfos(
     FrameHandle frame) const
 {
-  std::vector<vk::DescriptorBufferInfo> infos(BINDINGS);
-  infos[0] = m_projectionInfos[frame.asIndex()];
-  infos[1] = m_lightInfos[frame.asIndex()];
-  return infos;
+  return m_bufferInfos[frame.asIndex()];
 }

@@ -62,7 +62,7 @@ class GlobalUniform {
   const LightingUniform &lighting() const { return m_light; }
   LightingUniform &lighting() { return m_light; }
 
-  const std::vector<vk::DescriptorBufferInfo> bufferInfos(FrameHandle frame) const;
+  const std::vector<vk::DescriptorBufferInfo> &bufferInfos(FrameHandle frame) const;
 
   /**
    * Update the uniform data.
@@ -75,11 +75,11 @@ class GlobalUniform {
 
   ProjectionUniform m_projection;
   Buffer m_projectionBuffer;
-  std::vector<vk::DescriptorBufferInfo> m_projectionInfos;
 
   LightingUniform m_light;
   Buffer m_lightBuffer;
-  std::vector<vk::DescriptorBufferInfo> m_lightInfos;
+
+  std::vector<std::vector<vk::DescriptorBufferInfo>> m_bufferInfos;
 };
 
 }  // namespace seng::rendering
