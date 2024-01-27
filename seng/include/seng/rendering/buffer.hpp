@@ -18,6 +18,11 @@ class Device;
 class Buffer {
  public:
   /**
+   * Create an empty object. Methods will return undefined values or bail out
+   */
+  Buffer(std::nullptr_t);
+
+  /**
    * Allocate a new buffer, also bind it if instructed to do so.
    */
   Buffer(const Device &dev,

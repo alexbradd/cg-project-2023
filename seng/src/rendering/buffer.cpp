@@ -10,8 +10,27 @@
 #include <string>
 #include <utility>
 
+#define BAIL_OUT_ON_UNINITIALIZED(ret)                                     \
+  do {                                                                     \
+    if (m_device == nullptr) {                                             \
+      seng::log::error("Calling emthod on unitialized buffer, biling..."); \
+      return ret;                                                          \
+    }                                                                      \
+  } while (0)
+
 using namespace std;
 using namespace seng::rendering;
+
+Buffer::Buffer(std::nullptr_t) :
+    m_device(nullptr),
+    m_usage{},
+    m_size{},
+    m_handle(nullptr),
+    m_memRequirements{},
+    m_memIndex{},
+    m_memory(nullptr)
+{
+}
 
 Buffer::Buffer(const Device &dev,
                vk::BufferUsageFlags usage,
@@ -33,6 +52,7 @@ Buffer::Buffer(const Device &dev,
 
 void Buffer::bind(vk::DeviceSize offset) const
 {
+  BAIL_OUT_ON_UNINITIALIZED();
   m_handle.bindMemory(*m_memory, offset);
 }
 
@@ -40,6 +60,8 @@ void Buffer::resize(vk::DeviceSize size,
                     const vk::raii::Queue &queue,
                     const vk::raii::CommandPool &pool)
 {
+  BAIL_OUT_ON_UNINITIALIZED();
+
   // Create new buffer
   vk::BufferCreateInfo newInfo{{}, size, m_usage, vk::SharingMode::eExclusive};
   vk::raii::Buffer newBuffer(m_device->logical(), newInfo);
@@ -65,11 +87,13 @@ void *Buffer::lockMemory(vk::DeviceSize offset,
                          vk::DeviceSize size,
                          vk::MemoryMapFlags flags) const
 {
+  BAIL_OUT_ON_UNINITIALIZED(nullptr);
   return m_memory.mapMemory(offset, size, flags);
 }
 
 void Buffer::unlockMemory() const
 {
+  BAIL_OUT_ON_UNINITIALIZED();
   m_memory.unmapMemory();
 }
 
@@ -78,6 +102,7 @@ void Buffer::load(const void *data,
                   vk::DeviceSize size,
                   vk::MemoryMapFlags flags) const
 {
+  BAIL_OUT_ON_UNINITIALIZED();
   void *mem = lockMemory(offset, size, flags);
   memcpy(mem, data, size);
   unlockMemory();
@@ -101,6 +126,7 @@ void Buffer::copy(const Buffer &dest,
                   const vk::raii::Queue &queue,
                   const vk::raii::Fence *fence) const
 {
+  BAIL_OUT_ON_UNINITIALIZED();
   rawCopy(dest.m_handle, copyRegion, pool, queue, fence);
 }
 
