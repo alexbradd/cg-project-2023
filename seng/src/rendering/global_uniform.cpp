@@ -66,7 +66,7 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
 
   vk::DescriptorSetLayoutCreateInfo info{};
   info.setBindings(a);
-  m_layout = vk::raii::DescriptorSetLayout(renderer.device().logical(), info);
+  m_layout = renderer.requestDescriptorSetLayout(info);
 
   std::vector<vk::WriteDescriptorSet> writes;
   writes.reserve(BINDINGS * renderer.framesInFlight());
@@ -84,7 +84,7 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
         *m_lightBuffer.buffer(), i * sizeof(LightingUniform), sizeof(LightingUniform)};
     m_bufferInfos[i].push_back(lightInfo);
 
-    auto &set = renderer.requestDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
+    auto &set = renderer.requestDescriptorSet(i, m_layout, m_bufferInfos[i], {});
 
     vk::WriteDescriptorSet projWrite{};
     projWrite.dstSet = set;

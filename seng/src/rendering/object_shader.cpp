@@ -39,7 +39,7 @@ ObjectShader::ObjectShader(const Renderer& renderer,
 
       // Descriptor layouts
       vector<vk::DescriptorSetLayout> descriptors;
-      descriptors.emplace_back(*gubo.layout());
+      descriptors.emplace_back(gubo.layout());
       // TODO: Local descriptor layouts
 
       // Stages
@@ -67,7 +67,7 @@ void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
   sets.reserve(1);  // FIXME: + samplers.size
 
   // Get GUBO's set
-  auto guboSet = m_renderer->getDescriptorSet(handle, *m_gubo->layout(),
+  auto guboSet = m_renderer->getDescriptorSet(handle, m_gubo->layout(),
                                               m_gubo->bufferInfos(handle), {});
   if (guboSet == nullptr) throw runtime_error("Null GUBO descriptor set");
   sets.emplace_back(guboSet);

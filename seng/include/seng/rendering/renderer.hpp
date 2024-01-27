@@ -82,7 +82,6 @@ class Renderer {
   const vk::raii::CommandPool &commandPool() const { return m_commandPool; }
   const vk::raii::DescriptorPool &descriptorPool() const { return m_descriptorPool; }
 
-  const vk::raii::DescriptorSetLayout &samplerLayout() const { return m_samplerLayout; }
   const GlobalUniform &globalUniform() const { return m_gubo; }
   GlobalUniform &globalUniform() { return m_gubo; }
 
@@ -93,6 +92,19 @@ class Renderer {
    * to be regenerated.
    */
   void signalResize();
+
+  /**
+   * Get a descriptor set layout with the given CreateInfo from the cache then
+   * return a reference to it. If a matching layout cannot be found, allocate a
+   * new one.
+   */
+  const vk::DescriptorSetLayout requestDescriptorSetLayout(
+      vk::DescriptorSetLayoutCreateInfo info);
+
+  /**
+   * Destroy all allocated descriptor set layouts
+   */
+  void clearDescriptorSetLayouts();
 
   /**
    * Get a descriptor set with the given layout and buffers/images from the
@@ -211,7 +223,8 @@ class Renderer {
   std::vector<RenderTarget> m_targets;
   std::vector<Frame> m_frames;
 
-  vk::raii::DescriptorSetLayout m_samplerLayout;
+  std::unordered_map<size_t, vk::raii::DescriptorSetLayout> m_layoutCache;
+
   GlobalUniform m_gubo;
 
   uint64_t m_fbGeneration = 0;

@@ -54,7 +54,7 @@ class GlobalUniform {
   GlobalUniform &operator=(GlobalUniform &&) = default;
 
   /// The set layout for this uniform
-  const vk::raii::DescriptorSetLayout &layout() const { return m_layout; }
+  const vk::DescriptorSetLayout layout() const { return m_layout; }
 
   const ProjectionUniform &projection() const { return m_projection; }
   ProjectionUniform &projection() { return m_projection; }
@@ -71,7 +71,7 @@ class GlobalUniform {
 
  private:
   const Renderer *m_renderer;
-  vk::raii::DescriptorSetLayout m_layout;
+  vk::DescriptorSetLayout m_layout;
 
   ProjectionUniform m_projection;
   Buffer m_projectionBuffer;

@@ -150,7 +150,6 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
       return vk::raii::DescriptorPool(m_device.logical(), info);
     })),
 
-    m_samplerLayout(nullptr),
     m_gubo(nullptr)
 {
   log::dbg("Allocating render targets");
@@ -161,15 +160,6 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
   log::dbg("Allocating render frames");
   m_frames =
       many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT, m_device, m_commandPool);
-
-  // Sampler layout info
-  log::dbg("Allocating sampler set layout");
-  vk::DescriptorSetLayoutBinding samplerBinding{0,
-                                                vk::DescriptorType::eCombinedImageSampler,
-                                                1, vk::ShaderStageFlagBits::eFragment};
-  vk::DescriptorSetLayoutCreateInfo samplerInfo;
-  samplerInfo.setBindings(samplerBinding);
-  m_samplerLayout = vk::raii::DescriptorSetLayout(m_device.logical(), samplerInfo);
 
   // Allocating GUBO
   log::dbg("Allocating GUBO");
@@ -234,6 +224,25 @@ bool supportsAllLayers(const vector<const char *> &l)
 void Renderer::signalResize()
 {
   m_fbGeneration++;
+}
+
+const vk::DescriptorSetLayout Renderer::requestDescriptorSetLayout(
+    vk::DescriptorSetLayoutCreateInfo info)
+{
+  size_t hash{0};
+  seng::internal::hashCombine(hash, info.flags);
+  for (size_t i = 0; i < info.bindingCount; i++)
+    seng::internal::hashCombine(hash, info.pBindings[i]);
+
+  // Emplace already creates the item only if it doesn't already exist
+  auto i = m_layoutCache.try_emplace(hash, m_device.logical(), info);
+  if (i.second) seng::log::dbg("Allocated new descriptor layout");
+  return *i.first->second;
+}
+
+void Renderer::clearDescriptorSetLayouts()
+{
+  m_layoutCache.clear();
 }
 
 const vk::DescriptorSet Renderer::requestDescriptorSet(
