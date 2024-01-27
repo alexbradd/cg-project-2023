@@ -265,6 +265,18 @@ void Renderer::requestDescriptorSet(
   f.descriptorSets.emplace(hash, std::move(sets[0]));
 }
 
+const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
+    const FrameHandle &handle,
+    vk::DescriptorSetLayout layout,
+    const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+    const std::vector<vk::DescriptorImageInfo> &imageInfo) const
+{
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+  size_t hash{0};
+  internal::hashCombine(hash, layout, bufferInfo, imageInfo);
+  return m_frames[handle.m_index].descriptorSets.at(hash);
+}
+
 void Renderer::clearDescriptorSet(FrameHandle frameHandle,
                                   vk::DescriptorSetLayout layout,
                                   const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
@@ -285,6 +297,12 @@ void Renderer::clearDescriptorSets()
 {
   for (auto &f : m_frames) f.descriptorSets.clear();
   m_descriptorPool.reset();
+}
+
+const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
+{
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+  return m_frames[handle.m_index].commandBuffer;
 }
 
 optional<FrameHandle> Renderer::beginFrame()
@@ -333,24 +351,6 @@ optional<FrameHandle> Renderer::beginFrame()
     log::warning("Caught exception: {}", e.what());
     return nullopt;
   }
-}
-
-const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
-    const FrameHandle &handle,
-    vk::DescriptorSetLayout layout,
-    const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
-    const std::vector<vk::DescriptorImageInfo> &imageInfo) const
-{
-  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
-  size_t hash{0};
-  internal::hashCombine(hash, layout, bufferInfo, imageInfo);
-  return m_frames[handle.m_index].descriptorSets.at(hash);
-}
-
-const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
-{
-  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
-  return m_frames[handle.m_index].commandBuffer;
 }
 
 void Renderer::endFrame(FrameHandle &handle)

@@ -104,6 +104,19 @@ class Renderer {
                             const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
   /**
+   * Fetches a descriptor set with the given layout and info usable during the
+   * current in-progress frame.
+   *
+   * Note: the layout must have been previously registered with a call to
+   * requestDescriptorLayout().
+   */
+  const vk::raii::DescriptorSet &getDescriptorSet(
+      const FrameHandle &frame,
+      vk::DescriptorSetLayout layout,
+      const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+      const std::vector<vk::DescriptorImageInfo> &imageInfo) const;
+
+  /**
    * Destroy the allocated descriptor sets with the given layout and info
    * from the frame with the given index.
    */
@@ -117,30 +130,17 @@ class Renderer {
    */
   void clearDescriptorSets();
 
-  /**
-   * Starts recording a frame and returns a handle to it. If recording cannot be
-   * started, return an empty optional.
-   */
-  std::optional<FrameHandle> beginFrame();
-
-  /**
-   * Fetches a descriptor set with the given layout and info usable during the
-   * current in-progress frame.
-   *
-   * Note: the layout must have been previously registered with a call to
-   * requestDescriptorLayout().
-   */
-  const vk::raii::DescriptorSet &getDescriptorSet(
-      const FrameHandle &frame,
-      vk::DescriptorSetLayout layout,
-      const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
-      const std::vector<vk::DescriptorImageInfo> &imageInfo) const;
-
   /*
    * Get the command buffer of the current in-progress frame. If the passed handle is
    * invalid, a runtime error is thrown.
    */
   const CommandBuffer &getCommandBuffer(const FrameHandle &frame) const;
+
+  /**
+   * Starts recording a frame and returns a handle to it. If recording cannot be
+   * started, return an empty optional.
+   */
+  std::optional<FrameHandle> beginFrame();
 
   /**
    * Finishes recording the frame referred by the given handle. The handle is
