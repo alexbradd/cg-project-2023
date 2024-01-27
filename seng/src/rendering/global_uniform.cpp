@@ -18,6 +18,15 @@ vk::DescriptorSetLayoutBinding ProjectionUniform::binding()
   return b;
 }
 
+vk::DescriptorSetLayoutBinding LightingUniform::binding()
+{
+  vk::DescriptorSetLayoutBinding b{};
+  b.descriptorCount = 1;
+  b.descriptorType = vk::DescriptorType::eUniformBuffer;
+  b.stageFlags = vk::ShaderStageFlagBits::eFragment;
+  return b;
+}
+
 // === Class definitions
 static const vk::BufferUsageFlags UNIFORM_USAGE_FLAGS =
     vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer;
@@ -30,7 +39,10 @@ GlobalUniform::GlobalUniform(std::nullptr_t) :
     m_layout(nullptr),
     m_projection{},
     m_projectionBuffer(nullptr),
-    m_projectionInfos{}
+    m_projectionInfos{},
+    m_light{},
+    m_lightBuffer(nullptr),
+    m_lightInfos{}
 {
 }
 
@@ -43,9 +55,17 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
                        renderer.framesInFlight() * sizeof(ProjectionUniform),
                        UNIFORM_MEM_FLAGS,
                        true),
-    m_projectionInfos{}
+    m_projectionInfos{},
+    m_light{glm::vec4(0.0f), glm::vec3(0.0f), glm::vec4(0.0f), glm::vec3(0.0f)},
+    m_lightBuffer(renderer.device(),
+                  UNIFORM_USAGE_FLAGS,
+                  renderer.framesInFlight() * sizeof(LightingUniform),
+                  UNIFORM_MEM_FLAGS,
+                  true),
+    m_lightInfos{}
 {
-  std::array<vk::DescriptorSetLayoutBinding, BINDINGS> a = {ProjectionUniform::binding()};
+  std::array<vk::DescriptorSetLayoutBinding, BINDINGS> a = {ProjectionUniform::binding(),
+                                                            LightingUniform::binding()};
   for (size_t i = 0; i < a.size(); i++) a[i].binding = i;
 
   vk::DescriptorSetLayoutCreateInfo info{};
@@ -53,39 +73,51 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
   m_layout = vk::raii::DescriptorSetLayout(renderer.device().logical(), info);
 
   std::vector<vk::WriteDescriptorSet> writes;
-  writes.reserve(renderer.framesInFlight());
+  writes.reserve(BINDINGS * renderer.framesInFlight());
 
   m_projectionInfos.reserve(renderer.framesInFlight());
-  // TODO: lighting buffer
+  m_lightInfos.reserve(renderer.framesInFlight());
 
   for (size_t i = 0; i < renderer.framesInFlight(); i++) {
-    vk::DescriptorBufferInfo info{*m_projectionBuffer.buffer(),
-                                  i * sizeof(ProjectionUniform),
-                                  sizeof(ProjectionUniform)};
-    m_projectionInfos.push_back(info);
-    // TODO: lighting buffer
+    vk::DescriptorBufferInfo projInfo{*m_projectionBuffer.buffer(),
+                                      i * sizeof(ProjectionUniform),
+                                      sizeof(ProjectionUniform)};
+    m_projectionInfos.push_back(projInfo);
 
-    renderer.requestDescriptorSet(i, *m_layout, {info}, {});
+    vk::DescriptorBufferInfo lightInfo{
+        *m_lightBuffer.buffer(), i * sizeof(LightingUniform), sizeof(LightingUniform)};
+    m_lightInfos.push_back(lightInfo);
 
-    vk::WriteDescriptorSet write{};
-    write.dstSet = *renderer.getDescriptorSet(i, *m_layout, {info}, {});
-    write.descriptorType = vk::DescriptorType::eUniformBuffer;
-    write.dstBinding = 0;
-    write.dstArrayElement = 0;
-    write.descriptorCount = 1;
-    write.setBufferInfo(m_projectionInfos[i]);
-    writes.push_back(write);
+    renderer.requestDescriptorSet(i, *m_layout, {projInfo, lightInfo}, {});
+    auto set = *renderer.getDescriptorSet(i, *m_layout, {projInfo, lightInfo}, {});
+
+    vk::WriteDescriptorSet projWrite{};
+    projWrite.dstSet = set;
+    projWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    projWrite.dstBinding = 0;
+    projWrite.dstArrayElement = 0;
+    projWrite.descriptorCount = 1;
+    projWrite.setBufferInfo(m_projectionInfos[i]);
+    writes.push_back(projWrite);
+
+    vk::WriteDescriptorSet lightWrite{};
+    lightWrite.dstSet = set;
+    lightWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+    lightWrite.dstBinding = 1;
+    lightWrite.dstArrayElement = 0;
+    lightWrite.descriptorCount = 1;
+    lightWrite.setBufferInfo(m_lightInfos[i]);
+    writes.push_back(lightWrite);
   }
-
   renderer.device().logical().updateDescriptorSets(writes, {});
 }
 
 void GlobalUniform::update(const FrameHandle &handle) const
 {
-  // Update buffers
   m_projectionBuffer.load(&m_projection, handle.asIndex() * sizeof(ProjectionUniform),
                           sizeof(ProjectionUniform), {});
-  // TODO: lighting
+  m_lightBuffer.load(&m_lightBuffer, handle.asIndex() * sizeof(LightingUniform),
+                     sizeof(LightingUniform), {});
 }
 
 const std::vector<vk::DescriptorBufferInfo> GlobalUniform::bufferInfos(
@@ -93,5 +125,6 @@ const std::vector<vk::DescriptorBufferInfo> GlobalUniform::bufferInfos(
 {
   std::vector<vk::DescriptorBufferInfo> infos(BINDINGS);
   infos[0] = m_projectionInfos[frame.asIndex()];
+  infos[1] = m_lightInfos[frame.asIndex()];
   return infos;
 }

@@ -3,6 +3,8 @@
 #include <seng/rendering/buffer.hpp>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -19,6 +21,18 @@ struct ProjectionUniform {
   static vk::DescriptorSetLayoutBinding binding();
 };
 
+/// Data bound at the Fragment stage containing info about the scene's lighting
+struct LightingUniform {
+  alignas(16) glm::vec4 ambientColor;
+  alignas(16) glm::vec3 lightDir;
+  alignas(16) glm::vec4 lightColor;
+  alignas(16) glm::vec3 cameraPosition;
+
+  /// Returns the binding info for this struct. The binding index is to be
+  /// set by others
+  static vk::DescriptorSetLayoutBinding binding();
+};
+
 /**
  * The Global Uniform Buffer Object (GUBO).
  *
@@ -29,7 +43,7 @@ struct ProjectionUniform {
  */
 class GlobalUniform {
  public:
-  static constexpr int BINDINGS = 1;  // TODO: add liighting data
+  static constexpr int BINDINGS = 2;
 
   GlobalUniform(std::nullptr_t);
   GlobalUniform(Renderer &renderer);
@@ -45,6 +59,9 @@ class GlobalUniform {
   const ProjectionUniform &projection() const { return m_projection; }
   ProjectionUniform &projection() { return m_projection; }
 
+  const LightingUniform &lighting() const { return m_light; }
+  LightingUniform &lighting() { return m_light; }
+
   const std::vector<vk::DescriptorBufferInfo> bufferInfos(FrameHandle frame) const;
 
   /**
@@ -59,6 +76,10 @@ class GlobalUniform {
   ProjectionUniform m_projection;
   Buffer m_projectionBuffer;
   std::vector<vk::DescriptorBufferInfo> m_projectionInfos;
+
+  LightingUniform m_light;
+  Buffer m_lightBuffer;
+  std::vector<vk::DescriptorBufferInfo> m_lightInfos;
 };
 
 }  // namespace seng::rendering
