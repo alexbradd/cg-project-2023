@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -66,9 +67,10 @@ void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
   sets.reserve(1);  // FIXME: + samplers.size
 
   // Get GUBO's set
-  auto& guboSet = m_renderer->getDescriptorSet(handle, *m_gubo->layout(),
-                                               m_gubo->bufferInfos(handle), {});
-  sets.emplace_back(*guboSet);
+  auto guboSet = m_renderer->getDescriptorSet(handle, *m_gubo->layout(),
+                                              m_gubo->bufferInfos(handle), {});
+  if (guboSet == nullptr) throw runtime_error("Null GUBO descriptor set");
+  sets.emplace_back(guboSet);
 
   // Get the sets for each sampler
   // FIXME: samplers

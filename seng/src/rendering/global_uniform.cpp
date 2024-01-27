@@ -84,8 +84,7 @@ GlobalUniform::GlobalUniform(Renderer &renderer) :
         *m_lightBuffer.buffer(), i * sizeof(LightingUniform), sizeof(LightingUniform)};
     m_bufferInfos[i].push_back(lightInfo);
 
-    renderer.requestDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
-    auto set = *renderer.getDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
+    auto &set = renderer.requestDescriptorSet(i, *m_layout, m_bufferInfos[i], {});
 
     vk::WriteDescriptorSet projWrite{};
     projWrite.dstSet = set;

@@ -95,23 +95,23 @@ class Renderer {
   void signalResize();
 
   /**
-   * Allocate a new descriptor set for the frame with the given index
-   * with the given layout and attached buffers/images from the pool.
+   * Get a descriptor set with the given layout and buffers/images from the
+   * frame-cache then return a reference to it. If a matching descriptor
+   * cannot be found, allocate a new one.
    */
-  void requestDescriptorSet(FrameHandle frameHandle,
-                            vk::DescriptorSetLayout layout,
-                            const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
-                            const std::vector<vk::DescriptorImageInfo> &imageInfo);
+  const vk::DescriptorSet requestDescriptorSet(
+      FrameHandle frameHandle,
+      vk::DescriptorSetLayout layout,
+      const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
+      const std::vector<vk::DescriptorImageInfo> &imageInfo);
 
   /**
-   * Fetches a descriptor set with the given layout and info usable during the
-   * current in-progress frame.
-   *
-   * Note: the layout must have been previously registered with a call to
-   * requestDescriptorLayout().
+   * Get a descriptor set with the given layout and buffers/images from the
+   * frame-cache then return a reference to it. If a matching descriptor cannot
+   * be found, return a NULL handle.
    */
-  const vk::raii::DescriptorSet &getDescriptorSet(
-      const FrameHandle &frame,
+  const vk::DescriptorSet getDescriptorSet(
+      FrameHandle frameHandle,
       vk::DescriptorSetLayout layout,
       const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
       const std::vector<vk::DescriptorImageInfo> &imageInfo) const;

@@ -25,6 +25,7 @@
 #include <cstdint>    // for uint32_t
 #include <exception>  // for exception
 #include <iterator>
+#include <memory>
 #include <optional>   // for optional
 #include <stdexcept>  // for runtime_error
 #include <string>     // for basic_string, allocator
@@ -235,46 +236,54 @@ void Renderer::signalResize()
   m_fbGeneration++;
 }
 
-void Renderer::requestDescriptorSet(
+const vk::DescriptorSet Renderer::requestDescriptorSet(
     FrameHandle frameHandle,
     vk::DescriptorSetLayout layout,
     const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
     const std::vector<vk::DescriptorImageInfo> &imageInfo)
 {
+  if (frameHandle.invalid(m_frames.size()))
+    throw runtime_error("Invalid frame handle passed");
+
   size_t hash{0};
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
-
-  if (frameHandle.invalid(m_frames.size())) {
-    seng::log::error("Trying to insert descriptor set out of bounds, bailing...");
-    return;
-  }
 
   auto &f = m_frames[frameHandle.m_index];
   auto iter = f.descriptorSets.find(hash);
 
   // If a descriptor set for the given layout has already been allocated,
-  // skip the frame (should never happen)
-  if (iter != f.descriptorSets.end()) return;
+  // return it
+  if (iter != f.descriptorSets.end()) return *iter->second;
 
+  // Else allocate it
   array<vk::DescriptorSetLayout, 1> descs = {layout};
 
   vk::DescriptorSetAllocateInfo info{};
   info.descriptorPool = *m_descriptorPool;
   info.setSetLayouts(descs);
+
   vk::raii::DescriptorSets sets(m_device.logical(), info);
-  f.descriptorSets.emplace(hash, std::move(sets[0]));
+  auto ret = f.descriptorSets.emplace(hash, std::move(sets[0]));
+  return *ret.first->second;
 }
 
-const vk::raii::DescriptorSet &Renderer::getDescriptorSet(
-    const FrameHandle &handle,
+const vk::DescriptorSet Renderer::getDescriptorSet(
+    FrameHandle frameHandle,
     vk::DescriptorSetLayout layout,
     const std::vector<vk::DescriptorBufferInfo> &bufferInfo,
     const std::vector<vk::DescriptorImageInfo> &imageInfo) const
 {
-  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+  if (frameHandle.invalid(m_frames.size()))
+    throw runtime_error("Invalid frame handle passed");
+
   size_t hash{0};
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
-  return m_frames[handle.m_index].descriptorSets.at(hash);
+
+  auto &f = m_frames[frameHandle.m_index];
+  auto iter = f.descriptorSets.find(hash);
+
+  if (iter != f.descriptorSets.end()) return *iter->second;
+  return vk::DescriptorSet(nullptr);
 }
 
 void Renderer::clearDescriptorSet(FrameHandle frameHandle,
@@ -285,10 +294,8 @@ void Renderer::clearDescriptorSet(FrameHandle frameHandle,
   size_t hash{0};
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
 
-  if (frameHandle.invalid(m_frames.size())) {
-    seng::log::error("Trying to clear descriptor set out of bounds, bailing...");
-    return;
-  }
+  if (frameHandle.invalid(m_frames.size()))
+    throw runtime_error("Invalid frame handle passed");
 
   m_frames[frameHandle.m_index].descriptorSets.erase(hash);
 }
