@@ -229,7 +229,7 @@ void Scene::draw(const FrameHandle &handle)
 
   m_renderer->globalUniform().projection().projection = m_mainCamera->projectionMatrix();
   m_renderer->globalUniform().projection().view = m_mainCamera->viewMatrix();
-  m_renderer->globalUniform().updateIfDirty(handle);
+  m_renderer->globalUniform().update(handle);
 
   for (auto &shaderNamePair : m_shaders) {
     auto &shader = shaderNamePair.second;

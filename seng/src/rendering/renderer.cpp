@@ -150,7 +150,7 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
     })),
 
     m_samplerLayout(nullptr),
-    m_gubo(*this)
+    m_gubo(nullptr)
 {
   log::dbg("Allocating render targets");
   m_targets.reserve(m_swapchain.images().size());
@@ -170,10 +170,9 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
   samplerInfo.setBindings(samplerBinding);
   m_samplerLayout = vk::raii::DescriptorSetLayout(m_device.logical(), samplerInfo);
 
-  // Registering the descriptor sets for the GUBO
-  log::dbg("Allocating sets for GUBO");
-  for (size_t i = 0; i < m_frames.size(); i++)
-    requestDescriptorSet(i, *m_gubo.layout(), m_gubo.bufferInfos(), {});
+  // Allocating GUBO
+  log::dbg("Allocating GUBO");
+  m_gubo = GlobalUniform(*this);
 
   log::dbg("Vulkan context is up and running!");
 }

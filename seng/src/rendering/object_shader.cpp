@@ -66,8 +66,8 @@ void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
   sets.reserve(1);  // FIXME: + samplers.size
 
   // Get GUBO's set
-  auto& guboSet =
-      m_renderer->getDescriptorSet(handle, *m_gubo->layout(), m_gubo->bufferInfos(), {});
+  auto& guboSet = m_renderer->getDescriptorSet(handle, *m_gubo->layout(),
+                                               m_gubo->bufferInfos(handle), {});
   sets.emplace_back(*guboSet);
 
   // Get the sets for each sampler

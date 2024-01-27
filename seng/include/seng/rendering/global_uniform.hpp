@@ -4,7 +4,6 @@
 
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 namespace seng::rendering {
 class Renderer;
@@ -32,7 +31,8 @@ class GlobalUniform {
  public:
   static constexpr int BINDINGS = 1;  // TODO: add liighting data
 
-  GlobalUniform(const Renderer &renderer);
+  GlobalUniform(std::nullptr_t);
+  GlobalUniform(Renderer &renderer);
   GlobalUniform(const GlobalUniform &) = delete;
   GlobalUniform(GlobalUniform &&) = default;
 
@@ -43,35 +43,22 @@ class GlobalUniform {
   const vk::raii::DescriptorSetLayout &layout() const { return m_layout; }
 
   const ProjectionUniform &projection() const { return m_projection; }
-  ProjectionUniform &projection()
-  {
-    m_dirty = true;
-    return m_projection;
-  }
+  ProjectionUniform &projection() { return m_projection; }
 
-  const std::vector<vk::DescriptorBufferInfo> &bufferInfos() const
-  {
-    return m_cacheInfos;
-  }
-
-  bool dirty() const { return m_dirty; }
+  const std::vector<vk::DescriptorBufferInfo> bufferInfos(FrameHandle frame) const;
 
   /**
-   * Update the uniform if there have been any changes to it since the last write
+   * Update the uniform data.
    */
-  void updateIfDirty(const FrameHandle &handle) const;
+  void update(const FrameHandle &handle) const;
 
  private:
   const Renderer *m_renderer;
   vk::raii::DescriptorSetLayout m_layout;
 
-  mutable bool m_dirty = false;
-
   ProjectionUniform m_projection;
   Buffer m_projectionBuffer;
-  vk::DescriptorBufferInfo m_projectionInfo;
-
-  std::vector<vk::DescriptorBufferInfo> m_cacheInfos;
+  std::vector<vk::DescriptorBufferInfo> m_projectionInfos;
 };
 
 }  // namespace seng::rendering
