@@ -146,28 +146,29 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
     m_samplerLayout(nullptr),
     m_gubo(*this)
 {
-  // Targets and frames
+  log::dbg("Allocating render targets");
+  m_targets.reserve(m_swapchain.images().size());
   for (auto &img : m_swapchain.images())
     m_targets.emplace_back(m_device, *img, m_swapchain.extent(), m_renderPass);
 
+  log::dbg("Allocating render frames");
   m_frames =
       many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT, m_device, m_commandPool);
-  m_targets.reserve(m_swapchain.images().size());
-
-  log::dbg("Vulkan context is up and running!");
 
   // Sampler layout info
+  log::dbg("Allocating sampler set layout");
   vk::DescriptorSetLayoutBinding samplerBinding{0,
                                                 vk::DescriptorType::eCombinedImageSampler,
                                                 1, vk::ShaderStageFlagBits::eFragment};
   vk::DescriptorSetLayoutCreateInfo samplerInfo;
   samplerInfo.setBindings(samplerBinding);
   m_samplerLayout = vk::raii::DescriptorSetLayout(m_device.logical(), samplerInfo);
-  log::dbg("Allocated sampler set layout");
 
   // Registering the descriptor sets for the GUBO
+  log::dbg("Allocating sets for GUBO");
   requestDescriptorSet(*m_gubo.layout(), m_gubo.bufferInfos(), {});
-  log::dbg("Allocated sets for GUBO");
+
+  log::dbg("Vulkan context is up and running!");
 }
 
 vk::raii::Instance createInstance(const vk::raii::Context &context,
