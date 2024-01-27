@@ -29,19 +29,22 @@ namespace seng::rendering {
 class GlfwWindow;
 
 /**
- * A handle referring to an in-construction frame
+ * A handle referring to an in-construction frame. Can be implicitly constructed
+ * from a size_t index.
  */
 class FrameHandle {
   friend class Renderer;
 
  public:
   FrameHandle() = default;
+  FrameHandle(std::nullptr_t) : m_index(-1) {}
+  FrameHandle(size_t index) : m_index(index) {}
 
   bool invalid(size_t maxValue) const;
   void invalidate();
+  size_t asIndex() const;
 
  private:
-  FrameHandle(ssize_t value) : m_index(value) {}
   ssize_t m_index = -1;
 };
 

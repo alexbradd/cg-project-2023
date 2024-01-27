@@ -87,6 +87,12 @@ void FrameHandle::invalidate()
   m_index = -1;
 }
 
+size_t FrameHandle::asIndex() const
+{
+  if (m_index < 0) throw runtime_error("Converting invalid handle to index");
+  return static_cast<size_t>(m_index);
+}
+
 // Defintions for renderer
 static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
