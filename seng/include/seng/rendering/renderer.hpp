@@ -167,9 +167,9 @@ class Renderer {
    * case the targets coincide with the swapchain images.
    */
   struct RenderTarget {
-    vk::ImageView swapchainImage;
-    Image depthBuffer;
-    Framebuffer framebuffer;
+    vk::ImageView m_swapchainImage;
+    Image m_depthBuffer;
+    Framebuffer m_framebuffer;
 
     RenderTarget(const Device &device,
                  const vk::ImageView swapchainImage,
@@ -184,12 +184,12 @@ class Renderer {
    * renderer will keep many frames, so that it can minimize waiting time.
    */
   struct Frame {
-    CommandBuffer commandBuffer;
-    vk::raii::Semaphore imageAvailableSem;
-    vk::raii::Semaphore queueCompleteSem;
-    Fence inFlightFence;
-    std::unordered_map<size_t, vk::raii::DescriptorSet> descriptorSets;
-    ssize_t imageIndex;
+    CommandBuffer m_commandBuffer;
+    vk::raii::Semaphore m_imageAvailableSem;
+    vk::raii::Semaphore m_queueCompleteSem;
+    Fence m_inFlightFence;
+    std::unordered_map<size_t, vk::raii::DescriptorSet> m_descriptorCache;
+    ssize_t m_index;
 
     Frame(const Device &device, const vk::raii::CommandPool &commandPool);
   };

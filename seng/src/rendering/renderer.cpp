@@ -45,9 +45,9 @@ Renderer::RenderTarget::RenderTarget(const Device &device,
                                      const vk::ImageView swapchainImage,
                                      vk::Extent2D extent,
                                      const RenderPass &pass) :
-    swapchainImage(swapchainImage),
-    depthBuffer(createDepthBuffer(device, extent)),
-    framebuffer(device, pass, extent, {swapchainImage, **depthBuffer.imageView()})
+    m_swapchainImage(swapchainImage),
+    m_depthBuffer(createDepthBuffer(device, extent)),
+    m_framebuffer(device, pass, extent, {swapchainImage, **m_depthBuffer.imageView()})
 {
   log::dbg("Allocated render target");
 }
@@ -67,12 +67,12 @@ Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent
 
 // Definitions for Frame
 Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
-    commandBuffer(device, pool, true),
-    imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
-    queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
-    inFlightFence(device, true),
-    descriptorSets(),
-    imageIndex(-1)
+    m_commandBuffer(device, pool, true),
+    m_imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
+    m_queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
+    m_inFlightFence(device, true),
+    m_descriptorCache(),
+    m_index(-1)
 {
   log::dbg("Allocated resources for a frame");
 }
@@ -249,11 +249,11 @@ const vk::DescriptorSet Renderer::requestDescriptorSet(
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
 
   auto &f = m_frames[frameHandle.m_index];
-  auto iter = f.descriptorSets.find(hash);
+  auto iter = f.m_descriptorCache.find(hash);
 
   // If a descriptor set for the given layout has already been allocated,
   // return it
-  if (iter != f.descriptorSets.end()) return *iter->second;
+  if (iter != f.m_descriptorCache.end()) return *iter->second;
 
   // Else allocate it
   array<vk::DescriptorSetLayout, 1> descs = {layout};
@@ -263,7 +263,7 @@ const vk::DescriptorSet Renderer::requestDescriptorSet(
   info.setSetLayouts(descs);
 
   vk::raii::DescriptorSets sets(m_device.logical(), info);
-  auto ret = f.descriptorSets.emplace(hash, std::move(sets[0]));
+  auto ret = f.m_descriptorCache.emplace(hash, std::move(sets[0]));
   return *ret.first->second;
 }
 
@@ -280,9 +280,9 @@ const vk::DescriptorSet Renderer::getDescriptorSet(
   internal::hashCombine(hash, layout, bufferInfo, imageInfo);
 
   auto &f = m_frames[frameHandle.m_index];
-  auto iter = f.descriptorSets.find(hash);
+  auto iter = f.m_descriptorCache.find(hash);
 
-  if (iter != f.descriptorSets.end()) return *iter->second;
+  if (iter != f.m_descriptorCache.end()) return *iter->second;
   return vk::DescriptorSet(nullptr);
 }
 
@@ -297,19 +297,19 @@ void Renderer::clearDescriptorSet(FrameHandle frameHandle,
   if (frameHandle.invalid(m_frames.size()))
     throw runtime_error("Invalid frame handle passed");
 
-  m_frames[frameHandle.m_index].descriptorSets.erase(hash);
+  m_frames[frameHandle.m_index].m_descriptorCache.erase(hash);
 }
 
 void Renderer::clearDescriptorSets()
 {
-  for (auto &f : m_frames) f.descriptorSets.clear();
+  for (auto &f : m_frames) f.m_descriptorCache.clear();
   m_descriptorPool.reset();
 }
 
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
 {
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
-  return m_frames[handle.m_index].commandBuffer;
+  return m_frames[handle.m_index].m_commandBuffer;
 }
 
 optional<FrameHandle> Renderer::beginFrame()
@@ -329,11 +329,11 @@ optional<FrameHandle> Renderer::beginFrame()
 
   auto &frame = m_frames[m_currentFrame];
   try {
-    frame.inFlightFence.wait();
-    frame.imageIndex = m_swapchain.nextImageIndex(frame.imageAvailableSem);
+    frame.m_inFlightFence.wait();
+    frame.m_index = m_swapchain.nextImageIndex(frame.m_imageAvailableSem);
 
-    Framebuffer &curFb = m_targets[frame.imageIndex].framebuffer;
-    CommandBuffer &curBuf = frame.commandBuffer;
+    Framebuffer &curFb = m_targets[frame.m_index].m_framebuffer;
+    CommandBuffer &curBuf = frame.m_commandBuffer;
     curBuf.reset();
     curBuf.begin();
 
@@ -366,17 +366,17 @@ void Renderer::endFrame(FrameHandle &handle)
 
   auto &frame = m_frames[handle.m_index];
 
-  m_renderPass.end(frame.commandBuffer);
-  frame.commandBuffer.end();
+  m_renderPass.end(frame.m_commandBuffer);
+  frame.m_commandBuffer.end();
 
   // Reset the fence for use on the next frame
-  frame.inFlightFence.reset();
+  frame.m_inFlightFence.reset();
 
   // Start submitting to queue
   vk::SubmitInfo submitInfo{};
-  std::array<vk::CommandBuffer, 1> commandBuffers = {*frame.commandBuffer.buffer()};
-  std::array<vk::Semaphore, 1> queueCompleteSems = {*frame.queueCompleteSem};
-  std::array<vk::Semaphore, 1> imageAvailableSems = {*frame.imageAvailableSem};
+  std::array<vk::CommandBuffer, 1> commandBuffers = {*frame.m_commandBuffer.buffer()};
+  std::array<vk::Semaphore, 1> queueCompleteSems = {*frame.m_queueCompleteSem};
+  std::array<vk::Semaphore, 1> imageAvailableSems = {*frame.m_imageAvailableSem};
 
   submitInfo.setCommandBuffers(commandBuffers);
   // The semaphore(s) to be signaled when the queue is complete.
@@ -392,17 +392,17 @@ void Renderer::endFrame(FrameHandle &handle)
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
   submitInfo.setWaitDstStageMask(flags);
 
-  m_device.graphicsQueue().submit(submitInfo, *frame.inFlightFence.handle());
+  m_device.graphicsQueue().submit(submitInfo, *frame.m_inFlightFence.handle());
 
   try {
     m_swapchain.present(m_device.presentQueue(), m_device.graphicsQueue(),
-                        frame.queueCompleteSem, frame.imageIndex);
+                        frame.m_queueCompleteSem, frame.m_index);
   } catch (const InadequateSwapchainException &e) {
     log::dbg("Error while presenting: swapchain out of date. Recreating...");
     recreateSwapchain();
   }
 
-  frame.imageIndex = -1;  // Forget the image
+  frame.m_index = -1;  // Forget the image
   handle.invalidate();
 
   // Advance cyclical iterator
