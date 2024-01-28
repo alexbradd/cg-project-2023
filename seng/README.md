@@ -53,8 +53,9 @@ Example scene:
 
 ```yaml
 Light:
+  ambient: [1.0, 0.8, 0.8, 1.0]
   color: [1.0, 1.0, 1.0, 1.0]
-  angle: 45
+  direction: [0.70, -0.70, 0.0] # ~45 deg cw
 
 Entities:
   - name: cam
