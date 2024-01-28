@@ -163,25 +163,37 @@ Instances:
 ```
 
 Texture order in the object shader definition is very important since it will
-define the order in which the descriptor sets will be laid out in the fragment
-stage (more on that in the relevant section). Same goes for the texture paths in
-material definition.
+define the layout of the descriptor set containing the samplers (more on that in
+the relevant section). Same goes for the texture paths in material definition.
 
 If the instance contains more textures than the declaration, the extra textures
 will simply not be passed and warning will be printed, if it contains less an
 error will be thrown.
 
-The global uniform buffers are in the first descriptor set (set 0) and the
-bindings are defined as follows:
+The global uniform buffer is referenced by the first descriptor set (set 0)
+with the following bindings:
 
-0. Transformation-to-clip-space parameters (bound to the vertex stage):
-   - `mat4` projection matrix
-   - `mat4` view matrix
-   - Model matrix is passed as a push constant for performance reasons
+0. Transformation-to-clip-space parameters (bound to the vertex stage), in order:
+   - `mat4`: projection matrix
+   - `mat4`: view matrix
 1. Lighting parameters (bound to the fragment stage):
-   - `vec3` light direction
-   - `vec4` light color
-   - `vec3` camera position
+   - `vec3`: ambient color
+   - `vec3`: light direction
+   - `vec4`: light color
+   - `vec3`: camera position
+
+Some useful data is passed as push constants for performance reasons. In order,
+these are:
+
+- `mat4`: the model matrix
+- `mat4`: reserved space for later use
+
+These buffers will be bound for all shaders.
+
+Below one can find what attributes each stage is expected to receive as input or
+output, to ensure composability between various vertex and fragment stages. Not
+adhering to these conventions is possible, however one must be mindful when
+composing non-convention compliant stages with other ones.
 
 #### Vertex shader
 
@@ -197,15 +209,16 @@ The vertex stage must output (aside from `gl_Position`) the following parameters
 
 0. `vec3` fragment world position
 1. `vec3` fragment normal
-2. `vec2` fragment UV coordinate
+2. `vec3` fragment color
+3. `vec2` fragment UV coordinate
 
 #### Fragment shader
 
 The fragment shader takes as input what the vertex stage feeds it and needs to
 output a `vec4` containing the fragment output color.
 
-Textures are passed in different sets (from 1 onward) in the order defined in the
-shader configuration file.
+Textures are in descriptor set 1, in bindings ordered as defined in the shader
+configuration file.
 
 ## Some comments on the engine as a whole
 
