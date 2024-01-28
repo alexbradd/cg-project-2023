@@ -83,7 +83,8 @@ void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
 void ObjectShader::updateModelState(const CommandBuffer& buf, glm::mat4 model) const
 {
   buf.buffer().pushConstants<glm::mat4>(*m_pipeline.layout(),
-                                        vk::ShaderStageFlagBits::eVertex, 0, model);
+                                        vk::ShaderStageFlagBits::eVertex,
+                                        offsetof(PushConstants, modelMatrix), model);
 }
 
 ObjectShader::~ObjectShader()

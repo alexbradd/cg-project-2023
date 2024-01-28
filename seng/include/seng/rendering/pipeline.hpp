@@ -12,6 +12,13 @@ class CommandBuffer;
 class Device;
 class RenderPass;
 
+/// Struct that is sized exactly 128 bytes holding representing the push constant
+/// range
+struct PushConstants {
+  glm::mat4 modelMatrix;
+  glm::mat4 _reserved;
+};
+
 /**
  * Wrapper around a vulkan pipline. It implements the RAII pattern, meaning that
  * instantiation allocates a new pipline, while destruction deallocates it.

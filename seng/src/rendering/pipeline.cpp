@@ -5,7 +5,6 @@
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/render_pass.hpp>
 
-#include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <array>
@@ -30,9 +29,8 @@ Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info
       // Push constants
       vk::PushConstantRange pushConstant{};
       pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
-      pushConstant.offset = sizeof(glm::mat4) * 0;
-      pushConstant.size = sizeof(glm::mat4) * 2;  // So that we use the whole 128 byte
-                                                  // range
+      pushConstant.offset = 0;
+      pushConstant.size = sizeof(PushConstants);
       layoutInfo.setPushConstantRanges(pushConstant);
 
       // Layouts
