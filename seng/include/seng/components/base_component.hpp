@@ -40,6 +40,8 @@ class BaseComponent {
 
   virtual ~BaseComponent() = default;
 
+  const Entity &attachedTo() const { return *entity; }
+
  protected:
   Entity *const entity;
 };
