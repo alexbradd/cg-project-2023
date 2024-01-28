@@ -5,10 +5,12 @@
 #include <seng/rendering/mesh.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/shader_stage.hpp>
+#include <seng/scene/direct_light.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/time.hpp>
 
 #include <glm/trigonometric.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <list>
@@ -157,6 +159,18 @@ class Scene {
    */
   void mainCamera(Camera *cam);
 
+  /// Get the scene's ambient color
+  glm::vec4 ambientColor() const { return m_ambient; }
+
+  /// Set a new ambient color
+  void ambientColor(glm::vec4 color) { m_ambient = color; }
+
+  /// Get a const reference to the scene's direct light
+  const DirectLight &light() const { return m_directLight; }
+
+  /// Get a reference to the scene's direct light
+  DirectLight &light() { return m_directLight; }
+
   /**
    * Registrar for the "earlyUpdate" hook
    *
@@ -202,6 +216,10 @@ class Scene {
   // Scene graph
   Camera *m_mainCamera;
   EntityList m_entities;
+
+  // Light information
+  glm::vec4 m_ambient;
+  DirectLight m_directLight;
 
   // Hooks
   Hook<float> m_earlyUpdate;

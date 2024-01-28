@@ -8,6 +8,7 @@
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
+#include <seng/yaml_utils.hpp>
 
 #include <yaml-cpp/yaml.h>
 #include <vulkan/vulkan_raii.hpp>
@@ -62,6 +63,17 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
     auto meshes = sceneConfig["Meshes"];
     for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++)
       s->parseMesh(config.assetPath, *i);
+  }
+
+  // Parse light
+  if (sceneConfig["Light"] && sceneConfig["Light"].IsMap()) {
+    auto light = sceneConfig["Light"];
+    if (light["ambient"] && light["ambient"].IsSequence())
+      s->m_ambient = light["ambient"].as<glm::vec4>();
+    if (light["color"] && light["color"].IsSequence())
+      s->m_directLight.color(light["color"].as<glm::vec4>());
+    if (light["direction"] && light["direction"].IsSequence())
+      s->m_directLight.direction(light["direction"].as<glm::vec3>());
   }
 
   // Load entities
@@ -229,6 +241,13 @@ void Scene::draw(const FrameHandle &handle)
 
   m_renderer->globalUniform().projection().projection = m_mainCamera->projectionMatrix();
   m_renderer->globalUniform().projection().view = m_mainCamera->viewMatrix();
+
+  m_renderer->globalUniform().lighting().ambientColor = m_ambient;
+  m_renderer->globalUniform().lighting().lightColor = m_directLight.color();
+  m_renderer->globalUniform().lighting().lightDir = m_directLight.direction();
+  m_renderer->globalUniform().lighting().cameraPosition =
+      m_mainCamera->attachedTo().transform()->position();
+
   m_renderer->globalUniform().update(handle);
 
   for (auto &shaderNamePair : m_shaders) {
