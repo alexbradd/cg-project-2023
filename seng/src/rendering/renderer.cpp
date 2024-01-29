@@ -42,12 +42,13 @@ static bool supportsAllLayers(const vector<const char *> &);
 
 // Definitions for RenderTarget
 Renderer::RenderTarget::RenderTarget(const Device &device,
-                                     const vk::ImageView swapchainImage,
+                                     const Image &swapchainImage,
                                      vk::Extent2D extent,
                                      const RenderPass &pass) :
-    m_swapchainImage(swapchainImage),
+    m_swapchainImage(std::addressof(swapchainImage)),
     m_depthBuffer(createDepthBuffer(device, extent)),
-    m_framebuffer(device, pass, extent, {swapchainImage, **m_depthBuffer.imageView()})
+    m_framebuffer(
+        device, pass, extent, {swapchainImage.imageView(), m_depthBuffer.imageView()})
 {
   log::dbg("Allocated render target");
 }
@@ -55,11 +56,12 @@ Renderer::RenderTarget::RenderTarget(const Device &device,
 Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent2D extent)
 {
   Image::CreateInfo info{vk::ImageType::e2D,
-                         extent,
+                         vk::Extent3D{extent, 1},
                          device.depthFormat().format,
                          vk::ImageTiling::eOptimal,
                          vk::ImageUsageFlagBits::eDepthStencilAttachment,
                          vk::MemoryPropertyFlagBits::eDeviceLocal,
+                         vk::ImageViewType::e2D,
                          vk::ImageAspectFlagBits::eDepth,
                          false,
                          true};
@@ -156,7 +158,7 @@ Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &
   log::dbg("Allocating render targets");
   m_targets.reserve(m_swapchain.images().size());
   for (auto &img : m_swapchain.images())
-    m_targets.emplace_back(m_device, *img, m_swapchain.extent(), m_renderPass);
+    m_targets.emplace_back(m_device, img, m_swapchain.extent(), m_renderPass);
 
   log::dbg("Allocating render frames");
   m_frames =
@@ -469,7 +471,7 @@ void Renderer::recreateSwapchain()
   // Recreate render targets
   m_targets.clear();
   for (auto &img : m_swapchain.images())
-    m_targets.emplace_back(m_device, *img, m_swapchain.extent(), m_renderPass);
+    m_targets.emplace_back(m_device, img, m_swapchain.extent(), m_renderPass);
 
   // Finish the recreation process
   m_recreatingSwap = false;

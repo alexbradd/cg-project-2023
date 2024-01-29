@@ -59,31 +59,30 @@ Swapchain::Swapchain(const Device &dev,
       }
       return vk::raii::SwapchainKHR(dev.logical(), sci);
     })),
-    m_images(m_swapchain.getImages()),
-    // === Create ImageViews
-    m_imageViews(std::invoke([&]() {
-      vector<vk::raii::ImageView> ret;
-      ret.reserve(m_images.size());
-      for (auto image : m_images) {
-        vk::ImageViewCreateInfo ci;
-        ci.image = image;
-        ci.viewType = vk::ImageViewType::e2D;
-        ci.format = m_format.format;
-        ci.components.r = vk::ComponentSwizzle::eIdentity;
-        ci.components.g = vk::ComponentSwizzle::eIdentity;
-        ci.components.b = vk::ComponentSwizzle::eIdentity;
-        ci.components.a = vk::ComponentSwizzle::eIdentity;
-        ci.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        ci.subresourceRange.baseMipLevel = 0;
-        ci.subresourceRange.levelCount = 1;
-        ci.subresourceRange.baseArrayLayer = 0;
-        ci.subresourceRange.layerCount = 1;
-
-        ret.emplace_back(dev.logical(), ci);
-      }
-      return ret;
-    }))
+    m_images()
 {
+  std::vector<vk::Image> raw{m_swapchain.getImages()};
+  m_images.reserve(raw.size());
+  for (auto &i : raw) {
+    Image img(dev, i);
+
+    vk::ImageViewCreateInfo ci;
+    ci.image = i;
+    ci.viewType = vk::ImageViewType::e2D;
+    ci.format = m_format.format;
+    ci.components.r = vk::ComponentSwizzle::eIdentity;
+    ci.components.g = vk::ComponentSwizzle::eIdentity;
+    ci.components.b = vk::ComponentSwizzle::eIdentity;
+    ci.components.a = vk::ComponentSwizzle::eIdentity;
+    ci.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    ci.subresourceRange.baseMipLevel = 0;
+    ci.subresourceRange.levelCount = 1;
+    ci.subresourceRange.baseArrayLayer = 0;
+    ci.subresourceRange.layerCount = 1;
+    img.stealView(vk::raii::ImageView(dev.logical(), ci));
+
+    m_images.push_back(std::move(img));
+  }
   log::dbg("Swapchain created with extent {}x{}", m_extent.width, m_extent.height);
 }
 

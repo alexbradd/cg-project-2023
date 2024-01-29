@@ -179,12 +179,12 @@ class Renderer {
    * case the targets coincide with the swapchain images.
    */
   struct RenderTarget {
-    vk::ImageView m_swapchainImage;
+    const Image *m_swapchainImage;
     Image m_depthBuffer;
     Framebuffer m_framebuffer;
 
     RenderTarget(const Device &device,
-                 const vk::ImageView swapchainImage,
+                 const Image &swapchainImage,
                  vk::Extent2D extent,
                  const RenderPass &pass);
 

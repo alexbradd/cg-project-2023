@@ -8,7 +8,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <functional>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -46,8 +45,8 @@ vector<Framebuffer> Framebuffer::fromSwapchain(const Device &dev,
 
   for (auto &img : swap.images()) {
     vector<vk::ImageView> attachments(2);  // TODO: make configurable
-    attachments[0] = *img;
-    attachments[1] = **depthBuffer.imageView();
+    attachments[0] = img.imageView();
+    attachments[1] = depthBuffer.imageView();
     fbs.emplace_back(dev, pass, swap.extent(), attachments);
   }
   return fbs;

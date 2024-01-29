@@ -1,5 +1,7 @@
 #pragma once
 
+#include <seng/rendering/image.hpp>
+
 #include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
@@ -77,7 +79,7 @@ class Swapchain {
 
   // Accessors
   const vk::raii::SwapchainKHR &swapchain() const { return m_swapchain; }
-  const std::vector<vk::raii::ImageView> &images() const { return m_imageViews; }
+  const std::vector<Image> &images() const { return m_images; }
   const vk::SurfaceFormatKHR &format() const { return m_format; }
   const vk::Extent2D &extent() const { return m_extent; }
 
@@ -86,8 +88,7 @@ class Swapchain {
   vk::SurfaceFormatKHR m_format;
   vk::Extent2D m_extent;
   vk::raii::SwapchainKHR m_swapchain;
-  std::vector<vk::Image> m_images;
-  std::vector<vk::raii::ImageView> m_imageViews;
+  std::vector<Image> m_images;
 };
 
 }  // namespace seng::rendering
