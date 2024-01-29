@@ -86,7 +86,7 @@ void Mesh::sync()
 
 Mesh Mesh::loadFromDisk(const Renderer &renderer,
                         const std::string &assetPath,
-                        std::string name)
+                        const std::string &name)
 {
   std::string modelPath{filesystem::path{assetPath} / filesystem::path{name}};
   if (!filesystem::exists(modelPath)) {

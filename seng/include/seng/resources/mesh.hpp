@@ -61,7 +61,7 @@ class Mesh {
    */
   static Mesh loadFromDisk(const rendering::Renderer &renderer,
                            const std::string &assetPath,
-                           std::string name);
+                           const std::string &name);
 
  private:
   const rendering::Renderer *m_renderer;
