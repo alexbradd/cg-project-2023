@@ -22,5 +22,8 @@ The following dependencies will be automatically fetched by the build system:
 1. `fmt` 10.1.1
 2. `glm` 0.9.9.8
 3. `tinyobjloader` 1.0.6
-4. `stb_image`
-5. `yaml-cpp` 0.8.0
+4. `yaml-cpp` 0.8.0
+
+The following dependencies are included as submodules:
+
+1. `stb`
