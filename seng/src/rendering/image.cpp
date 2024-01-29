@@ -4,40 +4,37 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <cmath>
 #include <cstdint>
 #include <functional>
-#include <optional>
 #include <string>
+
+#define BAIL_OUT_ON_UNINITIALIZED(ret)                                     \
+  do {                                                                     \
+    if (m_device == nullptr) {                                             \
+      seng::log::error("Calling emthod on unitialized image, bailing..."); \
+      return ret;                                                          \
+    }                                                                      \
+  } while (0)
 
 using namespace std;
 using namespace seng::rendering;
 
-static vk::raii::ImageView createView(const vk::raii::Device &device,
-                                      const vk::raii::Image &image,
-                                      vk::Format fmt,
-                                      vk::ImageAspectFlags aspect)
+static uint32_t mipLevels(vk::Extent3D e)
 {
-  vk::ImageViewCreateInfo ci{};
-  ci.image = *image;
-  ci.viewType = vk::ImageViewType::e2D;
-  ci.format = fmt;
-  ci.subresourceRange.aspectMask = aspect;
-  ci.subresourceRange.baseMipLevel = 0;
-  ci.subresourceRange.levelCount = 1;
-  ci.subresourceRange.baseArrayLayer = 0;
-  ci.subresourceRange.layerCount = 1;
-  return vk::raii::ImageView(device, ci);
+  using namespace std;
+  auto mips = floor(log2(max(max(e.width, e.height), e.depth))) + 1;
+  return static_cast<uint32_t>(mips);
 }
 
 Image::Image(const Device &dev, const Image::CreateInfo &info) :
-    m_info(info),
     m_device(std::addressof(dev)),
     // Create image handle
     m_handle(std::invoke([&]() {
       vk::ImageCreateInfo ci{};
-      ci.imageType = vk::ImageType::e2D;
-      ci.extent = vk::Extent3D{info.extent, 1};
-      ci.mipLevels = 4;
+      ci.imageType = info.type;
+      ci.extent = info.extent;
+      ci.mipLevels = info.mipped ? mipLevels(info.extent) : true;
       ci.arrayLayers = 1;
       ci.format = info.format;
       ci.tiling = info.tiling;
@@ -62,23 +59,58 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
 
       return ret;
     })),
-    // Create the view if told to do so
-    m_view()
+    m_extent(info.extent),
+    m_mipped(false),
+    m_unmanaged(nullptr),
+    m_view(nullptr)
 {
-  if (info.createView)
-    m_view = ::createView(dev.logical(), m_handle, info.format, info.aspectFlags);
-  log::dbg("Created new image {}", info.createView ? "with view" : "without view");
+  log::dbg("Created new image");
+  if (info.createView) this->createView(info.viewType, info.format, info.aspectFlags);
 }
 
-void Image::createView()
+Image::Image(const Device &dev, vk::Image wrapped, bool mipped) :
+    m_device(std::addressof(dev)),
+    m_handle(nullptr),
+    m_memory(nullptr),
+    m_extent{0, 0, 0},
+    m_mipped(mipped),
+    m_unmanaged(wrapped),
+    m_view(nullptr)
 {
-  if (m_view.has_value()) return;
-  m_view = ::createView(m_device->logical(), m_handle, m_info.format, m_info.aspectFlags);
+}
+
+Image::Image(std::nullptr_t) :
+    m_device(nullptr),
+    m_handle(nullptr),
+    m_memory(nullptr),
+    m_extent{0, 0, 0},
+    m_mipped(false),
+    m_unmanaged(nullptr),
+    m_view(nullptr)
+{
+}
+
+void Image::createView(vk::ImageViewType type,
+                       vk::Format format,
+                       vk::ImageAspectFlags aspect)
+{
+  BAIL_OUT_ON_UNINITIALIZED();
+
+  vk::ImageViewCreateInfo ci{};
+  ci.image = image();
+  ci.viewType = type;
+  ci.format = format;
+  ci.subresourceRange.aspectMask = aspect;
+  ci.subresourceRange.baseMipLevel = 0;
+  ci.subresourceRange.levelCount = m_mipped ? mipLevels(m_extent) : 1;
+  ci.subresourceRange.baseArrayLayer = 0;
+  ci.subresourceRange.layerCount = 1;
+  m_view = vk::raii::ImageView(m_device->logical(), ci);
+  log::dbg("Created new image view");
 }
 
 Image::~Image()
 {
-  // Just checking if the device handle is valid is enough
-  // since all or none handles are valid
   if (*m_handle != vk::Image{}) log::dbg("Destroying image");
+  if (*m_view != vk::ImageView{}) log::dbg("Destroying image view");
 }

@@ -61,6 +61,7 @@ Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent
                          vk::ImageUsageFlagBits::eDepthStencilAttachment,
                          vk::MemoryPropertyFlagBits::eDeviceLocal,
                          vk::ImageAspectFlagBits::eDepth,
+                         false,
                          true};
   return Image(device, info);
 }
