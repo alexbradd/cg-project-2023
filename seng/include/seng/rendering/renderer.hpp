@@ -11,6 +11,7 @@
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
+#include <seng/resources/mesh.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
@@ -146,6 +147,27 @@ class Renderer {
    */
   void clearDescriptorSets();
 
+  /**
+   * Fetch the mesh with the given name from the mesh cache. If such mesh cannot
+   * be found, load it from disk and save it in cache for later use.
+   *
+   * Freshly loaded meshes are not automatically synced.
+   */
+  Mesh &requestMesh(const std::string &name);
+
+  /**
+   * Delete the mesh with the given name from cache.
+   */
+  void clearMesh(const std::string &name);
+
+  /**
+   * Delete all cached meshes.
+   */
+  void clearMeshes();
+
+  /// FIXME: stub, do not use.
+  const std::unordered_map<std::string, Mesh> &meshes() const { return m_meshes; }
+
   /*
    * Get the command buffer of the current in-progress frame. If the passed handle is
    * invalid, a runtime error is thrown.
@@ -229,6 +251,10 @@ class Renderer {
   std::vector<Frame> m_frames;
 
   std::unordered_map<size_t, vk::raii::DescriptorSetLayout> m_layoutCache;
+
+  // Mesh cache
+  std::unordered_map<std::string, Mesh> m_meshes;
+  Mesh m_fallbackMesh;
 
   GlobalUniform m_gubo;
 

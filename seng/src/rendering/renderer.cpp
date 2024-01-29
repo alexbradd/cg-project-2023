@@ -13,6 +13,7 @@
 #include <seng/rendering/renderer.hpp>
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/rendering/swapchain.hpp>
+#include <seng/resources/mesh.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
@@ -33,6 +34,7 @@
 #include <utility>    // for pair, addressof
 #include <vector>     // for vector
 
+using namespace seng;
 using namespace seng::rendering;
 using namespace seng::internal;
 using namespace std;
@@ -155,6 +157,8 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
       return vk::raii::DescriptorPool(m_device.logical(), info);
     })),
 
+    // Other stuff
+    m_fallbackMesh(*this),
     m_gubo(nullptr)
 {
   log::dbg("Allocating render targets");
@@ -318,6 +322,26 @@ void Renderer::clearDescriptorSets()
 {
   for (auto &f : m_frames) f.m_descriptorCache.clear();
   m_descriptorPool.reset();
+}
+
+Mesh &Renderer::requestMesh(const std::string &name)
+{
+  auto iter = m_meshes.find(name);
+
+  if (iter != m_meshes.end()) return iter->second;
+  auto ret = m_meshes.try_emplace(
+      name, Mesh::loadFromDisk(*this, m_app->config().assetPath, name));
+  return ret.first->second;
+}
+
+void Renderer::clearMesh(const std::string &name)
+{
+  m_meshes.erase(name);
+}
+
+void Renderer::clearMeshes()
+{
+  m_meshes.clear();
 }
 
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const

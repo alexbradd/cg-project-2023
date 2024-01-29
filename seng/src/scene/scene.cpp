@@ -62,7 +62,7 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
   if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
     auto meshes = sceneConfig["Meshes"];
     for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++)
-      s->parseMesh(config.assetPath, *i);
+      s->parseMesh(*i);
   }
 
   // Parse light
@@ -112,12 +112,11 @@ bool isYamlNodeValidShader(const YAML::Node &node)
          node["vert"].IsScalar() && node["frag"] && node["frag"].IsScalar();
 }
 
-void Scene::parseMesh(const std::string &assetPath, const YAML::Node &node)
+void Scene::parseMesh(const YAML::Node &node)
 {
   std::string name = node.as<string>();
-  auto mesh = Mesh::loadFromDisk(*m_renderer, assetPath, name);
-  mesh.sync();
-  m_meshes.emplace(name, std::move(mesh));
+  auto &m = m_renderer->requestMesh(name);
+  m.sync();
 }
 
 void Scene::parseEntity(const YAML::Node &node)
@@ -257,7 +256,7 @@ void Scene::draw(const FrameHandle &handle)
     shader.use(cmd);
 
     // FIXME: should be per entity rendererd with the shader not per mesh
-    for (const auto &mesh : m_meshes) {
+    for (const auto &mesh : m_renderer->meshes()) {
       if (!mesh.second.synced()) continue;
 
       shader.updateModelState(cmd, glm::mat4(1));

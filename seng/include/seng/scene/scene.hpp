@@ -4,7 +4,6 @@
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/shader_stage.hpp>
-#include <seng/resources/mesh.hpp>
 #include <seng/scene/direct_light.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/time.hpp>
@@ -211,7 +210,6 @@ class Scene {
   std::unordered_map<std::string, rendering::ShaderStage> m_stages;
   std::unordered_map<std::string, rendering::ObjectShader> m_shaders;
   // TODO: map<string, ObjectShader::Instance> shaderInstances
-  std::unordered_map<std::string, Mesh> m_meshes;
 
   // Scene graph
   Camera *m_mainCamera;
@@ -227,7 +225,7 @@ class Scene {
   Hook<float> m_lateUpdate;
 
   void parseShader(const std::string &shaderPath, const YAML::Node &node);
-  void parseMesh(const std::string &assetPath, const YAML::Node &node);
+  void parseMesh(const YAML::Node &node);
   void parseEntity(const YAML::Node &node);
 };
 
