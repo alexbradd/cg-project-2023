@@ -65,6 +65,7 @@ void Mesh::sync()
     seng::log::warning("No data to sync... aborting");
     return;
   }
+  seng::log::dbg("Uploading mesh to device");
 
   if (!m_vbo.has_value())
     m_vbo = Buffer(m_renderer->device(), vertexBufferUsage,
@@ -103,6 +104,7 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
     seng::log::error("Could not load {}, returning empty mesh", name);
     return Mesh(renderer);
   }
+  seng::log::dbg("Loaded mesh {} from disk", name);
 
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
