@@ -5,6 +5,8 @@
 namespace seng::rendering {
 
 class Device;
+class CommandBuffer;
+class Buffer;
 
 /**
  * A wrapper for a vulkan image and its view (if present). The view can be
@@ -68,6 +70,19 @@ class Image {
    * Steal ownership of the given view.
    */
   void stealView(vk::raii::ImageView &&view) { m_view = std::move(view); }
+
+  /**
+   * Copy contents of the given buffer into this image.
+   */
+  void copyFromBuffer(const CommandBuffer &commandBuf, const Buffer &buf) const;
+
+  /**
+   * Transition the layout of this image from the old layout to the new one.
+   */
+  void transitionLayout(const CommandBuffer &commandBuf,
+                        vk::Format format,
+                        vk::ImageLayout oldLayout,
+                        vk::ImageLayout newLayout) const;
 
  private:
   const Device *m_device;

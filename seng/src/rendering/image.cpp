@@ -1,4 +1,6 @@
 #include <seng/log.hpp>
+#include <seng/rendering/buffer.hpp>
+#include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/image.hpp>
 
@@ -7,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <functional>
+#include <stdexcept>
 #include <string>
 
 #define BAIL_OUT_ON_UNINITIALIZED(ret)                                     \
@@ -19,6 +22,11 @@
 
 using namespace std;
 using namespace seng::rendering;
+
+static bool hasStencilComponent(vk::Format format)
+{
+  return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+}
 
 static uint32_t mipLevels(vk::Extent3D e)
 {
@@ -107,6 +115,86 @@ void Image::createView(vk::ImageViewType type,
   ci.subresourceRange.layerCount = 1;
   m_view = vk::raii::ImageView(m_device->logical(), ci);
   log::dbg("Created new image view");
+}
+
+void Image::copyFromBuffer(const CommandBuffer &commandBuf, const Buffer &buf) const
+{
+  BAIL_OUT_ON_UNINITIALIZED();
+
+  vk::BufferImageCopy region;
+  region.bufferOffset = 0;
+  region.bufferRowLength = 0;
+  region.bufferImageHeight = 0;
+
+  region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+  region.imageSubresource.mipLevel = 0;
+  region.imageSubresource.baseArrayLayer = 0;
+  region.imageSubresource.layerCount = 1;
+
+  region.imageExtent = m_extent;
+  region.imageExtent.depth = 1;
+
+  commandBuf.buffer().copyBufferToImage(*buf.buffer(), image(),
+                                        vk::ImageLayout::eTransferDstOptimal, region);
+}
+
+void Image::transitionLayout(const CommandBuffer &commandBuf,
+                             vk::Format format,
+                             vk::ImageLayout oldLayout,
+                             vk::ImageLayout newLayout) const
+{
+  BAIL_OUT_ON_UNINITIALIZED();
+
+  vk::ImageMemoryBarrier barrier;
+  barrier.oldLayout = oldLayout;
+  barrier.newLayout = newLayout;
+  barrier.srcQueueFamilyIndex = *m_device->queueFamilyIndices().graphicsFamily;
+  barrier.dstQueueFamilyIndex = *m_device->queueFamilyIndices().graphicsFamily;
+  barrier.image = image();
+
+  if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+    if (hasStencilComponent(format))
+      barrier.subresourceRange.aspectMask |= vk::ImageAspectFlagBits::eStencil;
+  } else {
+    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+  }
+
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = m_mipped ? mipLevels(m_extent) : 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+
+  vk::PipelineStageFlags srcStage;
+  vk::PipelineStageFlags dstStage;
+
+  if (oldLayout == vk::ImageLayout::eUndefined &&
+      newLayout == vk::ImageLayout::eTransferDstOptimal) {
+    barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+    srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+    dstStage = vk::PipelineStageFlagBits::eTransfer;
+  } else if (oldLayout == vk::ImageLayout::eTransferDstOptimal &&
+             newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+    srcStage = vk::PipelineStageFlagBits::eTransfer;
+    dstStage = vk::PipelineStageFlagBits::eFragmentShader;
+  } else if (oldLayout == vk::ImageLayout::eUndefined &&
+             newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+    barrier.srcAccessMask = vk::AccessFlagBits::eNone;
+    barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
+                            vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+    srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+    dstStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  } else {
+    throw runtime_error("Unsupported layout transition");
+  }
+
+  commandBuf.buffer().pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
 }
 
 Image::~Image()
