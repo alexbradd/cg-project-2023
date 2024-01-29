@@ -52,13 +52,13 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/glfw_window.cpp
     ./src/rendering/global_uniform.cpp
     ./src/rendering/image.cpp
-    ./src/rendering/mesh.cpp
     ./src/rendering/object_shader.cpp
     ./src/rendering/pipeline.cpp
     ./src/rendering/render_pass.cpp
     ./src/rendering/renderer.cpp
     ./src/rendering/shader_stage.cpp
     ./src/rendering/swapchain.cpp
+    ./src/resources/mesh.cpp
     ./src/scene/entity.cpp
     ./src/scene/scene.cpp
     ./src/utils.cpp

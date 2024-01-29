@@ -1,8 +1,8 @@
 #include <seng/log.hpp>
 #include <seng/rendering/buffer.hpp>
-#include <seng/rendering/mesh.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/renderer.hpp>
+#include <seng/resources/mesh.hpp>
 
 #include <tiny_obj_loader.h>
 #include <glm/geometric.hpp>
@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <memory>
 
+using namespace seng;
 using namespace seng::rendering;
 using namespace std;
 

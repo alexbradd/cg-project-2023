@@ -9,9 +9,11 @@
 #include <optional>
 #include <vector>
 
-namespace seng::rendering {
+namespace seng {
 
+namespace rendering {
 class Renderer;
+}
 
 /**
  * A collection of vertices and indices that defines the shape of a 3D model.
@@ -24,7 +26,7 @@ class Renderer;
 class Mesh {
  public:
   /// Create an empty mesh
-  Mesh(const Renderer &renderer);
+  Mesh(const rendering::Renderer &renderer);
   Mesh(const Mesh &) = delete;
   Mesh(Mesh &&) = default;
 
@@ -32,11 +34,11 @@ class Mesh {
   Mesh &operator=(Mesh &&) = default;
 
   // Accessors
-  const std::vector<Vertex> &vertices() const { return m_vertices; }
+  const std::vector<rendering::Vertex> &vertices() const { return m_vertices; }
   const std::vector<uint32_t> &indices() const { return m_indices; }
 
-  const std::optional<Buffer> &vertexBuffer() const { return m_vbo; }
-  const std::optional<Buffer> &indexBuffer() const { return m_ibo; }
+  const std::optional<rendering::Buffer> &vertexBuffer() const { return m_vbo; }
+  const std::optional<rendering::Buffer> &indexBuffer() const { return m_ibo; }
 
   /// Return true if device buffers are up to date with the ones in host memory
   bool synced() const { return m_vbo.has_value() && m_ibo.has_value(); }
@@ -57,21 +59,21 @@ class Mesh {
    * Models are searched inside the asset path (defined in ApplicationConfig) and
    * filename construction is done like this: `${assetPath}/${name}.obj`
    */
-  static Mesh loadFromDisk(const Renderer &renderer,
+  static Mesh loadFromDisk(const rendering::Renderer &renderer,
                            const std::string &assetPath,
                            std::string name);
 
  private:
-  const Renderer *m_renderer;
-  std::vector<Vertex> m_vertices;
+  const rendering::Renderer *m_renderer;
+  std::vector<rendering::Vertex> m_vertices;
   std::vector<uint32_t> m_indices;
 
-  std::optional<Buffer> m_vbo;
-  std::optional<Buffer> m_ibo;
+  std::optional<rendering::Buffer> m_vbo;
+  std::optional<rendering::Buffer> m_ibo;
 
-  Mesh(const Renderer &renderer,
-       std::vector<Vertex> &&vertices,
+  Mesh(const rendering::Renderer &renderer,
+       std::vector<rendering::Vertex> &&vertices,
        std::vector<uint32_t> &&indices);
 };
 
-};  // namespace seng::rendering
+};  // namespace seng
