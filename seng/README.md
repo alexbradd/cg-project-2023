@@ -21,6 +21,7 @@ plus those that have been actually implemented:
 
 Things that I want to do if I have time left before the deadline:
 
+- [ ] Proper cache handling (dropping "cold" meshes/textures/etc...)
 - [ ] Proper event system
 - [ ] Shadow mapping
 - [ ] Mipmapping
