@@ -1,0 +1,3 @@
+[submodule "seng/external/stb"]
+	path = seng/external/stb
+	url = https://github.com/nothings/stb

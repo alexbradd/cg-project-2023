@@ -62,10 +62,14 @@ target_sources(${PROJECT_NAME}
     ./src/scene/entity.cpp
     ./src/scene/scene.cpp
     ./src/utils.cpp
+
+    ./src/stb_impl.cpp # just because stb wants to be a special boy
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     ${PROJECT_SOURCE_DIR}/include/
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/external/stb
 )
 target_compile_options(${PROJECT_NAME}
   PRIVATE
