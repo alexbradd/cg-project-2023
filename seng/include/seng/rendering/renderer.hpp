@@ -234,6 +234,7 @@ class Renderer {
 
   static const std::array<vk::DescriptorPoolSize, 1> POOL_SIZES;
 
+  // Vulkan context
   const Application *m_app;
   const GlfwWindow *m_window;
   vk::raii::Context m_context;
@@ -247,17 +248,21 @@ class Renderer {
   vk::raii::CommandPool m_commandPool;
   vk::raii::DescriptorPool m_descriptorPool;
 
+  // Targets and frames
   std::vector<RenderTarget> m_targets;
   std::vector<Frame> m_frames;
 
+  // Descriptor layout cache
   std::unordered_map<size_t, vk::raii::DescriptorSetLayout> m_layoutCache;
 
   // Mesh cache
   std::unordered_map<std::string, Mesh> m_meshes;
   Mesh m_fallbackMesh;
 
+  // Global Uniforms
   GlobalUniform m_gubo;
 
+  // Auxillary data
   uint64_t m_fbGeneration = 0;
   uint64_t m_lastFbGeneration = 0;
   uint32_t m_currentFrame = 0;
