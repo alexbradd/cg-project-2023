@@ -30,7 +30,7 @@ void Application::run(unsigned int width, unsigned int height)
     if (m_vulkan != nullptr) m_vulkan->signalResize();
   });
 
-  m_vulkan = make_unique<Renderer>(conf, *m_glfwWindow);
+  m_vulkan = make_unique<Renderer>(*this, *m_glfwWindow);
   m_inputManager = make_unique<InputManager>(*m_glfwWindow);
 
   switchScene("default");

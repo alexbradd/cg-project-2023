@@ -1,3 +1,4 @@
+#include <seng/application.hpp>
 #include <seng/application_config.hpp>
 #include <seng/hashes.hpp>
 #include <seng/log.hpp>
@@ -112,7 +113,8 @@ const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES = {{
     {vk::DescriptorType::eUniformBuffer, 1024},
 }};
 
-Renderer::Renderer([[maybe_unused]] ApplicationConfig config, const GlfwWindow &window) :
+Renderer::Renderer(Application &app, const GlfwWindow &window) :
+    m_app(std::addressof(app)),
     m_window(std::addressof(window)),
     m_context(),
     // Instance creation

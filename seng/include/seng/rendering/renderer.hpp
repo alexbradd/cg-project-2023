@@ -23,6 +23,10 @@
 #include <unordered_map>
 #include <vector>
 
+namespace seng {
+class Application;
+}
+
 namespace seng::rendering {
 
 // Forward declarations
@@ -60,7 +64,7 @@ class Renderer {
   /**
    * Boot up the vulkan renderer and draw into the given window.
    */
-  Renderer(ApplicationConfig config, const GlfwWindow &window);
+  Renderer(Application &app, const GlfwWindow &window);
   Renderer(const Renderer &) = delete;
   Renderer(Renderer &&) = default;
   ~Renderer();
@@ -208,6 +212,7 @@ class Renderer {
 
   static const std::array<vk::DescriptorPoolSize, 1> POOL_SIZES;
 
+  const Application *m_app;
   const GlfwWindow *m_window;
   vk::raii::Context m_context;
   vk::raii::Instance m_instance;
