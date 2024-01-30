@@ -3,11 +3,11 @@
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/global_uniform.hpp>
-#include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/pipeline.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/renderer.hpp>
-#include <seng/rendering/shader_stage.hpp>
+#include <seng/resources/object_shader.hpp>
+#include <seng/resources/shader_stage.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -20,9 +20,9 @@
 #include <utility>
 #include <vector>
 
+using namespace seng;
 using namespace seng::rendering;
 using namespace std;
-using namespace vk::raii;
 
 ObjectShader::ObjectShader(const Renderer& renderer,
                            const GlobalUniform& gubo,

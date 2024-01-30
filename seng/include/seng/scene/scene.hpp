@@ -2,8 +2,8 @@
 
 #include <seng/hook.hpp>
 #include <seng/rendering/buffer.hpp>
-#include <seng/rendering/object_shader.hpp>
-#include <seng/rendering/shader_stage.hpp>
+#include <seng/resources/object_shader.hpp>
+#include <seng/resources/shader_stage.hpp>
 #include <seng/scene/direct_light.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/time.hpp>
@@ -207,8 +207,8 @@ class Scene {
   Application *m_app;
   rendering::Renderer *m_renderer;
 
-  std::unordered_map<std::string, rendering::ShaderStage> m_stages;
-  std::unordered_map<std::string, rendering::ObjectShader> m_shaders;
+  std::unordered_map<std::string, ShaderStage> m_stages;
+  std::unordered_map<std::string, ObjectShader> m_shaders;
   // TODO: map<string, ObjectShader::Instance> shaderInstances
 
   // Scene graph

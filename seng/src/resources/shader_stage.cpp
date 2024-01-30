@@ -1,6 +1,6 @@
 #include <seng/log.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/shader_stage.hpp>
+#include <seng/resources/shader_stage.hpp>
 #include <seng/utils.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+using namespace seng;
 using namespace seng::rendering;
 
 static constexpr char VERT_EXT[] = ".vert.spv";

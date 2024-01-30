@@ -8,10 +8,8 @@
 #include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/global_uniform.hpp>
-#include <seng/rendering/object_shader.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/renderer.hpp>
-#include <seng/rendering/shader_stage.hpp>
 #include <seng/rendering/swapchain.hpp>
 #include <seng/resources/mesh.hpp>
 #include <seng/resources/texture.hpp>
@@ -27,8 +25,6 @@
 #include <array>      // for array
 #include <cstdint>    // for uint32_t
 #include <exception>  // for exception
-#include <iterator>
-#include <memory>
 #include <optional>   // for optional
 #include <stdexcept>  // for runtime_error
 #include <string>     // for basic_string, allocator
@@ -37,7 +33,6 @@
 
 using namespace seng;
 using namespace seng::rendering;
-using namespace seng::internal;
 using namespace std;
 
 // Intializer functions
@@ -174,8 +169,8 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_targets.emplace_back(m_device, img, m_swapchain.extent(), m_renderPass);
 
   log::dbg("Allocating render frames");
-  m_frames =
-      many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT, m_device, m_commandPool);
+  m_frames = seng::internal::many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT,
+                                                   m_device, m_commandPool);
 
   // Allocating GUBO
   log::dbg("Allocating GUBO");

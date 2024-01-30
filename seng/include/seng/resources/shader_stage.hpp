@@ -4,9 +4,11 @@
 
 #include <string>
 
-namespace seng::rendering {
+namespace seng {
 
+namespace rendering {
 class Device;
+}
 
 /// Supported types of loadable shader stages
 enum struct ShaderStageType { eVertex, eFragment };
@@ -25,7 +27,7 @@ class ShaderStage {
    * done as follows: `${shaderPath}/${name}.${STAGE}.spv` where
    * `STAGE := vert|frag` depending on the ShaderStageType.
    */
-  ShaderStage(const Device& device,
+  ShaderStage(const rendering::Device& device,
               const std::string& shaderPath,
               std::string name,
               ShaderStageType type);
@@ -50,4 +52,4 @@ class ShaderStage {
   vk::raii::ShaderModule m_module;
 };
 
-}  // namespace seng::rendering
+}  // namespace seng
