@@ -21,6 +21,7 @@ plus those that have been actually implemented:
 
 Things that I want to do if I have time left before the deadline:
 
+- [ ] Multiple lights and multiple light types (direct, point)
 - [ ] Proper cache handling (dropping "cold" meshes/textures/etc...)
 - [ ] Proper event system
 - [ ] Shadow mapping
@@ -116,15 +117,15 @@ Each component will need to:
    2. Define the `createFromConfig` or use the `DECLARE_CREATE_FROM_CONFIG` and
       `DEFINE_CREATE_FROM_CONFIG` macros
 
+A component's constructor will run on component creation. Due to implementation
+details on creation the component will not yet be attached to the entity (i.e. it
+will not appear in the entities component list). This shouldn't be a problem
+unless for some reason one queries itself on creation. In that case, don't.
+
 Scripts that inherit from `ScriptComponent` will have the following hooks
 available:
 
-- Component constructor: run on component creation
-  - Potential footgun: due to implementation details on creation the component
-    will not yet be attached to the entity (i.e. it will not appear in the
-    entities component list). This shouldn't be a problem unless for some reason
-    one queries itself on creation. In that case, don't.
-- `onEnable`/`onDisable`: called when the script is disable/enabled via the
+- `onEnable`/`onDisable`: called when the script is disabled/enabled via the
   aptly named `enable()`/`disable()` methods
 - `onEarlyUpdate`: called at the earliest time during the drawing of the frame
   if the component is enabled. Use if your code needs to run before every
@@ -135,6 +136,8 @@ available:
   enabled. Use if your code needs to run after every script's `onUpdate`.
 - Component destructor: runs on component removal, be it for entity destruction
   or scene destruction.
+
+No hook-execution order is guaranteed.
 
 ### Shader system
 
@@ -230,7 +233,7 @@ configuration file.
 
 ## Some comments on the engine as a whole
 
-This project has been created as a final project form my uni course, and such
+This project has been created as a final project form my uni course, and as such
 has been done under a lot of crunch due to other courses and deadlines.
 Moreover, it was my first C++/Vulkan experience coming from a background of
 C/Rust and Java and no prior graphics programming. This means that the code is
@@ -244,7 +247,7 @@ Some thanks to the tutorials/projects I ~~stole~~ _took inspiration_ from:
 - [Vulkan Tutorial](https://vulkan-tutorial.com/)
 - [Vulkan Guide](https://vkguide.dev/)
 - [Vulkan Samples' framework](https://github.com/KhronosGroup/Vulkan-Samples),
-  (or some architectural bits
+  for some architectural bits
 - Unity, for some architectural bits like the GameObject/Component system
 - [Kohi engine](https://kohiengine.com/) and the [youtube series](https://www.youtube.com/playlist?list=PLv8Ddw9K0JPg1BEO-RS-0MYs423cvLVtj)
   (the early bits mainly), for being a nice to follow video tutorial and for
