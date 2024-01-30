@@ -4,6 +4,7 @@
 #include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/pipeline.hpp>
 #include <seng/rendering/primitive_types.hpp>
+#include <seng/resources/texture.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -35,16 +36,18 @@ class ObjectShader {
  public:
   static constexpr int STAGES = 2;
 
-  ObjectShader(const rendering::Renderer& dev,
-               const rendering::GlobalUniform& globalDescriptorSetLayout,
+  ObjectShader(rendering::Renderer& dev,
                std::string name,
-               std::vector<const ShaderStage*> stages);
+               std::vector<TextureType> textures,
+               const std::vector<const ShaderStage*>& stages);
   ObjectShader(const ObjectShader&) = delete;
   ObjectShader(ObjectShader&&) = default;
   ~ObjectShader();
 
   ObjectShader& operator=(const ObjectShader&) = delete;
   ObjectShader& operator=(ObjectShader&&) = default;
+
+  const std::vector<TextureType>& textureLayout() const { return m_texLayout; }
 
   /**
    * Use the shader by binding the pipeline in the given command buffer
@@ -66,9 +69,10 @@ class ObjectShader {
  private:
   const rendering::Renderer* m_renderer;
   std::string m_name;
-  std::vector<const ShaderStage*> m_stages;
 
-  const rendering::GlobalUniform* m_gubo;
+  std::vector<TextureType> m_texLayout;
+  vk::DescriptorSetLayout m_texSetLayout;
+
   rendering::Pipeline m_pipeline;
 };
 

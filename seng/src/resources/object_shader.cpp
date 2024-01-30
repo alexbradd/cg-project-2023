@@ -1,7 +1,6 @@
 #include <seng/log.hpp>
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/command_buffer.hpp>
-#include <seng/rendering/device.hpp>
 #include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/pipeline.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -12,8 +11,6 @@
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <stddef.h>
-#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -22,36 +19,53 @@
 
 using namespace seng;
 using namespace seng::rendering;
-using namespace std;
 
-ObjectShader::ObjectShader(const Renderer& renderer,
-                           const GlobalUniform& gubo,
-                           // FIXME: samplers
-                           string name,
-                           vector<const ShaderStage*> stages) :
+ObjectShader::ObjectShader(Renderer& renderer,
+                           std::string name,
+                           std::vector<TextureType> textures,
+                           const std::vector<const ShaderStage*>& stages) :
     m_renderer(std::addressof(renderer)),
     m_name(std::move(name)),
-    m_stages(std::move(stages)),
-    m_gubo(std::addressof(gubo)),
-    m_pipeline(std::invoke([&]() {
-      // Attributes
-      AttributeDescriptions attributes{Vertex::attributeDescriptions()};
-
-      // Descriptor layouts
-      vector<vk::DescriptorSetLayout> descriptors;
-      descriptors.emplace_back(gubo.layout());
-      // TODO: Local descriptor layouts
-
-      // Stages
-      vector<vk::PipelineShaderStageCreateInfo> stageCreateInfo;
-      for (size_t i = 0; i < ObjectShader::STAGES; i++) {
-        stageCreateInfo.emplace_back(m_stages[i]->stageCreateInfo());
-      }
-
-      Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
-      return Pipeline(renderer.device(), renderer.renderPass(), pipeInfo);
-    }))
+    m_texLayout(std::move(textures)),
+    m_texSetLayout(nullptr),
+    m_pipeline(nullptr)
 {
+  // Create texture descriptor set, if any present
+  if (m_texLayout.size() > 0) {
+    std::vector<vk::DescriptorSetLayoutBinding> bindings;
+    bindings.reserve(m_texLayout.size());
+    for (size_t i = 0; i < m_texLayout.size(); i++) {
+      vk::DescriptorSetLayoutBinding texBinding;
+      texBinding.binding = i;
+      texBinding.descriptorCount = 1;
+      texBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+      texBinding.pImmutableSamplers = nullptr;
+      texBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+      bindings.push_back(texBinding);
+    }
+    vk::DescriptorSetLayoutCreateInfo textureSetInfo;
+    textureSetInfo.setBindings(bindings);
+    m_texSetLayout = renderer.requestDescriptorSetLayout(textureSetInfo);
+  }
+
+  // === Pipeline creation
+  // Attributes
+  AttributeDescriptions attributes{Vertex::attributeDescriptions()};
+
+  // Descriptor layouts
+  std::vector<vk::DescriptorSetLayout> descriptors;
+  descriptors.reserve(STAGES);
+  descriptors.emplace_back(renderer.globalUniform().layout());
+  if (m_texSetLayout != nullptr) descriptors.emplace_back(m_texSetLayout);
+
+  // Stages
+  std::vector<vk::PipelineShaderStageCreateInfo> stageCreateInfo;
+  stageCreateInfo.reserve(stages.size());
+  for (size_t i = 0; i < ObjectShader::STAGES; i++)
+    stageCreateInfo.emplace_back(stages[i]->stageCreateInfo());
+
+  Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
+  m_pipeline = Pipeline(renderer.device(), renderer.renderPass(), pipeInfo);
   log::dbg("Created object shader {}", name);
 }
 
@@ -60,20 +74,19 @@ void ObjectShader::use(const CommandBuffer& buffer) const
   m_pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
+// FIXME: Descriptor set binding needs to be done in the shader instance
 void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
                                       const CommandBuffer& buf) const
 {
   std::vector<vk::DescriptorSet> sets;
-  sets.reserve(1);  // FIXME: + samplers.size
+  sets.reserve(1);
 
   // Get GUBO's set
-  auto guboSet = m_renderer->getDescriptorSet(handle, m_gubo->layout(),
-                                              m_gubo->bufferInfos(handle), {});
-  if (guboSet == nullptr) throw runtime_error("Null GUBO descriptor set");
+  auto& gubo = m_renderer->globalUniform();
+  auto guboSet =
+      m_renderer->getDescriptorSet(handle, gubo.layout(), gubo.bufferInfos(handle), {});
+  if (guboSet == nullptr) throw std::runtime_error("Null GUBO descriptor set");
   sets.emplace_back(guboSet);
-
-  // Get the sets for each sampler
-  // FIXME: samplers
 
   // Bind
   buf.buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipeline.layout(),
