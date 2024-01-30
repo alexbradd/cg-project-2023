@@ -1,0 +1,4 @@
+Shaders:
+  - name: test
+    vert: simple_vert
+    frag: simple_frag

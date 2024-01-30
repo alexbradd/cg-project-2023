@@ -51,6 +51,24 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/shaders_src")
   )
   add_dependencies(${PROJECT_NAME} shaders)
 
+  file(GLOB_RECURSE SHADER_CFG "./shaders_src/*.yml")
+  foreach(CFG ${SHADER_CFG})
+    get_filename_component(FILE_NAME ${CFG} NAME)
+    set(COPIED_SHADER_CFG "${PROJECT_BINARY_DIR}/shaders/${FILE_NAME}")
+    add_custom_command(
+      OUTPUT ${COPIED_SHADER_CFG}
+      DEPENDS ${CFG}
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CFG}" "${COPIED_SHADER_CFG}"
+    )
+    list(APPEND SHADER_CONFIGS ${COPIED_SHADER_CFG})
+  endforeach()
+  add_custom_target(
+    shader_config
+    DEPENDS ${SHADER_CONFIGS}
+  )
+  add_dependencies(${PROJECT_NAME} shader_config)
+
   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders/"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
