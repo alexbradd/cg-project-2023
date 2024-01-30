@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
-#include <iostream>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -23,11 +22,10 @@ int main(int, char* argv[])
 
   try {
     seng::log::info("Starting application");
-
     app.run(800, 600);
+    return EXIT_SUCCESS;
   } catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
+    seng::log::error("Fatal error encountered: {}", e.what());
+    return EXIT_FAILURE;
   }
-
-  return EXIT_SUCCESS;
 }
