@@ -1,5 +1,7 @@
 #pragma once
 
+#include <seng/application_config.hpp>
+
 #include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
@@ -72,7 +74,9 @@ class Device {
    * create the queues. If no suitable device can be found/costructed throw a
    * runtime_error().
    */
-  Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surf);
+  Device(const ApplicationConfig &config,
+         const vk::raii::Instance &instance,
+         const vk::raii::SurfaceKHR &surf);
   Device(const Device &) = delete;
   Device(Device &&) = default;
   ~Device();

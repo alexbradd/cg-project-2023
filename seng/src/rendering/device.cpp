@@ -1,3 +1,5 @@
+#include <memory>
+#include <seng/application_config.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/glfw_window.hpp>
@@ -74,22 +76,28 @@ vk::Extent2D SwapchainSupportDetails::chooseExtent(const GlfwWindow &window) con
 
 const vector<const char *> Device::REQUIRED_EXT{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-static vk::raii::PhysicalDevice pickPhysicalDevice(const vk::raii::Instance &,
+static vk::raii::PhysicalDevice pickPhysicalDevice(const seng::ApplicationConfig &,
+                                                   const vk::raii::Instance &,
                                                    const vk::raii::SurfaceKHR &);
 static bool checkExtensions(const vector<const char *> &,
                             const vk::raii::PhysicalDevice &);
 static bool checkSwapchain(const vk::raii::PhysicalDevice &,
                            const vk::raii::SurfaceKHR &);
-static vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &,
+static bool checkFeatures(const seng::ApplicationConfig &,
+                          const vk::raii::PhysicalDevice &);
+static vk::raii::Device createLogicalDevice(const seng::ApplicationConfig &,
+                                            const vk::raii::PhysicalDevice &,
                                             const QueueFamilyIndices &);
 static vk::SurfaceFormatKHR detectDepthFormat(const vk::raii::PhysicalDevice &);
 
-Device::Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &surface) :
+Device::Device(const ApplicationConfig &config,
+               const vk::raii::Instance &instance,
+               const vk::raii::SurfaceKHR &surface) :
     m_surface(std::addressof(surface)),
-    m_physical(pickPhysicalDevice(instance, surface)),
+    m_physical(pickPhysicalDevice(config, instance, surface)),
     m_queueIndices(m_physical, surface),
     m_swapDetails(m_physical, surface),
-    m_logical(createLogicalDevice(m_physical, m_queueIndices)),
+    m_logical(createLogicalDevice(config, m_physical, m_queueIndices)),
     m_presentQueue(m_logical, *m_queueIndices.presentFamily, 0),
     m_graphicsQueue(m_logical, *m_queueIndices.graphicsFamily, 0),
     m_depthFormat(detectDepthFormat(m_physical))
@@ -97,7 +105,8 @@ Device::Device(const vk::raii::Instance &instance, const vk::raii::SurfaceKHR &s
   log::dbg("Device has beeen created successfully");
 }
 
-vk::raii::PhysicalDevice pickPhysicalDevice(const vk::raii::Instance &i,
+vk::raii::PhysicalDevice pickPhysicalDevice(const seng::ApplicationConfig &config,
+                                            const vk::raii::Instance &i,
                                             const vk::raii::SurfaceKHR &s)
 {
   vk::raii::PhysicalDevices devs(i);
@@ -108,7 +117,9 @@ vk::raii::PhysicalDevice pickPhysicalDevice(const vk::raii::Instance &i,
     bool queueFamilyComplete = queueFamilyIndices.isComplete();
     bool extensionSupported = checkExtensions(Device::REQUIRED_EXT, dev);
     bool swapchainAdequate = extensionSupported ? checkSwapchain(dev, s) : false;
-    return queueFamilyComplete && extensionSupported && swapchainAdequate;
+    bool featuresPresent = checkFeatures(config, dev);
+    return queueFamilyComplete && extensionSupported && swapchainAdequate &&
+           featuresPresent;
   });
   if (dev == devs.end()) throw runtime_error("Failed to find a suitable GPU!");
   return *dev;
@@ -129,7 +140,16 @@ bool checkSwapchain(const vk::raii::PhysicalDevice &dev,
   return !details.formats.empty() && !details.presentModes.empty();
 }
 
-vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &phy,
+bool checkFeatures(const seng::ApplicationConfig &cfg,
+                   const vk::raii::PhysicalDevice &phy)
+{
+  auto features = phy.getFeatures();
+  if (cfg.useAnisotropy) return features.samplerAnisotropy;
+  return true;
+}
+
+vk::raii::Device createLogicalDevice(const seng::ApplicationConfig &cfg,
+                                     const vk::raii::PhysicalDevice &phy,
                                      const QueueFamilyIndices &indices)
 {
   float queuePrio = 1.0f;
@@ -144,6 +164,7 @@ vk::raii::Device createLogicalDevice(const vk::raii::PhysicalDevice &phy,
   }
 
   vk::PhysicalDeviceFeatures features{};
+  if (cfg.useAnisotropy) features.samplerAnisotropy = true;
 
   vk::DeviceCreateInfo dci{};
   dci.setQueueCreateInfos(qcis);

@@ -125,7 +125,7 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_surface(window.createVulkanSurface(m_instance)),
 
     // Device and swapchain
-    m_device(m_instance, m_surface),
+    m_device(app.config(), m_instance, m_surface),
     m_swapchain(m_device, m_surface, window),
 
     // Renderpass
@@ -161,6 +161,12 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_fallbackMesh(*this),
     m_gubo(nullptr)
 {
+  log::dbg("Storing configuration options");
+  if (app.config().useAnisotropy) {
+    m_useAnisotropy = true;
+    m_maxAnisotropy = m_device.physical().getProperties().limits.maxSamplerAnisotropy;
+  }
+
   log::dbg("Allocating render targets");
   m_targets.reserve(m_swapchain.images().size());
   for (auto &img : m_swapchain.images())
@@ -228,6 +234,11 @@ bool supportsAllLayers(const vector<const char *> &l)
       return strcmp(property.layerName, name) == 0;
     });
   });
+}
+
+float Renderer::anisotropyLevel() const
+{
+  return std::clamp(m_app->config().anisotropyLevel, 1.0f, m_maxAnisotropy);
 }
 
 void Renderer::signalResize()

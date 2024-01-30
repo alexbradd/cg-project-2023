@@ -92,6 +92,12 @@ class Renderer {
 
   size_t framesInFlight() const { return m_frames.size(); }
 
+  bool useAnisotropy() const { return m_useAnisotropy; }
+  float maxAnisotropyLevel() const { return m_maxAnisotropy; }
+
+  /// Return the desired anisotropy level clamped by the max supported anisotropy
+  float anisotropyLevel() const;
+
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
    * to be regenerated.
@@ -267,6 +273,10 @@ class Renderer {
   uint64_t m_lastFbGeneration = 0;
   uint32_t m_currentFrame = 0;
   bool m_recreatingSwap = false;
+
+  // Rendering options
+  bool m_useAnisotropy = false;
+  float m_maxAnisotropy = 1.0f;
 
   /**
    * Recreate the current swapchain and framebuffers
