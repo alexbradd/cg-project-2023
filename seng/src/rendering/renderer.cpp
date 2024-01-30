@@ -357,6 +357,26 @@ void Renderer::clearMeshes()
   m_meshes.clear();
 }
 
+vk::Sampler Renderer::requestSampler(vk::SamplerCreateInfo info)
+{
+  size_t hash{0};
+  seng::internal::hashCombine(hash, info);
+
+  auto iter = m_samplerCache.find(hash);
+
+  if (iter != m_samplerCache.end()) return *iter->second;
+
+  seng::log::dbg("Creating image sampler");
+  auto ret =
+      m_samplerCache.try_emplace(hash, vk::raii::Sampler(m_device.logical(), info));
+  return *ret.first->second;
+}
+
+void Renderer::clearSamplers()
+{
+  m_samplerCache.clear();
+}
+
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const
 {
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");

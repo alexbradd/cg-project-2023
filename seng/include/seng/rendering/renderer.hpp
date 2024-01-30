@@ -174,6 +174,16 @@ class Renderer {
   /// FIXME: stub, do not use.
   const std::unordered_map<std::string, Mesh> &meshes() const { return m_meshes; }
 
+  /**
+   * Get a Sampler with the given CreateInfo from the cache then
+   * return its handle. If a matching sampler cannot be found, allocate a
+   * new one.
+   */
+  vk::Sampler requestSampler(vk::SamplerCreateInfo info);
+
+  /// Drop all allocated Samplers from the cache
+  void clearSamplers();
+
   /*
    * Get the command buffer of the current in-progress frame. If the passed handle is
    * invalid, a runtime error is thrown.
@@ -264,6 +274,9 @@ class Renderer {
   // Mesh cache
   std::unordered_map<std::string, Mesh> m_meshes;
   Mesh m_fallbackMesh;
+
+  // Texture cache
+  std::unordered_map<size_t, vk::raii::Sampler> m_samplerCache;
 
   // Global Uniforms
   GlobalUniform m_gubo;

@@ -42,7 +42,7 @@ class Texture {
  public:
   /// Create a single-pixel texture of the given type with the given color (in
   /// R8G8B8A8 format). By default it is a bright magenta.
-  Texture(const rendering::Renderer &renderer,
+  Texture(rendering::Renderer &renderer,
           TextureType type,
           glm::vec<4, unsigned char> color = {255, 0, 255, 255});
   Texture(const Texture &) = delete;
@@ -55,7 +55,7 @@ class Texture {
   TextureType type() const { return m_type; }
   std::pair<unsigned int, unsigned int> size() const { return {m_width, m_height}; }
   const rendering::Image &image() const { return m_image; }
-  const vk::Sampler sampler() const { return *m_sampler; }
+  const vk::Sampler sampler() const { return m_sampler; }
 
   /**
    * Factory method that creates a Texture by loading the image with the given name.
@@ -63,7 +63,7 @@ class Texture {
    * Images are searched inside the asset path (defined in ApplicationConfig) and
    * filename construction is done like this: `${assetPath}/${name}`
    */
-  static Texture loadFromDisk(const rendering::Renderer &renderer,
+  static Texture loadFromDisk(rendering::Renderer &renderer,
                               TextureType typ,
                               SamplerOptions opts,
                               const std::string &assetPath,
@@ -73,14 +73,14 @@ class Texture {
   TextureType m_type;
   unsigned int m_width, m_height;
   rendering::Image m_image;
-  vk::raii::Sampler m_sampler;
+  vk::Sampler m_sampler;
 
   /// Creates an empty object. To be filled by an appropriate call to `fill()`
   Texture();
 
   /// Fills in the objct with the data given, allocating all that is necessary
   static void fill(Texture &tex,
-                   const rendering::Renderer &renderer,
+                   rendering::Renderer &renderer,
                    TextureType typ,
                    SamplerOptions opts,
                    void *pixelData,

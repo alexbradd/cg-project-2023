@@ -35,7 +35,7 @@ Texture::Texture() :
 }
 
 void Texture::fill(Texture &tex,
-                   const rendering::Renderer &renderer,
+                   rendering::Renderer &renderer,
                    TextureType typ,
                    SamplerOptions opts,
                    void *pixelData,
@@ -88,7 +88,6 @@ void Texture::fill(Texture &tex,
       });
   tex.m_image.createView(imgInfo.viewType, imgInfo.format, imgInfo.aspectFlags);
 
-  seng::log::dbg("Creating image sampler");
   vk::SamplerCreateInfo samplerInfo;
   samplerInfo.magFilter = opts.filtering;
   samplerInfo.minFilter = opts.filtering;
@@ -105,10 +104,10 @@ void Texture::fill(Texture &tex,
   samplerInfo.mipLodBias = 0.0f;
   samplerInfo.minLod = 0.0f;
   samplerInfo.maxLod = 0.0f;
-  tex.m_sampler = vk::raii::Sampler(renderer.device().logical(), samplerInfo);
+  tex.m_sampler = renderer.requestSampler(samplerInfo);
 }
 
-Texture::Texture(const rendering::Renderer &renderer,
+Texture::Texture(rendering::Renderer &renderer,
                  TextureType type,
                  glm::vec<4, unsigned char> color) :
     seng::Texture()
@@ -116,7 +115,7 @@ Texture::Texture(const rendering::Renderer &renderer,
   fill(*this, renderer, type, {}, &color, sizeof(color), 1, 1);
 }
 
-Texture Texture::loadFromDisk(const rendering::Renderer &renderer,
+Texture Texture::loadFromDisk(rendering::Renderer &renderer,
                               TextureType typ,
                               SamplerOptions opts,
                               const std::string &assetPath,
