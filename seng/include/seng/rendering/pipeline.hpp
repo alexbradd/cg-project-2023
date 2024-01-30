@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <seng/rendering/primitive_types.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
@@ -40,6 +41,10 @@ class Pipeline {
    * details specified in the given creation info
    */
   Pipeline(const Device& device, const RenderPass& pass, CreateInfo info);
+
+  /// Create a null pipeline
+  Pipeline(std::nullptr_t);
+
   Pipeline(const Pipeline&) = delete;
   Pipeline(Pipeline&&) = default;
   ~Pipeline();

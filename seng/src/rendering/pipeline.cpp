@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <seng/log.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
@@ -19,6 +20,11 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
                                          const RenderPass& pass,
                                          const vk::raii::PipelineLayout& layout,
                                          const Pipeline::CreateInfo& info);
+
+Pipeline::Pipeline(std::nullptr_t) :
+    m_device(nullptr), m_renderPass(nullptr), m_layout(nullptr), m_pipeline(nullptr)
+{
+}
 
 Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info) :
     m_device(std::addressof(device)),
