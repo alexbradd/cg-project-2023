@@ -12,8 +12,13 @@ int main(int, char* argv[])
 {
   fs::path dir{fs::path{argv[0]}.parent_path()};
 
-  seng::ApplicationConfig config{"Froggo", (dir / "shaders").string(),
-                                 (dir / "assets").string(), (dir / "scenes").string()};
+  seng::ApplicationConfig config;
+  config.appName = "Froggo";
+  config.shaderDefinitions = (dir / "shaders" / "shaders.yml").string();
+  config.shaderPath = (dir / "shaders").string();
+  config.assetPath = (dir / "assets").string();
+  config.scenePath = (dir / "scenes").string();
+
   seng::Application app(config);
 
   seng::log::info("Reading assets from {}", app.config().assetPath);

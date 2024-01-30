@@ -16,6 +16,9 @@ struct ApplicationConfig {
   /// Name to be used by the application window
   std::string appName = "Vulkan";
 
+  /// File containing the shader definition
+  std::string shaderDefinitions = "./shaders/shaders.yml";
+
   /// Directory where the engine will look for COMPILED shaders
   std::string shaderPath = "./shaders/";
 
