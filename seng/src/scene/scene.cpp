@@ -207,7 +207,7 @@ void Scene::draw(const FrameHandle &handle)
 
   m_renderer->globalUniform().update(handle);
 
-  for (auto &shaderNamePair : m_shaders) {
+  for (auto &shaderNamePair : m_renderer->shaders().objectShaders()) {
     auto &shader = shaderNamePair.second;
 
     shader.bindDescriptorSets(handle, cmd);

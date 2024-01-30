@@ -12,6 +12,7 @@
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 #include <seng/resources/mesh.hpp>
+#include <seng/resources/shader_cache.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
@@ -184,6 +185,9 @@ class Renderer {
   /// Drop all allocated Samplers from the cache
   void clearSamplers();
 
+  /// Get the renderers shader cache
+  const ShaderCache &shaders() const { return m_shaders; }
+
   /*
    * Get the command buffer of the current in-progress frame. If the passed handle is
    * invalid, a runtime error is thrown.
@@ -248,7 +252,7 @@ class Renderer {
     Frame(const Device &device, const vk::raii::CommandPool &commandPool);
   };
 
-  static const std::array<vk::DescriptorPoolSize, 1> POOL_SIZES;
+  static const std::array<vk::DescriptorPoolSize, 2> POOL_SIZES;
 
   // Vulkan context
   const Application *m_app;
@@ -277,6 +281,7 @@ class Renderer {
 
   // Texture cache
   std::unordered_map<size_t, vk::raii::Sampler> m_samplerCache;
+  ShaderCache m_shaders;
 
   // Global Uniforms
   GlobalUniform m_gubo;

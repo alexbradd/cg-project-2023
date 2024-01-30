@@ -107,8 +107,9 @@ const std::vector<const char *> Renderer::VALIDATION_LAYERS{
     "VK_LAYER_KHRONOS_validation"};
 
 // TODO: add other sizes
-const std::array<vk::DescriptorPoolSize, 1> Renderer::POOL_SIZES = {{
+const std::array<vk::DescriptorPoolSize, 2> Renderer::POOL_SIZES = {{
     {vk::DescriptorType::eUniformBuffer, 1024},
+    {vk::DescriptorType::eCombinedImageSampler, 1024},
 }};
 
 Renderer::Renderer(Application &app, const GlfwWindow &window) :
@@ -172,9 +173,11 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
   m_frames = seng::internal::many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT,
                                                    m_device, m_commandPool);
 
-  // Allocating GUBO
   log::dbg("Allocating GUBO");
   m_gubo = GlobalUniform(*this);
+
+  log::dbg("Reading shaders");
+  m_shaders.fromSchema(*this, app.config().shaderDefinitions, m_app->config().shaderPath);
 
   log::dbg("Vulkan context is up and running!");
 }
