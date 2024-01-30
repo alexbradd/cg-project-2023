@@ -138,7 +138,7 @@ The file contains two keys:
 - `Shaders`: a list of object shaders, each with:
   - A name
   - Two shader stages (one for vertex and one for fragment)
-  - A list of texture types to pass to the fragment stage
+  - A list of texture types to pass to the fragment stage (`1d` or `2d`)
 - `Instances`: a list of shader instances (basically materials), each of which
   contains:
   - A name
@@ -156,7 +156,7 @@ Shaders:
   - name: complex
     vert: simple_vert
     frag: complex_frag
-    textureTypes: [1d, 2d, 2d, 2d, 2d, 3d]
+    textureTypes: [1d, 2d, 2d, 2d, 2d, 2d]
 
 Instances:
   - name: test
