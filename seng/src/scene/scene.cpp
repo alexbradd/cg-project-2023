@@ -94,11 +94,11 @@ void Scene::parseShader(const string &shaderPath, const YAML::Node &shader)
 
   std::string vertName = shader["vert"].as<string>();
   m_stages.try_emplace(vertName, m_renderer->device(), shaderPath, vertName,
-                       ShaderStage::Type::eVertex);
+                       ShaderStageType::eVertex);
 
   std::string fragName = shader["frag"].as<string>();
   m_stages.try_emplace(fragName, m_renderer->device(), shaderPath, fragName,
-                       ShaderStage::Type::eFragment);
+                       ShaderStageType::eFragment);
 
   std::string shaderName = shader["name"].as<string>();
   vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};

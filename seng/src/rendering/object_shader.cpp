@@ -45,7 +45,7 @@ ObjectShader::ObjectShader(const Renderer& renderer,
       // Stages
       vector<vk::PipelineShaderStageCreateInfo> stageCreateInfo;
       for (size_t i = 0; i < ObjectShader::STAGES; i++) {
-        stageCreateInfo.emplace_back(m_stages[i]->createInfo());
+        stageCreateInfo.emplace_back(m_stages[i]->stageCreateInfo());
       }
 
       Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};

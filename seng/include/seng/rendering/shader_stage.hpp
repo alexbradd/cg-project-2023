@@ -3,29 +3,32 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <string>
-#include <vector>
 
 namespace seng::rendering {
 
 class Device;
 
+/// Supported types of loadable shader stages
+enum struct ShaderStageType { eVertex, eFragment };
+
 /**
- * Shader stages are basically wrappers for ShaderModules. They are part of
- * an object shader (see VulkanObjectShader) and will be attached to a pipeline.
- *
- * It implements the RAII paradigm, meaning instantiation allocates resources
- * while destruction deallocates them.
- *
- * It is move-able but not copyable.
+ * A ShaderStage is a wrapper for vk::ShaderModules. A ShaderStage can either
+ * be a vertex stage or a fragment stage. Stage type determines at which Pipeline
+ * point the shader will be executed.
  */
 class ShaderStage {
  public:
-  enum struct Type { eVertex, eFragment };
-
+  /**
+   * Load a new ShaderStage from on-disk SPIR-V code.
+   *
+   * Stages are searched in the given `shaderPath`. Filename construction is
+   * done as follows: `${shaderPath}/${name}.${STAGE}.spv` where
+   * `STAGE := vert|frag` depending on the ShaderStageType.
+   */
   ShaderStage(const Device& device,
-              const std::string& shaderLoadPath,
+              const std::string& shaderPath,
               std::string name,
-              Type type);
+              ShaderStageType type);
   ShaderStage(const ShaderStage&) = delete;
   ShaderStage(ShaderStage&&) = default;
   ~ShaderStage();
@@ -34,19 +37,17 @@ class ShaderStage {
   ShaderStage& operator=(ShaderStage&&) = default;
 
   // Accessors
-  const vk::PipelineShaderStageCreateInfo& createInfo() const
-  {
-    return m_stageCreateInfo;
-  }
+  vk::ShaderModule handle() const { return *m_module; }
+  const std::string& name() const { return m_name; }
+  ShaderStageType type() const { return m_type; }
+
+  /// Generate a PipelineShaderStageCreateInfo for this ShaderStage
+  const vk::PipelineShaderStageCreateInfo stageCreateInfo() const;
 
  private:
-  const Device* m_device;
-  Type m_type;
+  ShaderStageType m_type;
   std::string m_name;
-  std::vector<char> m_code;
-  vk::ShaderModuleCreateInfo m_moduleCreateInfo;
   vk::raii::ShaderModule m_module;
-  vk::PipelineShaderStageCreateInfo m_stageCreateInfo;
 };
 
 }  // namespace seng::rendering
