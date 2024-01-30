@@ -14,6 +14,7 @@
 #include <seng/rendering/shader_stage.hpp>
 #include <seng/rendering/swapchain.hpp>
 #include <seng/resources/mesh.hpp>
+#include <seng/resources/texture.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>

@@ -59,6 +59,7 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/shader_stage.cpp
     ./src/rendering/swapchain.cpp
     ./src/resources/mesh.cpp
+    ./src/resources/texture.cpp
     ./src/scene/entity.cpp
     ./src/scene/scene.cpp
     ./src/utils.cpp
