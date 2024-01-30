@@ -15,7 +15,6 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 namespace YAML {
 class Node;
@@ -207,10 +206,6 @@ class Scene {
   Application *m_app;
   rendering::Renderer *m_renderer;
 
-  std::unordered_map<std::string, ShaderStage> m_stages;
-  std::unordered_map<std::string, ObjectShader> m_shaders;
-  // TODO: map<string, ObjectShader::Instance> shaderInstances
-
   // Scene graph
   Camera *m_mainCamera;
   EntityList m_entities;
@@ -224,7 +219,6 @@ class Scene {
   Hook<float> m_update;
   Hook<float> m_lateUpdate;
 
-  void parseShader(const std::string &shaderPath, const YAML::Node &node);
   void parseMesh(const YAML::Node &node);
   void parseEntity(const YAML::Node &node);
 };

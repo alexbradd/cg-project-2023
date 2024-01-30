@@ -1,12 +1,3 @@
-Shaders:
-  - name: test
-    vert: simple_vert
-    frag: simple_frag
-
-ShaderInstances:
-  - name: test
-    diffusePath: diffuse.png
-
 Meshes:
   - test1.obj
 

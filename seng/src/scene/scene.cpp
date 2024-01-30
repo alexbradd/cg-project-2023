@@ -4,8 +4,6 @@
 #include <seng/log.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/renderer.hpp>
-#include <seng/resources/object_shader.hpp>
-#include <seng/resources/shader_stage.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
 #include <seng/yaml_utils.hpp>
@@ -20,9 +18,6 @@
 using namespace seng;
 using namespace seng::rendering;
 using namespace std;
-
-// Misc functions
-static bool isYamlNodeValidShader(const YAML::Node &node);
 
 Scene::Scene(Application &app) :
     m_app(std::addressof(app)), m_renderer(app.renderer().get()), m_mainCamera(nullptr)
@@ -47,16 +42,6 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
     seng::log::error("Unable to load scene: {}", e.what());
     return nullptr;
   }
-
-  if (sceneConfig["Shaders"] && sceneConfig["Shaders"].IsSequence()) {
-    auto shaders = sceneConfig["Shaders"];
-    for (YAML::const_iterator i = shaders.begin(); i != shaders.end(); ++i) {
-      s->parseShader(config.shaderPath, *i);
-    }
-  }
-
-  // TODO: Shaders instances
-  if (sceneConfig["ShaderInstances"]) seng::log::dbg("Got shader instances");
 
   // Parse mesh list
   if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
@@ -83,33 +68,6 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
   }
 
   return s;
-}
-
-void Scene::parseShader(const string &shaderPath, const YAML::Node &shader)
-{
-  if (!isYamlNodeValidShader(shader)) {
-    seng::log::warning("Malformed YAML shader, skipping");
-    return;
-  }
-
-  std::string vertName = shader["vert"].as<string>();
-  m_stages.try_emplace(vertName, m_renderer->device(), shaderPath, vertName,
-                       ShaderStageType::eVertex);
-
-  std::string fragName = shader["frag"].as<string>();
-  m_stages.try_emplace(fragName, m_renderer->device(), shaderPath, fragName,
-                       ShaderStageType::eFragment);
-
-  std::string shaderName = shader["name"].as<string>();
-  vector<const ShaderStage *> s{&m_stages.at(vertName), &m_stages.at(fragName)};
-  m_shaders.try_emplace(shaderName, *m_renderer, m_renderer->globalUniform(), shaderName,
-                        s);
-}
-
-bool isYamlNodeValidShader(const YAML::Node &node)
-{
-  return node.IsMap() && node["name"] && node["name"].IsScalar() && node["vert"] &&
-         node["vert"].IsScalar() && node["frag"] && node["frag"].IsScalar();
 }
 
 void Scene::parseMesh(const YAML::Node &node)
