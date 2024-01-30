@@ -34,10 +34,16 @@ Things that I want to do if I have time left before the deadline:
 
 ## Some documentation
 
+Engine configuration is passed at `Application` creation as a
+`ApplicationConfig` structure. A preliminary skim is recommended to know what
+turning knobs I'll reference in the following; I, however, am not going to go
+through each property here as they are already documented inside the
+corresponding header file.
+
 ### Scene format
 
 Scenes are defined inside of YAML (with `.yaml` extension) files stored in the
-scene folder (specified by application at engine start). A scene is composed of:
+scene folder. A scene is composed of:
 
 - A name, which is equal to the filename without the `.yaml` extension
 - A light
