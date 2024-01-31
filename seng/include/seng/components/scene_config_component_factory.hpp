@@ -8,9 +8,12 @@
 #include <string>
 #include <unordered_map>
 
+/// Use for in-line definition of the YAML parsing function
 #define DECLARE_CREATE_FROM_CONFIG()                                           \
   static std::unique_ptr<seng::BaseComponent> createFromConfig(seng::Entity &, \
                                                                const YAML::Node &)
+
+/// Use for out-of-line definition of the YAML parsing function
 #define DEFINE_CREATE_FROM_CONFIG(type, entity, node)                               \
   std::unique_ptr<seng::BaseComponent> type::createFromConfig(seng::Entity &entity, \
                                                               const YAML::Node &node)
@@ -65,12 +68,19 @@ class SceneConfigComponentFactory {
 /**
  * Mixin class for statically registering a Component to SceneConfigComponentFactory.
  *
- * To register to the factory, a Component should inherit from this mixin and provide
- * two static methods:
+ * To register to the factory, a Component should first inherit from this mixin
+ * and provide two static methods:
  *
- * 1. `string componentId()`: return the id of the Component
- * 2. `unique_ptr<Component> createFromConfig(Entity &, const YAML::Node &)`:
+ * 1. `ComponentIdType componentId()`: return the id of the Component
+ * 2. `unique_ptr<BaseComponent> createFromConfig(Entity &, const YAML::Node &)`:
  *    create a component instance from the YAML config
+ *
+ * Then it should instantiate this template.
+ *
+ * Convenience macros are provided for every step:
+ * 1. DECLARE_COMPONENT_ID for defining componentId()
+ * 2. DECLARE/DEFINE_CREATE_FROM_CONFIG for declarein/defining createFromConfig
+ * 3. REGISTER_TO_CONFIG_FACTORY for instantiating the template
  */
 template <typename T>
 class ConfigParsableComponent {

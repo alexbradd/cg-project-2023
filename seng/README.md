@@ -81,7 +81,7 @@ Entities:
         another_parameter: false
       - id: MeshRenderer
         model: suzanne.obj
-        material: test
+        instance: test
 ```
 
 #### Footguns
@@ -116,6 +116,8 @@ Each component will need to:
    1. Extend `ConfigParsableComponent<...>`
    2. Define the `createFromConfig` or use the `DECLARE_CREATE_FROM_CONFIG` and
       `DEFINE_CREATE_FROM_CONFIG` macros
+   3. Somewhere after the class definition, use the `REGISTER_TO_CONFIG_FACTORY`
+      macro to register for YAML parse-ability
 
 A component's constructor will run on component creation. Due to implementation
 details on creation the component will not yet be attached to the entity (i.e. it
