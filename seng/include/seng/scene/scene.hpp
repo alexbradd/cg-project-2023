@@ -206,10 +206,6 @@ class Scene {
   Application *m_app;
   rendering::Renderer *m_renderer;
 
-  // Scene graph
-  Camera *m_mainCamera;
-  EntityList m_entities;
-
   // Light information
   glm::vec4 m_ambient;
   DirectLight m_directLight;
@@ -218,6 +214,10 @@ class Scene {
   Hook<float> m_earlyUpdate;
   Hook<float> m_update;
   Hook<float> m_lateUpdate;
+  //
+  // Scene graph
+  Camera *m_mainCamera;
+  EntityList m_entities;
 
   void parseMesh(const YAML::Node &node);
   void parseEntity(const YAML::Node &node);
