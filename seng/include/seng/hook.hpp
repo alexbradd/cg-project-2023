@@ -31,9 +31,6 @@ class HookToken;
 template <typename... CallbackArgs>
 class Hook {
  public:
-  /// Typedef for the function type of the hook
-  using HookFunc = std::function<void(CallbackArgs...)>;
-
   Hook() = default;
   Hook(const Hook&) = delete;
   Hook(Hook&&) = delete;
@@ -50,6 +47,9 @@ class Hook {
     for (const auto& cb : m_registrar.callbacks()) std::get<1>(cb)(args...);
   }
 
+  /// Return true if there are no callbacks queued
+  bool empty() const { return m_registrar.callbacks().empty(); }
+
  private:
   HookRegistrar<CallbackArgs...> m_registrar;
 };
@@ -62,9 +62,11 @@ class Hook {
 template <typename... CallbackArgs>
 class HookRegistrar {
  public:
+  /// Typedef for the function type of the hook
+  using HookFunc = std::function<void(CallbackArgs...)>;
+
   /// Covenience typedef
-  using CallbackRegisterType =
-      std::unordered_map<uint64_t, typename Hook<CallbackArgs...>::HookFunc>;
+  using CallbackRegisterType = std::unordered_map<uint64_t, HookFunc>;
 
   /// Covenience typedef
   using CallbackType = typename CallbackRegisterType::value_type;
@@ -83,7 +85,7 @@ class HookRegistrar {
    * Register a new callback. The returned token can be used to access this
    * specific callback.
    */
-  HookToken<CallbackArgs...> insert(typename Hook<CallbackArgs...>::HookFunc callback)
+  HookToken<CallbackArgs...> insert(HookFunc callback)
   {
     m_callbacks.emplace(m_index, callback);
     HookToken<CallbackArgs...> tok{this, m_index};
@@ -94,8 +96,7 @@ class HookRegistrar {
   /**
    * Replace the callback identified by the given token with a new callback
    */
-  void replace(const HookToken<CallbackArgs...>& token,
-               typename Hook<CallbackArgs...>::HookFunc callback)
+  void replace(const HookToken<CallbackArgs...>& token, HookFunc callback)
   {
     if (!token.from(*this)) {
       seng::log::error("Token from another registrar, ignoring... Something is wrong");
