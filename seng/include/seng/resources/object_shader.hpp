@@ -47,7 +47,9 @@ class ObjectShader {
   ObjectShader& operator=(const ObjectShader&) = delete;
   ObjectShader& operator=(ObjectShader&&) = default;
 
+  const std::string& name() const { return m_name; }
   const std::vector<TextureType>& textureLayout() const { return m_texLayout; }
+  const vk::DescriptorSetLayout textureSetLayout() const { return m_texSetLayout; }
 
   /**
    * Use the shader by binding the pipeline in the given command buffer
@@ -55,16 +57,16 @@ class ObjectShader {
   void use(const rendering::CommandBuffer& buffer) const;
 
   /**
-   * Bind the descriptor sets allocated for the given frame used by this object
-   * shader.
+   * Bind the given descriptor sets to the pipeline used by this object shader
    */
-  void bindDescriptorSets(const rendering::FrameHandle& handle,
-                          const rendering::CommandBuffer& buf) const;
+  void bindDescriptorSets(const rendering::CommandBuffer& buf,
+                          const std::vector<vk::DescriptorSet>& sets) const;
 
   /**
    * Push the given model matrix to the shader
    */
-  void updateModelState(const rendering::CommandBuffer& buf, glm::mat4 model) const;
+  void updateModelState(const rendering::CommandBuffer& buf,
+                        const glm::mat4& model) const;
 
  private:
   const rendering::Renderer* m_renderer;

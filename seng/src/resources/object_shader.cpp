@@ -12,7 +12,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -74,26 +73,15 @@ void ObjectShader::use(const CommandBuffer& buffer) const
   m_pipeline.bind(buffer, vk::PipelineBindPoint::eGraphics);
 }
 
-// FIXME: Descriptor set binding needs to be done in the shader instance
-void ObjectShader::bindDescriptorSets(const FrameHandle& handle,
-                                      const CommandBuffer& buf) const
+void ObjectShader::bindDescriptorSets(const rendering::CommandBuffer& buf,
+                                      const std::vector<vk::DescriptorSet>& sets) const
 {
-  std::vector<vk::DescriptorSet> sets;
-  sets.reserve(1);
-
-  // Get GUBO's set
-  auto& gubo = m_renderer->globalUniform();
-  auto guboSet =
-      m_renderer->getDescriptorSet(handle, gubo.layout(), gubo.bufferInfos(handle), {});
-  if (guboSet == nullptr) throw std::runtime_error("Null GUBO descriptor set");
-  sets.emplace_back(guboSet);
-
-  // Bind
   buf.buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *m_pipeline.layout(),
                                   0, sets, {});
 }
 
-void ObjectShader::updateModelState(const CommandBuffer& buf, glm::mat4 model) const
+void ObjectShader::updateModelState(const CommandBuffer& buf,
+                                    const glm::mat4& model) const
 {
   buf.buffer().pushConstants<glm::mat4>(*m_pipeline.layout(),
                                         vk::ShaderStageFlagBits::eVertex,

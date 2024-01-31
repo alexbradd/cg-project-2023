@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seng/resources/object_shader.hpp>
+#include <seng/resources/object_shader_instance.hpp>
 #include <seng/resources/shader_stage.hpp>
 
 #include <string>
@@ -27,6 +28,7 @@ class ShaderCache {
  public:
   using StageCache = std::unordered_map<std::string, ShaderStage>;
   using ObjectShaderCache = std::unordered_map<std::string, ObjectShader>;
+  using ObjectShaderInstanceCache = std::unordered_map<std::string, ObjectShaderInstance>;
 
   ShaderCache() = default;
   ShaderCache(const ShaderCache&) = delete;
@@ -41,7 +43,8 @@ class ShaderCache {
   /// Cached ObjectShaders. The search key is the shader name.
   const ObjectShaderCache& objectShaders() const { return m_shaders; }
 
-  // TODO: instances
+  /// Cached ObjectShaderInstances. The search key is the instance name.
+  const ObjectShaderInstanceCache& objectShaderInstances() const { return m_instances; }
 
   /**
    * Parse shader data from a shader definition file with path `path`.
@@ -56,7 +59,7 @@ class ShaderCache {
  private:
   StageCache m_stages;
   ObjectShaderCache m_shaders;
-  // TODO: instances
+  ObjectShaderInstanceCache m_instances;
 
   std::string parseStage(rendering::Renderer& renderer,
                          const std::string& shaderPath,

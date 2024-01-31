@@ -207,17 +207,17 @@ void Scene::draw(const FrameHandle &handle)
 
   m_renderer->globalUniform().update(handle);
 
-  for (auto &shaderNamePair : m_renderer->shaders().objectShaders()) {
-    auto &shader = shaderNamePair.second;
+  for (auto &shaderInstanceNamePair : m_renderer->shaders().objectShaderInstances()) {
+    auto &shaderInstance = shaderInstanceNamePair.second;
 
-    shader.bindDescriptorSets(handle, cmd);
-    shader.use(cmd);
+    shaderInstance.bindDescriptorSets(handle, cmd);
+    shaderInstance.instanceOf().use(cmd);
 
     // FIXME: should be per entity rendererd with the shader not per mesh
     for (const auto &mesh : m_renderer->meshes()) {
       if (!mesh.second.synced()) continue;
 
-      shader.updateModelState(cmd, glm::mat4(1));
+      shaderInstance.updateModelState(cmd, glm::mat4(1));
       cmd.buffer().bindVertexBuffers(0, *(*mesh.second.vertexBuffer()).buffer(), {0});
       cmd.buffer().bindIndexBuffer(*(*mesh.second.indexBuffer()).buffer(), 0,
                                    vk::IndexType::eUint32);
