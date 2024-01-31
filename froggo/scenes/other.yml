@@ -1,6 +1,3 @@
-Meshes:
-  - test2.obj
-
 Entities:
   - name: "cam1"
     transform:
@@ -9,3 +6,10 @@ Entities:
       - id: "Camera"
         main: true
       - id: "TestController"
+  - name: cone
+    transform:
+      position: [0, 0, 0]
+    components:
+      - id: MeshRenderer
+        model: test2.obj
+        instance: test_statue

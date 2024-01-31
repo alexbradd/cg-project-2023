@@ -5,6 +5,9 @@ Shaders:
     textureTypes: [2d]
 
 Instances:
-  - name: test_instance
+  - name: test_statue
+    instanceOf: test
+    textures: [texture.jpg]
+  - name: test_rock
     instanceOf: test
     textures: [texture2.jpg]

@@ -1,7 +1,11 @@
-Meshes:
-  - test1.obj
-
 Entities:
+  - name: suzanne
+    transform:
+      position: [0, 0, 0]
+    components:
+      - id: MeshRenderer
+        model: test1.obj
+        instance: test_rock
   - name: "cam1"
     transform:
       position: [0.0, 0.0, 10.0]
