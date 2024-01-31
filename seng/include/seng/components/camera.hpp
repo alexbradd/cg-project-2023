@@ -96,4 +96,6 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   mutable glm::mat4 m_projection;
 };
 
+REGISTER_TO_CONFIG_FACTORY(Camera);
+
 };  // namespace seng

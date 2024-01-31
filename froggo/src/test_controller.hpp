@@ -42,3 +42,5 @@ class TestController : public seng::ScriptComponent,
   void handleRotation();
   void recenter();
 };
+
+REGISTER_TO_CONFIG_FACTORY(TestController);

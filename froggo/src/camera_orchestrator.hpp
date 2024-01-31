@@ -30,3 +30,5 @@ class CameraOrchestrator : public seng::ScriptComponent,
 
   seng::InputManager *m_input;
 };
+
+REGISTER_TO_CONFIG_FACTORY(CameraOrchestrator);

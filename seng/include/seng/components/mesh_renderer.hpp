@@ -58,8 +58,6 @@ class MeshRenderer : public ToggleComponent,
   HookToken<const rendering::CommandBuffer&> m_tok;
 };
 
-// FIXME: for some reason, the template doesn't get instantiated. Force it with
-// this until we provide a macro + documentation
-template class ConfigParsableComponent<MeshRenderer>;
+REGISTER_TO_CONFIG_FACTORY(MeshRenderer);
 
 }  // namespace seng

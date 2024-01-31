@@ -15,6 +15,10 @@
   std::unique_ptr<seng::BaseComponent> type::createFromConfig(seng::Entity &entity, \
                                                               const YAML::Node &node)
 
+/// Register the given type to SceneConfigComponentFactory
+#define REGISTER_TO_CONFIG_FACTORY(type) \
+  template class seng::ConfigParsableComponent<type>
+
 // Fwd decl
 namespace YAML {
 class Node;
@@ -71,10 +75,7 @@ class SceneConfigComponentFactory {
 template <typename T>
 class ConfigParsableComponent {
  public:
-  /**
-   * Used only to force instantiation. Does nothing.
-   */
-  ConfigParsableComponent() { (void)&registered; }
+  ConfigParsableComponent() {}
   virtual ~ConfigParsableComponent() {}
 
  private:

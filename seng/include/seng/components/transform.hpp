@@ -188,4 +188,6 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   mutable glm::mat4 m_localToWorld;
 };
 
+REGISTER_TO_CONFIG_FACTORY(Transform);
+
 };  // namespace seng
