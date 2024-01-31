@@ -33,8 +33,8 @@ Mesh::Mesh(const Renderer &renderer) :
 }
 
 Mesh::Mesh(const Renderer &renderer,
-           std::vector<Vertex> &&vertices,
-           std::vector<uint32_t> &&indices) :
+           std::vector<Vertex> vertices,
+           std::vector<uint32_t> indices) :
     m_renderer(std::addressof(renderer)),
     m_vertices(std::move(vertices)),
     m_indices(std::move(indices)),

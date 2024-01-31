@@ -27,6 +27,12 @@ class Mesh {
  public:
   /// Create an empty mesh
   Mesh(const rendering::Renderer &renderer);
+
+  /// Create a mesh with the given vertices and indices
+  Mesh(const rendering::Renderer &renderer,
+       std::vector<rendering::Vertex> vertices,
+       std::vector<uint32_t> indices);
+
   Mesh(const Mesh &) = delete;
   Mesh(Mesh &&) = default;
 
@@ -70,10 +76,6 @@ class Mesh {
 
   std::optional<rendering::Buffer> m_vbo;
   std::optional<rendering::Buffer> m_ibo;
-
-  Mesh(const rendering::Renderer &renderer,
-       std::vector<rendering::Vertex> &&vertices,
-       std::vector<uint32_t> &&indices);
 };
 
 };  // namespace seng
