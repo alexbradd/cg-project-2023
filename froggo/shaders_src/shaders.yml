@@ -2,3 +2,9 @@ Shaders:
   - name: test
     vert: simple_vert
     frag: simple_frag
+    textureTypes: [2d]
+
+Instances:
+  - name: test_instance
+    instanceOf: test
+    textures: [texture2.jpg]

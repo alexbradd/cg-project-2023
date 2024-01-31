@@ -15,6 +15,8 @@ layout(set = 0, binding = 1) uniform GlobalUniformObject {
   vec3 cameraPosition;
 } gubo;
 
+layout(set = 1, binding = 0) uniform sampler2D texSampler;
+
 void main() {
-    outColor = vec4(normalize(inNormal), 1.0);
+    outColor = texture(texSampler, inTexCoord);
 }

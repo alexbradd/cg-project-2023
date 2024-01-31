@@ -38,7 +38,7 @@ void ShaderCache::fromSchema(rendering::Renderer &renderer,
   }
 
   parseShaders(renderer, shaderPath, shaderConfig);
-  // TODO: instances
+  parseInstances(renderer, shaderConfig);
 }
 
 // Shader YAML parsing
@@ -108,5 +108,48 @@ void ShaderCache::parseShaders(rendering::Renderer &renderer,
       seng::log::warning("Duplicated shader name {}", name);
     else
       seng::log::dbg("Parsed shader {}", name);
+  }
+}
+
+// Instance YAML parsing
+void ShaderCache::parseInstances(rendering::Renderer &renderer, const YAML::Node &config)
+{
+  if (!config["Instances"]) throw std::runtime_error("No shader instances available");
+  if (!config["Instances"].IsSequence())
+    throw std::runtime_error("Shader instances should be in a sequence");
+
+  YAML::Node instances = config["Instances"];
+  for (auto it = instances.begin(); it != instances.end(); it++) {
+    auto instance = *it;
+    if (!instance.IsMap()) throw std::runtime_error("Shader instance is not a map");
+
+    if (!instance["name"] || !instance["name"].IsScalar())
+      throw std::runtime_error("Shader instance must have a valid string as name");
+    std::string instanceName = instance["name"].as<std::string>();
+
+    if (!instance["instanceOf"] || !instance["instanceOf"].IsScalar())
+      throw std::runtime_error(
+          "Shader instance must have a valid string as instanced shader");
+    std::string shaderName = instance["instanceOf"].as<std::string>();
+    auto shaderIter = m_shaders.find(shaderName);
+    if (shaderIter == m_shaders.end())
+      throw std::runtime_error("Shader instance must instance a registered shader");
+
+    std::vector<std::string> textures;
+    if (instance["textures"] && instance["textures"].IsSequence()) {
+      auto texs = instance["textures"];
+      for (auto tex = texs.begin(); tex != texs.end(); tex++) {
+        if (!tex->IsScalar())
+          throw std::runtime_error("Texture path should be a valid string");
+        textures.emplace_back(tex->as<std::string>());
+      }
+    }
+
+    auto ret = m_instances.try_emplace(instanceName, renderer, shaderIter->second,
+                                       instanceName, textures);
+    if (!ret.second)
+      seng::log::warning("Duplicated shader instance name {}", instanceName);
+    else
+      seng::log::dbg("Parsed shader instance {}", instanceName);
   }
 }

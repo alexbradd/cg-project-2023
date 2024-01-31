@@ -68,7 +68,7 @@ class ShaderCache {
   void parseShaders(rendering::Renderer& renderer,
                     const std::string& shaderPath,
                     const YAML::Node& node);
-  // TODO: parse instances
+  void parseInstances(rendering::Renderer& renderer, const YAML::Node& node);
 };
 
 }  // namespace seng
