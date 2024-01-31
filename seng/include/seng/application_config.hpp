@@ -38,6 +38,13 @@ struct ApplicationConfig {
   /// Anisotropy level used in texutre sampling. Used only if anisotropy has been
   /// requested.
   float anisotropyLevel = 8.0f;
+
+  /// Red component of the color used to clear frames
+  float clearColorRed = 0.0f;
+  /// Blue component of the color used to clear frames
+  float clearColorBlue = 0.0f;
+  /// Green component of the color used to clear frames
+  float clearColorGreen = 0.0f;
 };
 
 }  // namespace seng
