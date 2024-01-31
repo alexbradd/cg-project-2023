@@ -8,19 +8,20 @@ little even for this), these are the goals I want to achieve with this engine,
 plus those that have been actually implemented:
 
 - [x] Load models via OBJ (through `tinyobjloader`)
-- [ ] Loading textures (through `stb_image.h`)
+- [x] Loading textures (through `stb_image.h`)
 - [x] Support for multiple scenes
 - [x] Parse scene representations from files
 - [x] Implement a system where the user can extend an object's behaviour with
       arbitrary scripts (in C++) (like Unity's MonoBehaviour)
-- [ ] System to compose different vertex/fragment shaders into different object
+- [x] System to compose different vertex/fragment shaders into different object
       shaders
-- [ ] Parse shader definition from a file
-- [ ] System to create different materials by instantiating object shaders
-- [ ] Global illumination with a single directional light
+- [x] Parse shader definition from a file
+- [x] System to create different materials by instantiating object shaders
+- [x] Global illumination with a single directional light
 
 Things that I want to do if I have time left before the deadline:
 
+- [ ] Skyboxes
 - [ ] Multiple lights and multiple light types (direct, point)
 - [ ] Proper cache handling (dropping "cold" meshes/textures/etc...)
 - [ ] Proper event system
