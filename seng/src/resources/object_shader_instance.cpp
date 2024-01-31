@@ -13,7 +13,7 @@
 using namespace seng;
 
 ObjectShaderInstance::ObjectShaderInstance(rendering::Renderer& renderer,
-                                           const ObjectShader& shader,
+                                           ObjectShader& shader,
                                            std::string name,
                                            std::vector<std::string> textures) :
     m_renderer(std::addressof(renderer)),
@@ -61,6 +61,24 @@ ObjectShaderInstance::ObjectShaderInstance(rendering::Renderer& renderer,
     m_renderer->device().logical().updateDescriptorSets(writes, {});
   }
   seng::log::dbg("Instance {} of {} created", m_shader->name(), m_name);
+  m_shader->m_instances.insert(this);
+}
+
+ObjectShaderInstance::ObjectShaderInstance(ObjectShaderInstance&& other) :
+    m_renderer(nullptr), m_shader(nullptr)
+{
+  swap(*this, other);
+}
+
+ObjectShaderInstance& ObjectShaderInstance::operator=(ObjectShaderInstance other)
+{
+  swap(*this, other);
+  return *this;
+}
+
+ObjectShaderInstance::~ObjectShaderInstance()
+{
+  if (m_shader) m_shader->m_instances.erase(this);
 }
 
 void ObjectShaderInstance::bindDescriptorSets(const rendering::FrameHandle& handle,

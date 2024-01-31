@@ -31,15 +31,25 @@ class ObjectShaderInstance {
    * loaded, check the `Texture` class.
    */
   ObjectShaderInstance(rendering::Renderer& renderer,
-                       const ObjectShader& shader,
+                       ObjectShader& shader,
                        std::string name,
                        std::vector<std::string> textures);
   ObjectShaderInstance(const ObjectShaderInstance&) = delete;
-  ObjectShaderInstance(ObjectShaderInstance&&) = default;
+  ObjectShaderInstance(ObjectShaderInstance&&);
+  ~ObjectShaderInstance();
 
-  ObjectShaderInstance& operator=(const ObjectShaderInstance&) = delete;
-  ObjectShaderInstance& operator=(ObjectShaderInstance&&) = default;
+  ObjectShaderInstance& operator=(ObjectShaderInstance other);
 
+  friend void swap(ObjectShaderInstance& lhs, ObjectShaderInstance& rhs) noexcept
+  {
+    std::swap(lhs.m_renderer, rhs.m_renderer);
+    std::swap(lhs.m_shader, rhs.m_shader);
+    std::swap(lhs.m_name, rhs.m_name);
+    std::swap(lhs.m_texturePaths, rhs.m_texturePaths);
+    std::swap(lhs.m_imgInfos, rhs.m_imgInfos);
+  }
+
+  const std::string& name() const { return m_name; }
   const ObjectShader& instanceOf() const { return *m_shader; }
   const std::vector<vk::DescriptorImageInfo>& imageInfos() const { return m_imgInfos; }
 
@@ -57,7 +67,7 @@ class ObjectShaderInstance {
 
  private:
   rendering::Renderer* m_renderer;
-  const ObjectShader* m_shader;
+  ObjectShader* m_shader;
   std::string m_name;
   std::vector<std::string> m_texturePaths;
 

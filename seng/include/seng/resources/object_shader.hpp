@@ -10,6 +10,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace seng {
@@ -21,6 +22,7 @@ class Buffer;
 }  // namespace rendering
 
 class ShaderStage;
+class ObjectShaderInstance;
 
 /**
  * Material needed to render a specific object. It is composed of different
@@ -51,6 +53,12 @@ class ObjectShader {
   const std::vector<TextureType>& textureLayout() const { return m_texLayout; }
   const vk::DescriptorSetLayout textureSetLayout() const { return m_texSetLayout; }
 
+  /// All known intances of this object shader
+  const std::unordered_set<const ObjectShaderInstance*>& instances() const
+  {
+    return m_instances;
+  }
+
   /**
    * Use the shader by binding the pipeline in the given command buffer
    */
@@ -76,6 +84,10 @@ class ObjectShader {
   vk::DescriptorSetLayout m_texSetLayout;
 
   rendering::Pipeline m_pipeline;
+
+  std::unordered_set<const ObjectShaderInstance*> m_instances;
+
+  friend class ObjectShaderInstance;
 };
 
 }  // namespace seng
