@@ -2,8 +2,6 @@
 
 #include <seng/hook.hpp>
 #include <seng/rendering/buffer.hpp>
-#include <seng/resources/object_shader.hpp>
-#include <seng/resources/shader_stage.hpp>
 #include <seng/scene/direct_light.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/time.hpp>
@@ -15,6 +13,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace YAML {
 class Node;
@@ -23,10 +22,12 @@ class Node;
 namespace seng {
 class Application;
 class Camera;
+class MeshRenderer;
 
 namespace rendering {
 class Renderer;
 class FrameHandle;
+class CommandBuffer;
 }  // namespace rendering
 
 /**
@@ -187,9 +188,19 @@ class Scene {
   /**
    * Registrar for the "lateUpdate" hook
    *
-   * This hook is registered last thing in the update cycle
+   * This hook is executed last thing in the update cycle
    */
   HookRegistrar<float> &onLateUpdate() { return m_lateUpdate.registrar(); }
+
+  /**
+   * Get the registrar for the "shaderInstanceDraw" relative to the instance with
+   * the given name.
+   *
+   * This hook gets executed when a shader instance is ready for drawing
+   * (pipeline and descriptors bound).
+   */
+  HookRegistrar<const rendering::CommandBuffer &> &onShaderInstanceDraw(
+      const std::string &instance);
 
   /**
    * Draw the scene's contents into the currently on-going frame reprsented by the
@@ -214,12 +225,12 @@ class Scene {
   Hook<float> m_earlyUpdate;
   Hook<float> m_update;
   Hook<float> m_lateUpdate;
-  //
+  std::unordered_map<std::string, Hook<const rendering::CommandBuffer &>> m_renderers;
+
   // Scene graph
   Camera *m_mainCamera;
   EntityList m_entities;
 
-  void parseMesh(const YAML::Node &node);
   void parseEntity(const YAML::Node &node);
 };
 

@@ -37,6 +37,7 @@ target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
     ./src/components/camera.cpp
+    ./src/components/mesh_renderer.cpp
     ./src/components/scene_config_component_factory.cpp
     ./src/components/script.cpp
     ./src/components/toggle.cpp

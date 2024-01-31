@@ -173,9 +173,6 @@ class Renderer {
    */
   void clearMeshes();
 
-  /// FIXME: stub, do not use.
-  const std::unordered_map<std::string, Mesh> &meshes() const { return m_meshes; }
-
   /**
    * Get a Sampler with the given CreateInfo from the cache then
    * return its handle. If a matching sampler cannot be found, allocate a

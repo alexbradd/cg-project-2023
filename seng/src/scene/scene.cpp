@@ -1,5 +1,6 @@
 #include <seng/application.hpp>
 #include <seng/components/camera.hpp>
+#include <seng/components/mesh_renderer.hpp>
 #include <seng/components/transform.hpp>
 #include <seng/log.hpp>
 #include <seng/rendering/primitive_types.hpp>
@@ -43,13 +44,6 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
     return nullptr;
   }
 
-  // Parse mesh list
-  if (sceneConfig["Meshes"] && sceneConfig["Meshes"].IsSequence()) {
-    auto meshes = sceneConfig["Meshes"];
-    for (YAML::const_iterator i = meshes.begin(); i != meshes.end(); i++)
-      s->parseMesh(*i);
-  }
-
   // Parse light
   if (sceneConfig["Light"] && sceneConfig["Light"].IsMap()) {
     auto light = sceneConfig["Light"];
@@ -68,13 +62,6 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
   }
 
   return s;
-}
-
-void Scene::parseMesh(const YAML::Node &node)
-{
-  std::string name = node.as<string>();
-  auto &m = m_renderer->requestMesh(name);
-  m.sync();
 }
 
 void Scene::parseEntity(const YAML::Node &node)
@@ -190,38 +177,52 @@ void Scene::mainCamera(Camera *cam)
   m_mainCamera = cam;
 }
 
+HookRegistrar<const rendering::CommandBuffer &> &Scene::onShaderInstanceDraw(
+    const std::string &instance)
+{
+  auto it = m_renderer->shaders().objectShaderInstances().find(instance);
+  if (it == m_renderer->shaders().objectShaderInstances().end())
+    seng::log::warning("Attempting to register for unknown instance");
+  return m_renderers[instance].registrar();
+}
+
 void Scene::draw(const FrameHandle &handle)
 {
   const auto &cmd = m_renderer->getCommandBuffer(handle);
 
   if (m_mainCamera == nullptr) return;
 
+  // Update projection binding
   m_renderer->globalUniform().projection().projection = m_mainCamera->projectionMatrix();
   m_renderer->globalUniform().projection().view = m_mainCamera->viewMatrix();
 
+  // Update lighting binding
   m_renderer->globalUniform().lighting().ambientColor = m_ambient;
   m_renderer->globalUniform().lighting().lightColor = m_directLight.color();
   m_renderer->globalUniform().lighting().lightDir = m_directLight.direction();
   m_renderer->globalUniform().lighting().cameraPosition =
       m_mainCamera->attachedTo().transform()->position();
 
+  // Push to device
   m_renderer->globalUniform().update(handle);
 
-  for (auto &shaderInstanceNamePair : m_renderer->shaders().objectShaderInstances()) {
-    auto &shaderInstance = shaderInstanceNamePair.second;
+  // For each pipeline
+  for (auto &shader : m_renderer->shaders().objectShaders()) {
+    // Bind said pipeline
+    shader.second.use(cmd);
 
-    shaderInstance.bindDescriptorSets(handle, cmd);
-    shaderInstance.instanceOf().use(cmd);
+    // For each instance of that pipeline
+    for (auto instancePtr : shader.second.instances()) {
+      // Check if any MeshRenderers are using it
+      auto renderers = m_renderers.find(instancePtr->name());
+      if (renderers == m_renderers.end()) continue;
+      if (renderers->second.empty()) continue;
 
-    // FIXME: should be per entity rendererd with the shader not per mesh
-    for (const auto &mesh : m_renderer->meshes()) {
-      if (!mesh.second.synced()) continue;
+      // If there are any, bind the descriptors
+      instancePtr->bindDescriptorSets(handle, cmd);
 
-      shaderInstance.updateModelState(cmd, glm::mat4(1));
-      cmd.buffer().bindVertexBuffers(0, *(*mesh.second.vertexBuffer()).buffer(), {0});
-      cmd.buffer().bindIndexBuffer(*(*mesh.second.indexBuffer()).buffer(), 0,
-                                   vk::IndexType::eUint32);
-      cmd.buffer().drawIndexed(mesh.second.indices().size(), 1, 0, 0, 0);
+      // For each registered MeshRenderer, render it
+      renderers->second(cmd);
     }
   }
 }
