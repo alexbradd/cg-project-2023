@@ -5,6 +5,7 @@
 #include <glm/detail/type_vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include <cstddef>
 #include <string>
 
 namespace seng {
@@ -90,3 +91,13 @@ class Texture {
 };
 
 };  // namespace seng
+
+namespace std {
+template <>
+struct hash<seng::TextureType> {
+  std::size_t operator()(const seng::TextureType &t) const
+  {
+    return static_cast<std::size_t>(t);
+  }
+};
+}  // namespace std

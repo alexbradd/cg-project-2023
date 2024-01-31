@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <seng/application.hpp>
 #include <seng/application_config.hpp>
 #include <seng/hashes.hpp>
@@ -373,6 +374,33 @@ vk::Sampler Renderer::requestSampler(vk::SamplerCreateInfo info)
 void Renderer::clearSamplers()
 {
   m_samplerCache.clear();
+}
+
+const Texture &Renderer::requestTexture(const std::string &name, TextureType type)
+{
+  size_t hash{0};
+  seng::internal::hashCombine(hash, name, type);
+
+  auto iter = m_textures.find(hash);
+
+  if (iter != m_textures.end()) return iter->second;
+
+  auto ret = m_textures.try_emplace(
+      hash, Texture::loadFromDisk(*this, type, SamplerOptions::optimal(*this),
+                                  m_app->config().assetPath, name));
+  return ret.first->second;
+}
+
+void Renderer::clearTexture(const std::string &name, TextureType type)
+{
+  size_t hash{0};
+  seng::internal::hashCombine(hash, name, type);
+  m_textures.erase(hash);
+}
+
+void Renderer::clearTextures()
+{
+  m_textures.clear();
 }
 
 const CommandBuffer &Renderer::getCommandBuffer(const FrameHandle &handle) const

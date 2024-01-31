@@ -13,6 +13,7 @@
 #include <seng/rendering/swapchain.hpp>
 #include <seng/resources/mesh.hpp>
 #include <seng/resources/shader_cache.hpp>
+#include <seng/resources/texture.hpp>
 #include <seng/utils.hpp>
 
 #include <glm/mat4x4.hpp>
@@ -185,6 +186,22 @@ class Renderer {
   /// Drop all allocated Samplers from the cache
   void clearSamplers();
 
+  /**
+   * Fetch the texture with the given name from the texture cache. If such
+   * texture cannot be found, load it from disk and save it in cache for later use.
+   */
+  const Texture &requestTexture(const std::string &name, TextureType type);
+
+  /**
+   * Delete the texture with the given name from cache.
+   */
+  void clearTexture(const std::string &name, TextureType type);
+
+  /**
+   * Delete all cached textures.
+   */
+  void clearTextures();
+
   /// Get the renderers shader cache
   const ShaderCache &shaders() const { return m_shaders; }
 
@@ -281,6 +298,7 @@ class Renderer {
 
   // Texture cache
   std::unordered_map<size_t, vk::raii::Sampler> m_samplerCache;
+  std::unordered_map<size_t, Texture> m_textures;
   ShaderCache m_shaders;
 
   // Global Uniforms
