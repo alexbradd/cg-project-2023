@@ -430,26 +430,9 @@ optional<FrameHandle> Renderer::beginFrame()
     frame.m_inFlightFence.wait();
     frame.m_index = m_swapchain.nextImageIndex(frame.m_imageAvailableSem);
 
-    Framebuffer &curFb = m_targets[frame.m_index].m_framebuffer;
-    CommandBuffer &curBuf = frame.m_commandBuffer;
-    curBuf.reset();
-    curBuf.begin();
-
-    // Begin the render pass
-    m_renderPass.begin(curBuf, curFb, m_swapchain.extent(), {0, 0});
-
-    // Dynamic states
-    vk::Viewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_swapchain.extent().width);
-    viewport.height = static_cast<float>(m_swapchain.extent().height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    curBuf.buffer().setViewport(0, viewport);
-
-    vk::Rect2D scissor{{0, 0}, m_swapchain.extent()};
-    curBuf.buffer().setScissor(0, scissor);
+    CommandBuffer &cmd = frame.m_commandBuffer;
+    cmd.reset();
+    cmd.begin();
 
     return optional(FrameHandle{m_currentFrame});
   } catch (const exception &e) {
@@ -458,13 +441,44 @@ optional<FrameHandle> Renderer::beginFrame()
   }
 }
 
+void Renderer::beginMainRenderPass(const FrameHandle &handle) const
+{
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+
+  auto &frame = m_frames[handle.m_index];
+  auto &fb = m_targets[frame.m_index].m_framebuffer;
+  auto &cmd = frame.m_commandBuffer;
+
+  m_renderPass.begin(cmd, fb, m_swapchain.extent(), {0, 0});
+
+  // Dynamic states
+  vk::Viewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(m_swapchain.extent().width);
+  viewport.height = static_cast<float>(m_swapchain.extent().height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  cmd.buffer().setViewport(0, viewport);
+
+  vk::Rect2D scissor{{0, 0}, m_swapchain.extent()};
+  cmd.buffer().setScissor(0, scissor);
+}
+
+void Renderer::endMainRenderPass(const FrameHandle &handle) const
+{
+  if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
+
+  auto &frame = m_frames[handle.m_index];
+  m_renderPass.end(frame.m_commandBuffer);
+}
+
 void Renderer::endFrame(FrameHandle &handle)
 {
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
 
   auto &frame = m_frames[handle.m_index];
 
-  m_renderPass.end(frame.m_commandBuffer);
   frame.m_commandBuffer.end();
 
   // Reset the fence for use on the next frame

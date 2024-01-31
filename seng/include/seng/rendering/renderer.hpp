@@ -215,6 +215,16 @@ class Renderer {
   std::optional<FrameHandle> beginFrame();
 
   /**
+   * Begin the main render pass for the current frame
+   */
+  void beginMainRenderPass(const FrameHandle &frame) const;
+
+  /**
+   * End the main render pass for the current frame
+   */
+  void endMainRenderPass(const FrameHandle &frame) const;
+
+  /**
    * Finishes recording the frame referred by the given handle. The handle is
    * invalidated after the call. If an invalid handle is passed, throw a
    * runtime_error.

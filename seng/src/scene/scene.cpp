@@ -192,6 +192,9 @@ void Scene::draw(const FrameHandle &handle)
 
   if (m_mainCamera == nullptr) return;
 
+  // Begin main render pass
+  m_renderer->beginMainRenderPass(handle);
+
   // Update projection binding
   m_renderer->globalUniform().projection().projection = m_mainCamera->projectionMatrix();
   m_renderer->globalUniform().projection().view = m_mainCamera->viewMatrix();
@@ -225,6 +228,9 @@ void Scene::draw(const FrameHandle &handle)
       renderers->second(cmd);
     }
   }
+
+  // End main render pass
+  m_renderer->endMainRenderPass(handle);
 }
 
 void Scene::update(Timestamp lastFrame, const FrameHandle &handle)
