@@ -144,6 +144,13 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   void scale(glm::vec3 scale);
 
   /**
+   * Rotates the transform so the forward vector points at the given Transform's
+   * current position. The transform is rotated such that its `up` direction
+   * matches the given `upDirection` (by default it is `worldUp`).
+   */
+  void lookAt(const Transform& other, glm::vec3 upDirection = Transform::worldUp());
+
+  /**
    * Return the unitary vector representing the forward direction of this transform
    * (which would be the local z axis)
    */
@@ -165,19 +172,19 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
    * Return the unitary vector representing the world space forward direction
    * (which would be the global z axis)
    */
-  static glm::vec3 worldForward() { return glm::vec3(0.0f, 0.0f, 1.0f); }
+  static constexpr glm::vec3 worldForward() { return glm::vec3(0.0f, 0.0f, 1.0f); }
 
   /**
    * Return the unitary vector representing the world space up direction
    * (which would be the global y axis)
    */
-  static glm::vec3 worldUp() { return glm::vec3(0.0f, 1.0f, 0.0f); }
+  static constexpr glm::vec3 worldUp() { return glm::vec3(0.0f, 1.0f, 0.0f); }
 
   /**
    * Return the unitary vector representing the world space right direction
    * (which would be the global x axis)
    */
-  static glm::vec3 worldRight() { return glm::vec3(1.0f, 0.0f, 0.0f); }
+  static constexpr glm::vec3 worldRight() { return glm::vec3(1.0f, 0.0f, 0.0f); }
 
  private:
   glm::vec3 m_pos;

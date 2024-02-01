@@ -4,6 +4,7 @@
 #include <yaml-cpp/yaml.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_transform.hpp>
+#include <glm/geometric.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
@@ -70,6 +71,13 @@ void Transform::rotate(float angle, glm::vec3 axis)
 {
   m_dirty = true;
   m_rotation = glm::rotate(glm::quat(glm::vec3(0.0, 0.0, 0.0)), angle, axis) * m_rotation;
+}
+
+void Transform::lookAt(const Transform& other, glm::vec3 upDirection)
+{
+  m_dirty = true;
+  glm::vec3 fwd = glm::normalize(other.m_pos - this->m_pos);
+  m_rotation = glm::quatLookAt(fwd, upDirection);
 }
 
 glm::vec3 Transform::forward() const
