@@ -94,6 +94,7 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   // For caching
   mutable bool m_projectionDirty = true;
   mutable glm::mat4 m_projection;
+  mutable glm::mat4 m_view;
 };
 
 REGISTER_TO_CONFIG_FACTORY(Camera);

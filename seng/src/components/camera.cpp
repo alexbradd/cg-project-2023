@@ -60,7 +60,11 @@ glm::mat4 Camera::projectionMatrix() const
 
 glm::mat4 Camera::viewMatrix() const
 {
-  return glm::inverse(entity->transform()->toMat4());
+  if (entity->transform()->changed()) {
+    m_view = glm::inverse(entity->transform()->toMat4());
+    entity->transform()->clearChanged();
+  }
+  return m_view;
 }
 
 void Camera::resize(int width, int height)
