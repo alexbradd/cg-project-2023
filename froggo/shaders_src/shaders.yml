@@ -1,13 +1,30 @@
 Shaders:
-  - name: test
+  ###
+  # Simple diffuse shader that takes as input a diffuse texture and uses
+  # the Lambert diffuse model
+  - name: simple_diffuse
     vert: simple_vert
-    frag: simple_frag
+    frag: diffuse
     textureTypes: [2d]
+  ####
+  # Toon shader that takes as input:
+  # 1. A diffuse texture, used for albedo
+  # 2. A specular texture, used for sapling the specular color
+  # 3. A color ramp governing how the Lambert model will behave
+  # 4. A color ramp governing how the Phong specular model will behave
+  - name: toon
+    vert: simple_vert
+    frag: toon
+    textureTypes: [2d, 2d, 1d, 1d]
 
 Instances:
-  - name: test_statue
-    instanceOf: test
-    textures: [texture.jpg]
-  - name: test_rock
-    instanceOf: test
-    textures: [texture2.jpg]
+  - name: tree
+    instanceOf: toon
+    textures: [tree/diffuse.png, black_1x1.png, diffuse_map.png, black_1x1.png]
+  - name: car
+    instanceOf: toon
+    textures:
+      [car/diffuse.jpeg, car/specular.jpeg, diffuse_map.png, specular_map.png]
+  - name: grass
+    instanceOf: toon
+    textures: [grass.jpg, black_1x1.png, diffuse_map.png, black_1x1.png]

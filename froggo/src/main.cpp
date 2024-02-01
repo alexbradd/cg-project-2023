@@ -19,6 +19,11 @@ int main(int, char* argv[])
   config.assetPath = (dir / "assets").string();
   config.scenePath = (dir / "scenes").string();
 
+  // Color: #abf6fc
+  config.clearColorRed = 0.617;
+  config.clearColorGreen = 0.965;
+  config.clearColorBlue = 0.988;
+
   seng::Application app(config);
 
   seng::log::info("Reading assets from {}", app.config().assetPath);

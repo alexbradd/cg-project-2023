@@ -1,26 +1,36 @@
+Light:
+  ambient: [0.792, 0.859, 1.0, 0.2] # hex: cadbff
+  color: [1.0, 0.941, 0.91, 1.0] # hex: fff0e8 (5500K light)
+  #direction: [0.70, 0.70, 0.0] # 45 deg
+  direction: [-0.70, 0.70, 0.0] # 45 deg
+
 Entities:
-  - name: suzanne
+  - name: tree
     transform:
       position: [0, 0, 0]
     components:
       - id: MeshRenderer
-        model: test1.obj
-        instance: test_rock
-  - name: "cam1"
+        model: tree/model.obj
+        instance: tree
+  - name: car
     transform:
-      position: [0.0, 0.0, 10.0]
+      position: [6, 0, 0]
     components:
-      - id: "Camera"
+      - id: MeshRenderer
+        model: car/model.obj
+        instance: car
+  - name: plane
+    transform:
+      position: [0, 0, 0]
+      scale: [10.0, 10.0, 10.0]
+    components:
+      - id: MeshRenderer
+        model: plane.obj
+        instance: grass
+  - name: cam
+    transform:
+      position: [0.0, 2.0, 10.0]
+    components:
+      - id: Camera
         main: true
-      - id: "TestController"
-  - name: "cam2"
-    transform:
-      position: [0.0, 5.0, 10.0]
-    components:
-      - id: "Camera"
-        main: false
-      - id: "TestController"
-        enabled: false
-  - name: "orchestrator"
-    components:
-      - id: "CameraOrchestrator"
+      - id: FreeController
