@@ -122,8 +122,7 @@ DEFINE_CREATE_FROM_CONFIG(Transform, entity, node)
   glm::vec3 rot = DEFAULT_ROT;
 
   if (node["position"]) pos = node["position"].as<glm::vec3>(DEFAULT_POS);
-  if (node["scale"] && node["scale"].IsScalar())
-    scale = node["scale"].as<glm::vec3>(DEFAULT_SCALE);
+  if (node["scale"]) scale = node["scale"].as<glm::vec3>(DEFAULT_SCALE);
   if (node["rotation_deg"])
     rot = glm::radians(node["rotation_deg"].as<glm::vec3>(DEFAULT_ROT));
   if (node["rotation_rad"]) rot = node["rotation_rad"].as<glm::vec3>(DEFAULT_ROT);
