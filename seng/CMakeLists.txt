@@ -1,6 +1,9 @@
 project(seng LANGUAGES CXX)
 message(STATUS "Building ${PROJECT_NAME}")
 
+set(BUILD_SHARED_LIBS TRUE)
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
 message(STATUS "Fetching dependencies...")
 include(FetchContent)
 FetchContent_Declare(fmt
@@ -32,7 +35,7 @@ target_compile_definitions(glm
     GLM_FORCE_RADIANS
 )
 
-add_library(${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/application.cpp
