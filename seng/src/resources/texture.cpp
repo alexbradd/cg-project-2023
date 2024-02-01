@@ -5,10 +5,10 @@
 #include <seng/resources/texture.hpp>
 
 #include <stb_image.h>
-#include <stdexcept>
 #include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
+#include <stdexcept>
 
 using namespace seng;
 namespace fs = std::filesystem;
@@ -64,7 +64,8 @@ void Texture::fill(Texture &tex,
   imgInfo.extent = vk::Extent3D(tex.m_width, tex.m_height, 1);
   imgInfo.format = vk::Format::eR8G8B8A8Srgb;
   imgInfo.tiling = vk::ImageTiling::eOptimal;
-  imgInfo.usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+  imgInfo.usage = vk::ImageUsageFlagBits::eTransferSrc |
+                  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
   imgInfo.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
   imgInfo.aspectFlags = vk::ImageAspectFlagBits::eColor;
   imgInfo.mipped = true;
@@ -82,9 +83,13 @@ void Texture::fill(Texture &tex,
         tex.image().transitionLayout(cmd, imgInfo.format, vk::ImageLayout::eUndefined,
                                      vk::ImageLayout::eTransferDstOptimal);
         tex.image().copyFromBuffer(cmd, staging);
-        tex.image().transitionLayout(cmd, imgInfo.format,
-                                     vk::ImageLayout::eTransferDstOptimal,
-                                     vk::ImageLayout::eShaderReadOnlyOptimal);
+        if (renderer.useMipMaps()) {
+          tex.image().generateMipMapsBeforeShader(cmd, imgInfo.format);
+        } else {
+          tex.image().transitionLayout(cmd, imgInfo.format,
+                                       vk::ImageLayout::eTransferDstOptimal,
+                                       vk::ImageLayout::eShaderReadOnlyOptimal);
+        }
       });
   tex.m_image.createView(imgInfo.viewType, imgInfo.format, imgInfo.aspectFlags);
 
@@ -103,7 +108,7 @@ void Texture::fill(Texture &tex,
   samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
   samplerInfo.mipLodBias = 0.0f;
   samplerInfo.minLod = 0.0f;
-  samplerInfo.maxLod = 0.0f;
+  samplerInfo.maxLod = tex.m_image.mipLevels();
   tex.m_sampler = renderer.requestSampler(samplerInfo);
 }
 

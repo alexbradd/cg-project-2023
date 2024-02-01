@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <cstdint>
+
 namespace seng::rendering {
 
 class Device;
@@ -44,7 +46,7 @@ class Image {
    * Wrap the given handle. Deallocation is not carried on when this object
    * goes out of scope.
    */
-  Image(const Device &dev, vk::Image wrapped, bool mipped = false);
+  Image(const Device &dev, vk::Image wrapped, uint32_t mipLevels = 1);
 
   Image(const Image &) = delete;
   Image(Image &&) = default;
@@ -60,6 +62,8 @@ class Image {
   }
   const vk::ImageView imageView() const { return *m_view; }
   bool hasView() const { return *m_view != nullptr; }
+
+  uint32_t mipLevels() const { return m_mipLevels; }
 
   /**
    * Create a new image view with the specified parameters.
@@ -84,13 +88,20 @@ class Image {
                         vk::ImageLayout oldLayout,
                         vk::ImageLayout newLayout) const;
 
+  /**
+   * Create mip levels. Image should be in TransferDstOptimal before calling this
+   * method. All mip levels will be left in a layout suitable for shader sampling
+   */
+  void generateMipMapsBeforeShader(const CommandBuffer &commandBuf,
+                                   vk::Format format) const;
+
  private:
   const Device *m_device;
 
+  vk::Extent3D m_extent;
+  uint32_t m_mipLevels;
   vk::raii::Image m_handle;
   vk::raii::DeviceMemory m_memory;
-  vk::Extent3D m_extent;
-  bool m_mipped;
 
   vk::Image m_unmanaged;
 

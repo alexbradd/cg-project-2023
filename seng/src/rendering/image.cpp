@@ -37,12 +37,14 @@ static uint32_t mipLevels(vk::Extent3D e)
 
 Image::Image(const Device &dev, const Image::CreateInfo &info) :
     m_device(std::addressof(dev)),
+    m_extent(info.extent),
+    m_mipLevels(info.mipped ? ::mipLevels(m_extent) : 1),
     // Create image handle
     m_handle(std::invoke([&]() {
       vk::ImageCreateInfo ci{};
       ci.imageType = info.type;
       ci.extent = info.extent;
-      ci.mipLevels = info.mipped ? mipLevels(info.extent) : true;
+      ci.mipLevels = m_mipLevels;
       ci.arrayLayers = 1;
       ci.format = info.format;
       ci.tiling = info.tiling;
@@ -67,8 +69,6 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
 
       return ret;
     })),
-    m_extent(info.extent),
-    m_mipped(false),
     m_unmanaged(nullptr),
     m_view(nullptr)
 {
@@ -76,12 +76,12 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
   if (info.createView) this->createView(info.viewType, info.format, info.aspectFlags);
 }
 
-Image::Image(const Device &dev, vk::Image wrapped, bool mipped) :
+Image::Image(const Device &dev, vk::Image wrapped, uint32_t mipLevels) :
     m_device(std::addressof(dev)),
+    m_extent{0, 0, 0},
+    m_mipLevels(mipLevels),
     m_handle(nullptr),
     m_memory(nullptr),
-    m_extent{0, 0, 0},
-    m_mipped(mipped),
     m_unmanaged(wrapped),
     m_view(nullptr)
 {
@@ -89,10 +89,10 @@ Image::Image(const Device &dev, vk::Image wrapped, bool mipped) :
 
 Image::Image(std::nullptr_t) :
     m_device(nullptr),
+    m_extent{0, 0, 0},
+    m_mipLevels(0),
     m_handle(nullptr),
     m_memory(nullptr),
-    m_extent{0, 0, 0},
-    m_mipped(false),
     m_unmanaged(nullptr),
     m_view(nullptr)
 {
@@ -110,7 +110,7 @@ void Image::createView(vk::ImageViewType type,
   ci.format = format;
   ci.subresourceRange.aspectMask = aspect;
   ci.subresourceRange.baseMipLevel = 0;
-  ci.subresourceRange.levelCount = m_mipped ? mipLevels(m_extent) : 1;
+  ci.subresourceRange.levelCount = m_mipLevels;
   ci.subresourceRange.baseArrayLayer = 0;
   ci.subresourceRange.layerCount = 1;
   m_view = vk::raii::ImageView(m_device->logical(), ci);
@@ -161,7 +161,7 @@ void Image::transitionLayout(const CommandBuffer &commandBuf,
   }
 
   barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = m_mipped ? mipLevels(m_extent) : 1;
+  barrier.subresourceRange.levelCount = m_mipLevels;
   barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = 1;
 
@@ -195,6 +195,83 @@ void Image::transitionLayout(const CommandBuffer &commandBuf,
   }
 
   commandBuf.buffer().pipelineBarrier(srcStage, dstStage, {}, {}, {}, barrier);
+}
+
+void Image::generateMipMapsBeforeShader(const CommandBuffer &cmd, vk::Format format) const
+{
+  BAIL_OUT_ON_UNINITIALIZED();
+  if (m_mipLevels <= 1) {
+    seng::log::warning(
+        "Trying to generate mipmaps for an image that doesn't have them, aborting...");
+    return;
+  }
+  vk::FormatProperties props = m_device->physical().getFormatProperties(format);
+  if (!(props.optimalTilingFeatures &
+        vk::FormatFeatureFlagBits::eSampledImageFilterLinear)) {
+    throw std::runtime_error("Image format does not support linear blitting");
+  }
+
+  vk::ImageMemoryBarrier barrier;
+  barrier.image = image();
+  barrier.srcQueueFamilyIndex = *m_device->queueFamilyIndices().graphicsFamily;
+  barrier.dstQueueFamilyIndex = *m_device->queueFamilyIndices().graphicsFamily;
+  barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+  barrier.subresourceRange.levelCount = 1;
+
+  int32_t mipWidth = m_extent.width;
+  int32_t mipHeight = m_extent.height;
+  uint32_t mips = m_mipLevels;
+
+  for (uint32_t i = 1; i < mips; i++) {
+    barrier.subresourceRange.baseMipLevel = i - 1;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+    cmd.buffer().pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                 vk::PipelineStageFlagBits::eTransfer, {}, {}, {},
+                                 barrier);
+
+    vk::ImageBlit blit;
+    blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
+    blit.srcOffsets[1] = vk::Offset3D{mipWidth, mipHeight, 1};
+    blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    blit.srcSubresource.mipLevel = i - 1;
+    blit.srcSubresource.baseArrayLayer = 0;
+    blit.srcSubresource.layerCount = 1;
+    blit.dstOffsets[0] = vk::Offset3D{0, 0, 0};
+    blit.dstOffsets[1] = vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1,
+                                      mipHeight > 1 ? mipHeight / 2 : 1, 1};
+    blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    blit.dstSubresource.mipLevel = i;
+    blit.dstSubresource.baseArrayLayer = 0;
+    blit.dstSubresource.layerCount = 1;
+    cmd.buffer().blitImage(image(), vk::ImageLayout::eTransferSrcOptimal, image(),
+                           vk::ImageLayout::eTransferDstOptimal, blit,
+                           vk::Filter::eLinear);
+
+    barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    cmd.buffer().pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                                 vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {},
+                                 barrier);
+
+    if (mipWidth > 1) mipWidth /= 2;
+    if (mipHeight > 1) mipHeight /= 2;
+  }
+
+  barrier.subresourceRange.baseMipLevel = mips - 1;
+  barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+  barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+  barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+  barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+  cmd.buffer().pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+                               vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {},
+                               barrier);
 }
 
 Image::~Image()
