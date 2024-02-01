@@ -26,8 +26,8 @@ Things that I want to do if I have time left before the deadline:
 - [ ] Proper cache handling (dropping "cold" meshes/textures/etc...)
 - [ ] Proper event system
 - [ ] Shadow mapping
-- [ ] Mipmapping
-  - [ ] Make it configurable
+- [x] Mipmapping
+  - [x] Make it configurable
 - [ ] Multisampling
   - [ ] Make it configurable
 - [ ] Proper object IDs, not just some static `unsigned long` that gets
