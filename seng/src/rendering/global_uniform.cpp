@@ -111,7 +111,7 @@ void GlobalUniform::update(const FrameHandle &handle) const
 {
   m_projectionBuffer.load(&m_projection, handle.asIndex() * sizeof(ProjectionUniform),
                           sizeof(ProjectionUniform), {});
-  m_lightBuffer.load(&m_lightBuffer, handle.asIndex() * sizeof(LightingUniform),
+  m_lightBuffer.load(&m_light, handle.asIndex() * sizeof(LightingUniform),
                      sizeof(LightingUniform), {});
 }
 
