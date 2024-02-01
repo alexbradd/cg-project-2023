@@ -83,7 +83,7 @@ void Texture::fill(Texture &tex,
         tex.image().transitionLayout(cmd, imgInfo.format, vk::ImageLayout::eUndefined,
                                      vk::ImageLayout::eTransferDstOptimal);
         tex.image().copyFromBuffer(cmd, staging);
-        if (renderer.useMipMaps()) {
+        if (tex.image().hasMipMaps()) {
           tex.image().generateMipMapsBeforeShader(cmd, imgInfo.format);
         } else {
           tex.image().transitionLayout(cmd, imgInfo.format,

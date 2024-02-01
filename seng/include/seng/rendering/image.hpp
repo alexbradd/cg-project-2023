@@ -63,6 +63,7 @@ class Image {
   const vk::ImageView imageView() const { return *m_view; }
   bool hasView() const { return *m_view != nullptr; }
 
+  bool hasMipMaps() const { return m_mipLevels > 1; }
   uint32_t mipLevels() const { return m_mipLevels; }
 
   /**
