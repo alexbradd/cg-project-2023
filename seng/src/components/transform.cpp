@@ -16,6 +16,7 @@ using namespace seng;
 Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseComponent(e)
 {
   m_dirty = true;
+  m_hasChanged = false;
   position(p);
   scale(s);
   rotation(r);
@@ -24,18 +25,21 @@ Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseCom
 void Transform::position(glm::vec3 p)
 {
   m_dirty = true;
+  m_hasChanged = true;
   m_pos = p;
 }
 
 void Transform::translate(glm::vec3 pos)
 {
   m_dirty = true;
+  m_hasChanged = true;
   m_pos += pos;
 }
 
 void Transform::scale(glm::vec3 scale)
 {
   m_dirty = true;
+  m_hasChanged = true;
   scale.x = scale.x == 0.0f ? 1.0 : scale.x;
   scale.y = scale.y == 0.0f ? 1.0 : scale.y;
   scale.z = scale.z == 0.0f ? 1.0 : scale.z;
@@ -45,18 +49,21 @@ void Transform::scale(glm::vec3 scale)
 void Transform::rotation(glm::quat r)
 {
   m_dirty = true;
+  m_hasChanged = true;
   m_rotation = r;
 }
 
 void Transform::rotation(glm::vec3 euler)
 {
   m_dirty = true;
+  m_hasChanged = true;
   m_rotation = glm::quat(euler);
 }
 
 void Transform::rotate(glm::vec3 euler, CoordinateSystem ref)
 {
   m_dirty = true;
+  m_hasChanged = true;
   switch (ref) {
     case CoordinateSystem::eWorld:
       m_rotation = glm::quat(euler) * m_rotation;
@@ -70,12 +77,14 @@ void Transform::rotate(glm::vec3 euler, CoordinateSystem ref)
 void Transform::rotate(float angle, glm::vec3 axis)
 {
   m_dirty = true;
+  m_hasChanged = true;
   m_rotation = glm::rotate(glm::quat(glm::vec3(0.0, 0.0, 0.0)), angle, axis) * m_rotation;
 }
 
 void Transform::lookAt(const Transform& other, glm::vec3 upDirection)
 {
   m_dirty = true;
+  m_hasChanged = true;
   glm::vec3 fwd = glm::normalize(other.m_pos - this->m_pos);
   m_rotation = glm::quatLookAt(fwd, upDirection);
 }

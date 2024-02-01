@@ -150,6 +150,10 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
    */
   void lookAt(const Transform& other, glm::vec3 upDirection = Transform::worldUp());
 
+  bool changed() const { return m_hasChanged; }
+
+  void clearChanged() { m_hasChanged = false; }
+
   /**
    * Return the unitary vector representing the forward direction of this transform
    * (which would be the local z axis)
@@ -190,6 +194,8 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   glm::vec3 m_pos;
   glm::vec3 m_scale;
   glm::quat m_rotation;
+
+  bool m_hasChanged;
 
   mutable bool m_dirty;
   mutable glm::mat4 m_localToWorld;
