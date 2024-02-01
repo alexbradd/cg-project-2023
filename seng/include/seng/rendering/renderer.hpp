@@ -100,6 +100,9 @@ class Renderer {
   /// Return the desired anisotropy level clamped by the max supported anisotropy
   float anisotropyLevel() const;
 
+  /// True if mipmaps should be created
+  bool useMipMaps() const { return m_useMips; }
+
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
    * to be regenerated.
@@ -320,6 +323,7 @@ class Renderer {
   // Rendering options
   bool m_useAnisotropy = false;
   float m_maxAnisotropy = 1.0f;
+  bool m_useMips = false;
 
   /**
    * Recreate the current swapchain and framebuffers

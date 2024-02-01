@@ -68,7 +68,7 @@ void Texture::fill(Texture &tex,
                   vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
   imgInfo.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
   imgInfo.aspectFlags = vk::ImageAspectFlagBits::eColor;
-  imgInfo.mipped = true;
+  imgInfo.mipped = renderer.useMipMaps();
   imgInfo.createView =
       false;  // We create the view later manually, but the info is still useful
   tex.m_image = rendering::Image(renderer.device(), imgInfo);

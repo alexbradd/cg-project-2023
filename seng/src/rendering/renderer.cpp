@@ -165,6 +165,7 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_useAnisotropy = true;
     m_maxAnisotropy = m_device.physical().getProperties().limits.maxSamplerAnisotropy;
   }
+  m_useMips = app.config().useMipMaps;
 
   log::dbg("Allocating render targets");
   m_targets.reserve(m_swapchain.images().size());

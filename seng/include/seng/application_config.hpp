@@ -39,6 +39,9 @@ struct ApplicationConfig {
   /// requested.
   float anisotropyLevel = 8.0f;
 
+  /// Enable/disable creation of mipmaps
+  bool useMipMaps = true;
+
   /// Red component of the color used to clear frames
   float clearColorRed = 0.0f;
   /// Blue component of the color used to clear frames
