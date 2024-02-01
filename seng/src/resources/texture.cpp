@@ -55,10 +55,12 @@ void Texture::fill(Texture &tex,
     case seng::TextureType::e1D:
       imgInfo.type = vk::ImageType::e1D;
       imgInfo.viewType = vk::ImageViewType::e1D;
+      imgInfo.mipped = false;
       break;
     case seng::TextureType::e2D:
       imgInfo.type = vk::ImageType::e2D;
       imgInfo.viewType = vk::ImageViewType::e2D;
+      imgInfo.mipped = renderer.useMipMaps();
       break;
   }
   imgInfo.extent = vk::Extent3D(tex.m_width, tex.m_height, 1);
@@ -68,7 +70,6 @@ void Texture::fill(Texture &tex,
                   vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
   imgInfo.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
   imgInfo.aspectFlags = vk::ImageAspectFlagBits::eColor;
-  imgInfo.mipped = renderer.useMipMaps();
   imgInfo.createView =
       false;  // We create the view later manually, but the info is still useful
   tex.m_image = rendering::Image(renderer.device(), imgInfo);
