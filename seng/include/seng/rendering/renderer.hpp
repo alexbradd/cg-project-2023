@@ -6,7 +6,6 @@
 #include <seng/rendering/debug_messenger.hpp>
 #include <seng/rendering/device.hpp>
 #include <seng/rendering/fence.hpp>
-#include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
@@ -284,8 +283,8 @@ class Renderer {
   RenderPass m_renderPass;
 
   // Framebuffers and frames
-  std::vector<Image> m_framebufferResources;
-  std::vector<Framebuffer> m_swapFramebuffers;
+  std::vector<Image> m_fbImages;
+  std::vector<vk::raii::Framebuffer> m_swapchainFbs;
   std::vector<Frame> m_frames;
 
   // Descriptor layout cache

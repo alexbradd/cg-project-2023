@@ -1,7 +1,6 @@
 #include <seng/log.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/render_pass.hpp>
 #include <seng/rendering/swapchain.hpp>
 
@@ -87,13 +86,13 @@ vk::raii::RenderPass createRenderPass(const Device &device,
 }
 
 void RenderPass::begin(const CommandBuffer &buf,
-                       const Framebuffer &fb,
+                       const vk::raii::Framebuffer &fb,
                        vk::Extent2D extent,
                        vk::Offset2D offset) const
 {
   vk::RenderPassBeginInfo renderPassInfo{};
   renderPassInfo.renderPass = *m_renderPass;
-  renderPassInfo.framebuffer = *fb.handle();
+  renderPassInfo.framebuffer = *fb;
   renderPassInfo.renderArea.offset = offset;
   renderPassInfo.renderArea.extent = extent;
 

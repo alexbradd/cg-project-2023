@@ -7,7 +7,6 @@ namespace seng::rendering {
 class Device;
 class Swapchain;
 class CommandBuffer;
-class Framebuffer;
 
 /**
  * Description of an attachment It basically contains all fields of
@@ -58,7 +57,7 @@ class RenderPass {
    * Begin a render pass one the given extent and offeset.
    */
   void begin(const CommandBuffer& buf,
-             const Framebuffer& fb,
+             const vk::raii::Framebuffer& fb,
              vk::Extent2D extent,
              vk::Offset2D offset) const;
 

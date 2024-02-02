@@ -5,7 +5,6 @@
 #include <seng/rendering/buffer.hpp>
 #include <seng/rendering/debug_messenger.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/framebuffer.hpp>
 #include <seng/rendering/glfw_window.hpp>
 #include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/render_pass.hpp>
@@ -251,51 +250,51 @@ void Renderer::createRenderPass()
 void Renderer::allocateSwapchainFramebuffers()
 {
   // Drop old resources
-  m_swapFramebuffers.clear();
-  m_framebufferResources.clear();
+  m_swapchainFbs.clear();
+  m_fbImages.clear();
 
-  std::vector<vk::ImageView> attachments;
-  attachments.reserve(3);
+  // Framebuffer info
+  vk::FramebufferCreateInfo fbInfo{};
+  fbInfo.renderPass = *m_renderPass.handle();
+  fbInfo.width = m_swapchain.extent().width;
+  fbInfo.height = m_swapchain.extent().height;
+  fbInfo.layers = 1;
 
-  Image::CreateInfo ci;
+  // Common Image info
+  Image::CreateInfo imageInfo;
+  imageInfo.type = vk::ImageType::e2D;
+  imageInfo.extent = vk::Extent3D{m_swapchain.extent(), 1};
+  imageInfo.samples = samples();
+  imageInfo.tiling = vk::ImageTiling::eOptimal;
+  imageInfo.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+  imageInfo.viewType = vk::ImageViewType::e2D;
+  imageInfo.mipped = false;
+  imageInfo.createView = true;
+
   for (auto &swapImage : m_swapchain.images()) {
-    ci.type = vk::ImageType::e2D;
-    ci.extent = vk::Extent3D{m_swapchain.extent(), 1};
-    ci.format = m_device.depthFormat().format;
-    ci.samples = samples();
-    ci.tiling = vk::ImageTiling::eOptimal;
-    ci.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-    ci.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-    ci.viewType = vk::ImageViewType::e2D;
-    ci.aspectFlags = vk::ImageAspectFlagBits::eDepth;
-    ci.mipped = false;
-    ci.createView = true;
-    m_framebufferResources.emplace_back(m_device, ci);
-    vk::ImageView depthView = m_framebufferResources.back().imageView();
+    imageInfo.format = m_device.depthFormat().format;
+    imageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+    imageInfo.aspectFlags = vk::ImageAspectFlagBits::eDepth;
+    auto depthView = m_fbImages.emplace_back(m_device, imageInfo).imageView();
 
-    if (samples() <= vk::SampleCountFlagBits::e1) {
-      m_swapFramebuffers.emplace_back(m_device, m_renderPass, m_swapchain.extent(),
-                                      std::vector{depthView, swapImage.imageView()});
-    } else {
-      ci.type = vk::ImageType::e2D;
-      ci.extent = vk::Extent3D{m_swapchain.extent(), 1};
-      ci.format = m_swapchain.format().format;
-      ci.samples = samples();
-      ci.tiling = vk::ImageTiling::eOptimal;
-      ci.usage = vk::ImageUsageFlagBits::eTransientAttachment |
-                 vk::ImageUsageFlagBits::eColorAttachment;
-      ci.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-      ci.viewType = vk::ImageViewType::e2D;
-      ci.aspectFlags = vk::ImageAspectFlagBits::eColor;
-      ci.mipped = false;
-      ci.createView = true;
-      m_framebufferResources.emplace_back(m_device, ci);
-      vk::ImageView colorView = m_framebufferResources.back().imageView();
+    std::vector<vk::ImageView> attachments;
+    attachments.reserve(3);
+    attachments.push_back(depthView);
 
-      m_swapFramebuffers.emplace_back(
-          m_device, m_renderPass, m_swapchain.extent(),
-          std::vector{depthView, colorView, swapImage.imageView()});
+    if (samples() > vk::SampleCountFlagBits::e1) {
+      imageInfo.format = m_swapchain.format().format;
+      imageInfo.usage = vk::ImageUsageFlagBits::eTransientAttachment |
+                        vk::ImageUsageFlagBits::eColorAttachment;
+      imageInfo.aspectFlags = vk::ImageAspectFlagBits::eColor;
+      auto colorView = m_fbImages.emplace_back(m_device, imageInfo).imageView();
+
+      attachments.push_back(colorView);
     }
+
+    attachments.push_back(swapImage.imageView());
+
+    fbInfo.setAttachments(attachments);
+    m_swapchainFbs.emplace_back(m_device.logical(), fbInfo);
   }
 }
 
@@ -509,7 +508,7 @@ void Renderer::beginMainRenderPass(const FrameHandle &handle) const
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
 
   auto &frame = m_frames[handle.m_index];
-  auto &fb = m_swapFramebuffers[frame.m_index];
+  auto &fb = m_swapchainFbs[frame.m_index];
   auto &cmd = frame.m_commandBuffer;
 
   m_renderPass.begin(cmd, fb, m_swapchain.extent(), {0, 0});
