@@ -61,8 +61,6 @@ class Pipeline {
   void bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const;
 
  private:
-  const Device* m_device;
-  const RenderPass* m_renderPass;
   vk::raii::PipelineLayout m_layout;
   vk::raii::Pipeline m_pipeline;
 };

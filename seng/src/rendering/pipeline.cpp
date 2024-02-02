@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <seng/log.hpp>
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/device.hpp>
@@ -9,6 +8,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <array>
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <vector>
@@ -21,14 +21,9 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
                                          const vk::raii::PipelineLayout& layout,
                                          const Pipeline::CreateInfo& info);
 
-Pipeline::Pipeline(std::nullptr_t) :
-    m_device(nullptr), m_renderPass(nullptr), m_layout(nullptr), m_pipeline(nullptr)
-{
-}
+Pipeline::Pipeline(std::nullptr_t) : m_layout(nullptr), m_pipeline(nullptr) {}
 
 Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info) :
-    m_device(std::addressof(device)),
-    m_renderPass(std::addressof(pass)),
     m_layout(std::invoke([&]() {
       vk::PipelineLayoutCreateInfo layoutInfo{};
 
