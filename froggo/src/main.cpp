@@ -24,6 +24,8 @@ int main(int, char* argv[])
   config.clearColorGreen = 0.965;
   config.clearColorBlue = 0.988;
 
+  config.samples = 8;
+
   seng::Application app(config);
 
   seng::log::info("Reading assets from {}", app.config().assetPath);
