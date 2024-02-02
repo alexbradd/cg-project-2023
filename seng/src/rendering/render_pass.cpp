@@ -8,6 +8,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <array>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,8 @@ using namespace seng::rendering;
 
 static vk::raii::RenderPass createRenderPass(const Device &device,
                                              const vector<Attachment> &attachments);
+
+RenderPass::RenderPass(std::nullptr_t) : m_attachments(), m_renderPass(nullptr) {}
 
 RenderPass::RenderPass(const Device &device, std::vector<Attachment> attachments) :
     m_attachments(std::move(attachments)),

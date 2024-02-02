@@ -39,6 +39,10 @@ class RenderPass {
    * Create and allocate a new render pass that uses the given renderpass
    */
   RenderPass(const Device& device, std::vector<Attachment> attachments);
+
+  /// Create a null RenderPass
+  RenderPass(std::nullptr_t);
+
   RenderPass(const RenderPass&) = delete;
   RenderPass(RenderPass&&) = default;
   ~RenderPass();
