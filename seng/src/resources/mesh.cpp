@@ -127,6 +127,8 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
 
       vertex.color = {1.0f, 1.0f, 1.0f};
 
+      vertex.tangent = {0.0f, 0.0f, 0.0f};
+
       if (uniqueVertices.count(vertex) == 0) {
         uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
         vertices.push_back(vertex);
@@ -134,5 +136,43 @@ Mesh Mesh::loadFromDisk(const Renderer &renderer,
       indices.push_back(uniqueVertices[vertex]);
     }
   }
+
+  seng::log::dbg("Calculating tangent vectors");
+  // Adapted from: https://ogldev.org/www/tutorial26/tutorial26.html
+  for (unsigned int i = 0; i < indices.size(); i += 3) {
+    Vertex &v0 = vertices[indices[i]];
+    Vertex &v1 = vertices[indices[i + 1]];
+    Vertex &v2 = vertices[indices[i + 2]];
+
+    glm::vec3 edge1 = v1.pos - v0.pos;
+    glm::vec3 Edge2 = v2.pos - v0.pos;
+
+    float deltaU1 = v1.texCoord.x - v0.texCoord.x;
+    float deltaV1 = v1.texCoord.y - v0.texCoord.y;
+    float deltaU2 = v2.texCoord.x - v0.texCoord.x;
+    float deltaV2 = v2.texCoord.y - v0.texCoord.y;
+
+    float f = 1.0f / (deltaU1 * deltaV2 - deltaU2 * deltaV1);
+
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+
+    tangent.x = f * (deltaV2 * edge1.x - deltaV1 * Edge2.x);
+    tangent.y = f * (deltaV2 * edge1.y - deltaV1 * Edge2.y);
+    tangent.z = f * (deltaV2 * edge1.z - deltaV1 * Edge2.z);
+
+    bitangent.x = f * (-deltaU2 * edge1.x + deltaU1 * Edge2.x);
+    bitangent.y = f * (-deltaU2 * edge1.y + deltaU1 * Edge2.y);
+    bitangent.z = f * (-deltaU2 * edge1.z + deltaU1 * Edge2.z);
+
+    v0.tangent += tangent;
+    v1.tangent += tangent;
+    v2.tangent += tangent;
+  }
+
+  for (unsigned int i = 0; i < vertices.size(); i++) {
+    glm::normalize(vertices[i].tangent);
+  }
+
   return Mesh(renderer, std::move(vertices), std::move(indices));
 }

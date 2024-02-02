@@ -218,6 +218,7 @@ following:
 1. Vertex normal
 2. Vertex color
 3. Vertex UV coordinates
+4. Vertex tangent
 
 The vertex stage must output (aside from `gl_Position`) the following parameters:
 
@@ -225,6 +226,7 @@ The vertex stage must output (aside from `gl_Position`) the following parameters
 1. `vec3` fragment normal
 2. `vec3` fragment color
 3. `vec2` fragment UV coordinate
+4. `vec3` fragment tangent
 
 #### Fragment shader
 

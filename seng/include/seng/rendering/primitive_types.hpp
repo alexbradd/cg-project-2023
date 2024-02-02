@@ -18,8 +18,9 @@ struct Vertex {
   glm::vec3 normal;
   glm::vec3 color;
   glm::vec2 texCoord;
+  glm::vec3 tangent;
 
-  static constexpr size_t ATTRIBUTE_COUNT = 4;
+  static constexpr size_t ATTRIBUTE_COUNT = 5;
 
   /**
    * Attribute description (in order):
@@ -28,6 +29,7 @@ struct Vertex {
    * 1. vec3<float> normal
    * 2. vec3<float> vertex color
    * 3. vec2<float> UV coordinates
+   * 4. vec3<float> tangent vector
    */
   static std::array<vk::VertexInputAttributeDescription, ATTRIBUTE_COUNT>
   attributeDescriptions()
@@ -54,13 +56,18 @@ struct Vertex {
     descs[3].format = vk::Format::eR32G32Sfloat;
     descs[3].offset = offsetof(Vertex, texCoord);
 
+    descs[4].binding = 0;
+    descs[4].location = 4;
+    descs[4].format = vk::Format::eR32G32B32Sfloat;
+    descs[4].offset = offsetof(Vertex, tangent);
+
     return descs;
   }
 
   bool operator==(const Vertex& other) const
   {
     return pos == other.pos && normal == other.normal && color == other.color &&
-           texCoord == other.texCoord;
+           texCoord == other.texCoord && tangent == other.tangent;
   }
 };
 
@@ -70,4 +77,4 @@ using AttributeDescriptions =
 
 }  // namespace seng::rendering
 
-MAKE_HASHABLE(seng::rendering::Vertex, t.pos, t.normal, t.color, t.texCoord);
+MAKE_HASHABLE(seng::rendering::Vertex, t.pos, t.normal, t.color, t.texCoord, t.tangent);
