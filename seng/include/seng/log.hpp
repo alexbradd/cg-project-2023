@@ -22,7 +22,8 @@ extern void logOutput(LogLevels lvl, std::string out);
  * noop. Supports fmt-style format arguments.
  */
 template <typename... Args>
-void dbg(const std::string &fmt, Args &&...args) {
+void dbg(const std::string &fmt, Args &&...args)
+{
 #ifndef NDEBUG
   logOutput(LogLevels::DBUG, fmt::format(fmt, args...));
 #endif
@@ -32,7 +33,8 @@ void dbg(const std::string &fmt, Args &&...args) {
  * Print a information message to stderr. Supports fmt-style format arguments.
  */
 template <typename... Args>
-void info(const std::string &fmt, Args &&...args) {
+void info(const std::string &fmt, Args &&...args)
+{
   logOutput(LogLevels::INFO, fmt::format(fmt, args...));
 }
 
@@ -40,7 +42,8 @@ void info(const std::string &fmt, Args &&...args) {
  * Print a warning message to stderr. Supports fmt-style format arguments.
  */
 template <typename... Args>
-void warning(const std::string &fmt, Args &&...args) {
+void warning(const std::string &fmt, Args &&...args)
+{
   logOutput(LogLevels::WARN, fmt::format(fmt, args...));
 }
 
@@ -48,7 +51,8 @@ void warning(const std::string &fmt, Args &&...args) {
  * Print an error message to stderr. Supports fmt-style format arguments.
  */
 template <typename... Args>
-void error(const std::string &fmt, Args &&...args) {
+void error(const std::string &fmt, Args &&...args)
+{
   logOutput(LogLevels::ERRO, fmt::format(fmt, args...));
 }
 
