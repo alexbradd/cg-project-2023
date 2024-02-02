@@ -5,6 +5,8 @@ target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/main.cpp
     ./src/scene_switcher.cpp
+    ./src/car_camera.cpp
+    ./src/car_controller.cpp
 )
 target_compile_features(${PROJECT_NAME}
   PRIVATE
@@ -80,6 +82,7 @@ macro(copy_dir dirname)
   if(EXISTS "${PROJECT_SOURCE_DIR}/${dirname}")
     message(STATUS "Copying ${dirname}...")
     add_custom_target(${dirname}
+      COMMAND ${CMAKE_COMMAND} -E rm -Rf "${PROJECT_BINARY_DIR}/${dirname}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/${dirname}"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${PROJECT_SOURCE_DIR}/${dirname}"
@@ -87,6 +90,7 @@ macro(copy_dir dirname)
     )
     add_dependencies(${PROJECT_NAME} ${dirname})
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E rm -Rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${dirname}"
       COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${dirname}"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${PROJECT_SOURCE_DIR}/${dirname}"
