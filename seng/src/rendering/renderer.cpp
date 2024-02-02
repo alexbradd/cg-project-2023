@@ -492,17 +492,24 @@ optional<FrameHandle> Renderer::beginFrame()
 
   auto &frame = m_frames[m_currentFrame];
   try {
-    auto res = m_device.logical().waitForFences(*frame.m_inFlightFence, true,
-                                                std::numeric_limits<uint64_t>::max());
-    switch (res) {
+    vk::Result result;
+    uint64_t timeout = std::numeric_limits<uint64_t>::max();
+
+    result = m_device.logical().waitForFences(*frame.m_inFlightFence, true, timeout);
+    switch (result) {
       case vk::Result::eSuccess:
         break;
       default:
-        log::error("{}", vk::to_string(res));
+        log::error("{}", vk::to_string(result));
         return nullopt;
     }
 
-    frame.m_index = m_swapchain.nextImageIndex(frame.m_imageAvailableSem);
+    std::tie(result, frame.m_index) =
+        m_swapchain.swapchain().acquireNextImage(timeout, *frame.m_imageAvailableSem);
+    if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+      log::error("{}", vk::to_string(result));
+      return nullopt;
+    }
 
     CommandBuffer &cmd = frame.m_commandBuffer;
     cmd.reset();
@@ -580,12 +587,23 @@ void Renderer::endFrame(FrameHandle &handle)
 
   m_device.graphicsQueue().submit(submitInfo, *frame.m_inFlightFence);
 
-  try {
-    m_swapchain.present(m_device.presentQueue(), m_device.graphicsQueue(),
-                        frame.m_queueCompleteSem, frame.m_index);
-  } catch (const InadequateSwapchainException &e) {
-    log::dbg("Error while presenting: swapchain out of date. Recreating...");
-    recreateSwapchain();
+  vk::PresentInfoKHR info;
+  info.setWaitSemaphores(*frame.m_queueCompleteSem);
+  info.setSwapchains(*m_swapchain.swapchain());
+  auto i = static_cast<uint32_t>(frame.m_index);
+  info.setImageIndices(i);
+
+  vk::Result result = m_device.presentQueue().presentKHR(info);
+  switch (result) {
+    case vk::Result::eSuccess:
+      break;
+    case vk::Result::eErrorOutOfDateKHR:
+    case vk::Result::eSuboptimalKHR:
+      log::dbg("Swapchain out of date. Recreating...");
+      recreateSwapchain();
+      break;
+    default:
+      throw runtime_error("Failed to present swapchain image: " + vk::to_string(result));
   }
 
   frame.m_index = -1;  // Forget the image

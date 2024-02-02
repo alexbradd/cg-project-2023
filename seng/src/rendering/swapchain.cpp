@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <functional>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -83,56 +82,6 @@ Swapchain::Swapchain(const Device &dev,
     m_images.push_back(std::move(img));
   }
   log::dbg("Swapchain created with extent {}x{}", m_extent.width, m_extent.height);
-}
-
-uint32_t Swapchain::nextImageIndex(const vk::raii::Semaphore &imgAvailable,
-                                   const vk::raii::Fence *fence,
-                                   uint64_t timeout) const
-{
-  optional<pair<vk::Result, uint32_t>> res;
-  if (fence != nullptr) {
-    res = m_swapchain.acquireNextImage(timeout, *imgAvailable, **fence);
-  } else {
-    res = m_swapchain.acquireNextImage(timeout, *imgAvailable);
-  }
-  switch (res->first) {
-    case vk::Result::eSuccess:
-    case vk::Result::eSuboptimalKHR:
-      return res->second;
-    case vk::Result::eErrorOutOfDateKHR:
-      throw InadequateSwapchainException("Out of date swapchain", res->first);
-    default:
-      string s = string("Failed to present swapchain image! Error: ") +
-                 vk::to_string(res->first);
-      throw runtime_error(s);
-  }
-}
-
-void Swapchain::present(const vk::raii::Queue &presentQueue,
-                        const vk::raii::Queue &,
-                        const vk::raii::Semaphore &renderComplete,
-                        uint32_t imageIndex) const
-{
-  vk::PresentInfoKHR info{};
-  info.waitSemaphoreCount = 1;
-  info.pWaitSemaphores = &(*renderComplete);
-  info.swapchainCount = 1;
-  info.pSwapchains = &(*m_swapchain);
-  info.pImageIndices = &imageIndex;
-  info.pResults = nullptr;
-
-  auto res = presentQueue.presentKHR(info);
-  switch (res) {
-    case vk::Result::eSuccess:
-      break;
-    case vk::Result::eErrorOutOfDateKHR:
-    case vk::Result::eSuboptimalKHR:
-      throw InadequateSwapchainException("Out of date swapchain", res);
-    default:
-      string s =
-          string("Failed to present swapchain image! Error: ") + vk::to_string(res);
-      throw runtime_error(s);
-  }
 }
 
 Swapchain::~Swapchain()
