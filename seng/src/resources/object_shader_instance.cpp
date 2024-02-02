@@ -19,24 +19,53 @@ ObjectShaderInstance::ObjectShaderInstance(rendering::Renderer& renderer,
     m_renderer(std::addressof(renderer)),
     m_shader(std::addressof(shader)),
     m_name(std::move(name)),
-    m_texturePaths(std::move(textures))
+    m_texturePaths(std::move(textures)),
+    m_loaded(false)
 {
   if (m_texturePaths.size() < m_shader->textureLayout().size())
     throw std::runtime_error("Not enought textures supplied");
   if (m_texturePaths.size() > m_shader->textureLayout().size())
     seng::log::warning("Too many textures supplied, ignoring excess");
 
-  // Load textures (if needed) and create descriptor information
-  seng::log::dbg("Loading necessary textures for instance {}", m_name);
   auto& texLayout = m_shader->textureLayout();
   m_imgInfos.reserve(texLayout.size());
   for (size_t i = 0; i < texLayout.size(); i++) {
-    auto& tex = m_renderer->requestTexture(m_texturePaths[i], texLayout[i]);
     vk::DescriptorImageInfo info{};
+    m_imgInfos.push_back(info);
+  }
+
+  seng::log::dbg("Lazily created Instance {} of {}", m_shader->name(), m_name);
+  m_shader->m_instances.insert(this);
+}
+
+ObjectShaderInstance::ObjectShaderInstance(ObjectShaderInstance&& other) :
+    m_renderer(nullptr), m_shader(nullptr)
+{
+  swap(*this, other);
+}
+
+ObjectShaderInstance& ObjectShaderInstance::operator=(ObjectShaderInstance other)
+{
+  swap(*this, other);
+  return *this;
+}
+
+ObjectShaderInstance::~ObjectShaderInstance()
+{
+  if (m_shader) m_shader->m_instances.erase(this);
+}
+
+void ObjectShaderInstance::allocateResources() const
+{
+  // Load textures (if needed) and create descriptor information
+  seng::log::dbg("Loading necessary textures for instance {}", m_name);
+  auto& texLayout = m_shader->textureLayout();
+  for (size_t i = 0; i < texLayout.size(); i++) {
+    auto& tex = m_renderer->requestTexture(m_texturePaths[i], texLayout[i]);
+    auto& info = m_imgInfos[i];
     info.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     info.imageView = tex.image().imageView();
     info.sampler = tex.sampler();
-    m_imgInfos.push_back(info);
   }
 
   // Create and write descriptors if there are any textures
@@ -60,30 +89,16 @@ ObjectShaderInstance::ObjectShaderInstance(rendering::Renderer& renderer,
     }
     m_renderer->device().logical().updateDescriptorSets(writes, {});
   }
-  seng::log::dbg("Instance {} of {} created", m_shader->name(), m_name);
-  m_shader->m_instances.insert(this);
-}
-
-ObjectShaderInstance::ObjectShaderInstance(ObjectShaderInstance&& other) :
-    m_renderer(nullptr), m_shader(nullptr)
-{
-  swap(*this, other);
-}
-
-ObjectShaderInstance& ObjectShaderInstance::operator=(ObjectShaderInstance other)
-{
-  swap(*this, other);
-  return *this;
-}
-
-ObjectShaderInstance::~ObjectShaderInstance()
-{
-  if (m_shader) m_shader->m_instances.erase(this);
 }
 
 void ObjectShaderInstance::bindDescriptorSets(const rendering::FrameHandle& handle,
                                               const rendering::CommandBuffer& buf) const
 {
+  if (!m_loaded) {
+    allocateResources();
+    m_loaded = true;
+  }
+
   std::vector<vk::DescriptorSet> sets;
   sets.reserve(2);
 

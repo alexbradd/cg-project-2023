@@ -20,8 +20,9 @@ class ObjectShader;
  * An instance of an object shader is a link between a set of textures and an
  * object shader. It is equivalent to a material.
  *
- * Creating an instance allocates all necessary textures (if not already loaded
- * and cached in the renderer), and descriptors.
+ * Creating an instance does not immediately allocates all necessary textures,
+ * and descriptors. Tey are loaded the first time that the descriptor sets are
+ * bound.
  */
 class ObjectShaderInstance {
  public:
@@ -55,6 +56,8 @@ class ObjectShaderInstance {
 
   /**
    * Bind the descriptor sets allocated for the given frame used by this instance.
+   * If it is the first call since creation, allocate the resources used by this
+   * shader instance.
    */
   void bindDescriptorSets(const rendering::FrameHandle& handle,
                           const rendering::CommandBuffer& buf) const;
@@ -71,7 +74,11 @@ class ObjectShaderInstance {
   std::string m_name;
   std::vector<std::string> m_texturePaths;
 
-  std::vector<vk::DescriptorImageInfo> m_imgInfos;
+  // for lazy loading
+  mutable bool m_loaded;
+  mutable std::vector<vk::DescriptorImageInfo> m_imgInfos;
+
+  void allocateResources() const;
 };
 
 }  // namespace seng
