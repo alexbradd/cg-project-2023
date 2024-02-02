@@ -1,6 +1,5 @@
 #include <seng/log.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/fence.hpp>
 #include <seng/rendering/swapchain.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
@@ -87,12 +86,12 @@ Swapchain::Swapchain(const Device &dev,
 }
 
 uint32_t Swapchain::nextImageIndex(const vk::raii::Semaphore &imgAvailable,
-                                   const Fence *fence,
+                                   const vk::raii::Fence *fence,
                                    uint64_t timeout) const
 {
   optional<pair<vk::Result, uint32_t>> res;
   if (fence != nullptr) {
-    res = m_swapchain.acquireNextImage(timeout, *imgAvailable, *fence->handle());
+    res = m_swapchain.acquireNextImage(timeout, *imgAvailable, **fence);
   } else {
     res = m_swapchain.acquireNextImage(timeout, *imgAvailable);
   }

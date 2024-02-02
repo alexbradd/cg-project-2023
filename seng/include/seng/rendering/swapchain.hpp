@@ -12,7 +12,6 @@
 namespace seng::rendering {
 
 class Device;
-class Fence;
 class GlfwWindow;
 
 /**
@@ -64,7 +63,7 @@ class Swapchain {
    * `InadequateSwapchainException` is thrown.
    */
   uint32_t nextImageIndex(const vk::raii::Semaphore &imgAvailable,
-                          const Fence *fence = nullptr,
+                          const vk::raii::Fence *fence = nullptr,
                           uint64_t timeout = std::numeric_limits<uint64_t>::max()) const;
 
   /**

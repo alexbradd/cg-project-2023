@@ -1,3 +1,4 @@
+#include <limits>
 #include <seng/application.hpp>
 #include <seng/application_config.hpp>
 #include <seng/hashes.hpp>
@@ -18,6 +19,7 @@
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_hash.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <vulkan/vulkan_to_string.hpp>
 
 #include <string.h>   // for strcmp
 #include <algorithm>  // for all_of, any_of
@@ -44,7 +46,8 @@ Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) 
     m_commandBuffer(device, pool, true),
     m_imageAvailableSem(device.logical(), vk::SemaphoreCreateInfo{}),
     m_queueCompleteSem(device.logical(), vk::SemaphoreCreateInfo{}),
-    m_inFlightFence(device, true),
+    m_inFlightFence(device.logical(),
+                    vk::FenceCreateInfo{vk::FenceCreateFlagBits::eSignaled}),
     m_descriptorCache(),
     m_index(-1)
 {
@@ -489,7 +492,16 @@ optional<FrameHandle> Renderer::beginFrame()
 
   auto &frame = m_frames[m_currentFrame];
   try {
-    frame.m_inFlightFence.wait();
+    auto res = m_device.logical().waitForFences(*frame.m_inFlightFence, true,
+                                                std::numeric_limits<uint64_t>::max());
+    switch (res) {
+      case vk::Result::eSuccess:
+        break;
+      default:
+        log::error("{}", vk::to_string(res));
+        return nullopt;
+    }
+
     frame.m_index = m_swapchain.nextImageIndex(frame.m_imageAvailableSem);
 
     CommandBuffer &cmd = frame.m_commandBuffer;
@@ -544,7 +556,7 @@ void Renderer::endFrame(FrameHandle &handle)
   frame.m_commandBuffer.end();
 
   // Reset the fence for use on the next frame
-  frame.m_inFlightFence.reset();
+  m_device.logical().resetFences(*frame.m_inFlightFence);
 
   // Start submitting to queue
   vk::SubmitInfo submitInfo{};
@@ -566,7 +578,7 @@ void Renderer::endFrame(FrameHandle &handle)
       vk::PipelineStageFlagBits::eColorAttachmentOutput};
   submitInfo.setWaitDstStageMask(flags);
 
-  m_device.graphicsQueue().submit(submitInfo, *frame.m_inFlightFence.handle());
+  m_device.graphicsQueue().submit(submitInfo, *frame.m_inFlightFence);
 
   try {
     m_swapchain.present(m_device.presentQueue(), m_device.graphicsQueue(),

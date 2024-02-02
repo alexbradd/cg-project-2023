@@ -5,7 +5,6 @@
 #include <seng/rendering/command_buffer.hpp>
 #include <seng/rendering/debug_messenger.hpp>
 #include <seng/rendering/device.hpp>
-#include <seng/rendering/fence.hpp>
 #include <seng/rendering/global_uniform.hpp>
 #include <seng/rendering/image.hpp>
 #include <seng/rendering/render_pass.hpp>
@@ -258,7 +257,7 @@ class Renderer {
     CommandBuffer m_commandBuffer;
     vk::raii::Semaphore m_imageAvailableSem;
     vk::raii::Semaphore m_queueCompleteSem;
-    Fence m_inFlightFence;
+    vk::raii::Fence m_inFlightFence;
     std::unordered_map<size_t, vk::raii::DescriptorSet> m_descriptorCache;
     ssize_t m_index;
 

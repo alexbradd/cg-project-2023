@@ -52,7 +52,6 @@ target_sources(${PROJECT_NAME}
     ./src/rendering/command_buffer.cpp
     ./src/rendering/debug_messenger.cpp
     ./src/rendering/device.cpp
-    ./src/rendering/fence.cpp
     ./src/rendering/glfw_window.cpp
     ./src/rendering/global_uniform.cpp
     ./src/rendering/image.cpp
