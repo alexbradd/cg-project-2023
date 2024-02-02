@@ -10,6 +10,9 @@ namespace fs = std::filesystem;
 
 int main(int, char* argv[])
 {
+  const char* env = std::getenv("SENG_VERBOSE");
+  if (env == nullptr) seng::log::minimumLoggingLevel(seng::log::LogLevels::INFO);
+
   fs::path dir{fs::path{argv[0]}.parent_path()};
 
   seng::ApplicationConfig config;
