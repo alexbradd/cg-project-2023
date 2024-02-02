@@ -161,10 +161,7 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_gubo(nullptr)
 {
   log::dbg("Storing configuration options");
-  if (app.config().useAnisotropy) {
-    m_useAnisotropy = true;
-    m_maxAnisotropy = m_device.physical().getProperties().limits.maxSamplerAnisotropy;
-  }
+  m_useAnisotropy = app.config().useAnisotropy;
   m_useMips = app.config().useMipMaps;
 
   log::dbg("Allocating render targets");
@@ -240,7 +237,8 @@ bool supportsAllLayers(const vector<const char *> &l)
 
 float Renderer::anisotropyLevel() const
 {
-  return std::clamp(m_app->config().anisotropyLevel, 1.0f, m_maxAnisotropy);
+  return std::clamp(m_app->config().anisotropyLevel, 1.0f,
+                    m_device.maxSamplerAnisotropy());
 }
 
 void Renderer::signalResize()

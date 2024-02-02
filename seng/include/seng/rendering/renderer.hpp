@@ -94,8 +94,8 @@ class Renderer {
 
   size_t framesInFlight() const { return m_frames.size(); }
 
+  /// True if sampling anisotropic filtering is enabled
   bool useAnisotropy() const { return m_useAnisotropy; }
-  float maxAnisotropyLevel() const { return m_maxAnisotropy; }
 
   /// Return the desired anisotropy level clamped by the max supported anisotropy
   float anisotropyLevel() const;
@@ -322,7 +322,6 @@ class Renderer {
 
   // Rendering options
   bool m_useAnisotropy = false;
-  float m_maxAnisotropy = 1.0f;
   bool m_useMips = false;
 
   /**
