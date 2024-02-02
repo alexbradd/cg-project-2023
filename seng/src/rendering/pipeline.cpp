@@ -4,6 +4,7 @@
 #include <seng/rendering/pipeline.hpp>
 #include <seng/rendering/primitive_types.hpp>
 #include <seng/rendering/render_pass.hpp>
+#include <seng/rendering/renderer.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 
@@ -16,14 +17,14 @@
 using namespace seng::rendering;
 using namespace std;
 
-static vk::raii::Pipeline createPipeline(const Device& dev,
+static vk::raii::Pipeline createPipeline(const Renderer& renderer,
                                          const RenderPass& pass,
                                          const vk::raii::PipelineLayout& layout,
                                          const Pipeline::CreateInfo& info);
 
 Pipeline::Pipeline(std::nullptr_t) : m_layout(nullptr), m_pipeline(nullptr) {}
 
-Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info) :
+Pipeline::Pipeline(const Renderer& renderer, const RenderPass& pass, CreateInfo info) :
     m_layout(std::invoke([&]() {
       vk::PipelineLayoutCreateInfo layoutInfo{};
 
@@ -38,14 +39,14 @@ Pipeline::Pipeline(const Device& device, const RenderPass& pass, CreateInfo info
       // Not using setLayouts since it breaks if passed a vector<>&
       layoutInfo.setLayoutCount = info.descriptorSetLayouts.size();
       layoutInfo.pSetLayouts = info.descriptorSetLayouts.data();
-      return vk::raii::PipelineLayout(device.logical(), layoutInfo);
+      return vk::raii::PipelineLayout(renderer.device().logical(), layoutInfo);
     })),
-    m_pipeline(createPipeline(device, pass, m_layout, info))
+    m_pipeline(createPipeline(renderer, pass, m_layout, info))
 {
   log::dbg("Created pipeline");
 }
 
-static vk::raii::Pipeline createPipeline(const Device& dev,
+static vk::raii::Pipeline createPipeline(const Renderer& renderer,
                                          const RenderPass& pass,
                                          const vk::raii::PipelineLayout& layout,
                                          const Pipeline::CreateInfo& info)
@@ -130,7 +131,7 @@ static vk::raii::Pipeline createPipeline(const Device& dev,
   pipelineInfo.renderPass = *pass.handle();
   pipelineInfo.subpass = 0;
 
-  return vk::raii::Pipeline(dev.logical(), nullptr, pipelineInfo);
+  return vk::raii::Pipeline(renderer.device().logical(), nullptr, pipelineInfo);
 }
 
 void Pipeline::bind(const CommandBuffer& buffer, vk::PipelineBindPoint bind) const

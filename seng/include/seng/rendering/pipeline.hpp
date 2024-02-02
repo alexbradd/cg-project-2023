@@ -10,7 +10,7 @@
 namespace seng::rendering {
 
 class CommandBuffer;
-class Device;
+class Renderer;
 class RenderPass;
 
 /// Struct that is sized exactly 128 bytes holding representing the push constant
@@ -40,7 +40,7 @@ class Pipeline {
    * Create a new pipeline that will draw to the give render pass using the
    * details specified in the given creation info
    */
-  Pipeline(const Device& device, const RenderPass& pass, CreateInfo info);
+  Pipeline(const Renderer& renderer, const RenderPass& pass, CreateInfo info);
 
   /// Create a null pipeline
   Pipeline(std::nullptr_t);

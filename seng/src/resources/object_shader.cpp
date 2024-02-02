@@ -64,7 +64,7 @@ ObjectShader::ObjectShader(Renderer& renderer,
     stageCreateInfo.emplace_back(stages[i]->stageCreateInfo());
 
   Pipeline::CreateInfo pipeInfo{attributes, descriptors, stageCreateInfo, false};
-  m_pipeline = Pipeline(renderer.device(), renderer.renderPass(), pipeInfo);
+  m_pipeline = Pipeline(renderer, renderer.renderPass(), pipeInfo);
   log::dbg("Created object shader {}", name);
 }
 
