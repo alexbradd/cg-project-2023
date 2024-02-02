@@ -4,6 +4,7 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
   PRIVATE
     ./src/main.cpp
+    ./src/scene_switcher.cpp
 )
 target_compile_features(${PROJECT_NAME}
   PRIVATE

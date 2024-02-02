@@ -34,3 +34,6 @@ Entities:
       - id: Camera
         main: true
       - id: FreeController
+  - name: scene_switcher
+    components:
+      - id: SceneSwitcher
