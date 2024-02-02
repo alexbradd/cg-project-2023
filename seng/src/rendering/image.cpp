@@ -50,7 +50,7 @@ Image::Image(const Device &dev, const Image::CreateInfo &info) :
       ci.tiling = info.tiling;
       ci.initialLayout = vk::ImageLayout::eUndefined;
       ci.usage = info.usage;
-      ci.samples = vk::SampleCountFlagBits::e1;
+      ci.samples = info.samples;
       ci.sharingMode = vk::SharingMode::eExclusive;
       return vk::raii::Image(dev.logical(), ci);
     })),

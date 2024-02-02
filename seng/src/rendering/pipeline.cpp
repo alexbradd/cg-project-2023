@@ -68,7 +68,7 @@ static vk::raii::Pipeline createPipeline(const Renderer& renderer,
 
   vk::PipelineMultisampleStateCreateInfo multisampling{};
   multisampling.sampleShadingEnable = false;
-  multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+  multisampling.rasterizationSamples = renderer.samples();
 
   vk::PipelineDepthStencilStateCreateInfo depthStencil{};
   depthStencil.depthTestEnable = true;

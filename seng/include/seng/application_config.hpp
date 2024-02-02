@@ -42,6 +42,9 @@ struct ApplicationConfig {
   /// Enable/disable creation of mipmaps
   bool useMipMaps = true;
 
+  /// Number of samples to use for multisampling
+  int samples = 4;
+
   /// Red component of the color used to clear frames
   float clearColorRed = 0.0f;
   /// Blue component of the color used to clear frames

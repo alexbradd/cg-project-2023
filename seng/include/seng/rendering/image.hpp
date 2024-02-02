@@ -29,6 +29,7 @@ class Image {
     vk::MemoryPropertyFlags memoryFlags;
     vk::ImageViewType viewType;
     vk::ImageAspectFlags aspectFlags;
+    vk::SampleCountFlagBits samples;
     bool mipped;
     bool createView;
   };

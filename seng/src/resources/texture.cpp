@@ -65,6 +65,7 @@ void Texture::fill(Texture &tex,
   }
   imgInfo.extent = vk::Extent3D(tex.m_width, tex.m_height, 1);
   imgInfo.format = vk::Format::eR8G8B8A8Srgb;
+  imgInfo.samples = vk::SampleCountFlagBits::e1;
   imgInfo.tiling = vk::ImageTiling::eOptimal;
   imgInfo.usage = vk::ImageUsageFlagBits::eTransferSrc |
                   vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;

@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <seng/application.hpp>
 #include <seng/application_config.hpp>
 #include <seng/hashes.hpp>
@@ -24,6 +23,7 @@
 #include <string.h>   // for strcmp
 #include <algorithm>  // for all_of, any_of
 #include <array>      // for array
+#include <cstddef>
 #include <cstdint>    // for uint32_t
 #include <exception>  // for exception
 #include <optional>   // for optional
@@ -39,34 +39,6 @@ using namespace std;
 // Intializer functions
 static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 static bool supportsAllLayers(const vector<const char *> &);
-
-// Definitions for RenderTarget
-Renderer::RenderTarget::RenderTarget(const Device &device,
-                                     const Image &swapchainImage,
-                                     vk::Extent2D extent,
-                                     const RenderPass &pass) :
-    m_swapchainImage(std::addressof(swapchainImage)),
-    m_depthBuffer(createDepthBuffer(device, extent)),
-    m_framebuffer(
-        device, pass, extent, {swapchainImage.imageView(), m_depthBuffer.imageView()})
-{
-  log::dbg("Allocated render target");
-}
-
-Image Renderer::RenderTarget::createDepthBuffer(const Device &device, vk::Extent2D extent)
-{
-  Image::CreateInfo info{vk::ImageType::e2D,
-                         vk::Extent3D{extent, 1},
-                         device.depthFormat().format,
-                         vk::ImageTiling::eOptimal,
-                         vk::ImageUsageFlagBits::eDepthStencilAttachment,
-                         vk::MemoryPropertyFlagBits::eDeviceLocal,
-                         vk::ImageViewType::e2D,
-                         vk::ImageAspectFlagBits::eDepth,
-                         false,
-                         true};
-  return Image(device, info);
-}
 
 // Definitions for Frame
 Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
@@ -126,25 +98,6 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_device(app.config(), m_instance, m_surface),
     m_swapchain(m_device, m_surface, window),
 
-    // Renderpass
-    m_attachments{
-        // Color attachment
-        {{m_swapchain.format().format, vk::SampleCountFlagBits::e1,
-          vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
-          vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-          vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR,
-          vk::ImageLayout::eColorAttachmentOptimal,
-          vk::ClearColorValue{app.config().clearColorRed, app.config().clearColorGreen,
-                              app.config().clearColorBlue, 1.0f}},
-         // Depth attachment
-         {m_device.depthFormat().format, vk::SampleCountFlagBits::e1,
-          vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare,
-          vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-          vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal,
-          vk::ImageLayout::eDepthStencilAttachmentOptimal,
-          vk::ClearDepthStencilValue{1.0f, 0}}}},
-    m_renderPass(m_device, m_attachments),
-
     // Pools
     m_commandPool(m_device.logical(),
                   {cmdPoolFlags, *m_device.queueFamilyIndices().graphicsFamily}),
@@ -156,6 +109,9 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
       return vk::raii::DescriptorPool(m_device.logical(), info);
     })),
 
+    // Renderpass is intialized later
+    m_renderPass(nullptr),
+
     // Other stuff
     m_fallbackMesh(*this),
     m_gubo(nullptr)
@@ -164,10 +120,18 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
   m_useAnisotropy = app.config().useAnisotropy;
   m_useMips = app.config().useMipMaps;
 
-  log::dbg("Allocating render targets");
-  m_targets.reserve(m_swapchain.images().size());
-  for (auto &img : m_swapchain.images())
-    m_targets.emplace_back(m_device, img, m_swapchain.extent(), m_renderPass);
+  VkSampleCountFlags naked = 1 << static_cast<int>(floor(log2(app.config().samples)));
+  vk::SampleCountFlags req = vk::SampleCountFlags{naked};
+  req &= m_device.supportedSampleCounts();
+  m_samples = vk::SampleCountFlagBits(static_cast<VkSampleCountFlags>(req));
+
+  log::dbg("Basic resources acquires, setting up drawing resources");
+
+  log::dbg("Creating render pass");
+  createRenderPass();
+
+  log::dbg("Allocating swapchain framebuffer");
+  allocateSwapchainFramebuffers();
 
   log::dbg("Allocating render frames");
   m_frames = seng::internal::many<Renderer::Frame>(m_swapchain.MAX_FRAMES_IN_FLIGHT,
@@ -233,6 +197,106 @@ bool supportsAllLayers(const vector<const char *> &l)
       return strcmp(property.layerName, name) == 0;
     });
   });
+}
+
+void Renderer::createRenderPass()
+{
+  std::vector<Attachment> attachments;
+  attachments.reserve(3);
+
+  Attachment depthAttachment;
+  depthAttachment.format = m_device.depthFormat().format;
+  depthAttachment.samples = samples();
+  depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+  depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
+  depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+  depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+  depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+  depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+  depthAttachment.usage = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+  depthAttachment.clearValue = vk::ClearDepthStencilValue{1.0f, 0};
+  attachments.push_back(depthAttachment);
+
+  Attachment colorAttachment;
+  colorAttachment.format = m_swapchain.format().format;
+  colorAttachment.samples = samples();
+  colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+  colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+  colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+  colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+  colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+  colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+  colorAttachment.usage = vk::ImageLayout::eColorAttachmentOptimal;
+  colorAttachment.clearValue =
+      vk::ClearColorValue{m_app->config().clearColorRed, m_app->config().clearColorGreen,
+                          m_app->config().clearColorBlue, 1.0f};
+  colorAttachment.resolve = false;
+  if (m_samples > vk::SampleCountFlagBits::e1) {
+    seng::log::dbg("Multisampled renderpass requested");
+
+    Attachment colorResolveAttachment = colorAttachment;
+    colorResolveAttachment.samples = vk::SampleCountFlagBits::e1;
+    colorResolveAttachment.resolve = true;
+
+    colorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    attachments.push_back(colorAttachment);
+    attachments.push_back(colorResolveAttachment);
+  } else {
+    attachments.push_back(colorAttachment);
+  }
+  m_renderPass = RenderPass(m_device, attachments);
+}
+
+void Renderer::allocateSwapchainFramebuffers()
+{
+  // Drop old resources
+  m_swapFramebuffers.clear();
+  m_framebufferResources.clear();
+
+  std::vector<vk::ImageView> attachments;
+  attachments.reserve(3);
+
+  Image::CreateInfo ci;
+  for (auto &swapImage : m_swapchain.images()) {
+    ci.type = vk::ImageType::e2D;
+    ci.extent = vk::Extent3D{m_swapchain.extent(), 1};
+    ci.format = m_device.depthFormat().format;
+    ci.samples = samples();
+    ci.tiling = vk::ImageTiling::eOptimal;
+    ci.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+    ci.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+    ci.viewType = vk::ImageViewType::e2D;
+    ci.aspectFlags = vk::ImageAspectFlagBits::eDepth;
+    ci.mipped = false;
+    ci.createView = true;
+    m_framebufferResources.emplace_back(m_device, ci);
+    vk::ImageView depthView = m_framebufferResources.back().imageView();
+
+    if (samples() <= vk::SampleCountFlagBits::e1) {
+      m_swapFramebuffers.emplace_back(m_device, m_renderPass, m_swapchain.extent(),
+                                      std::vector{depthView, swapImage.imageView()});
+    } else {
+      ci.type = vk::ImageType::e2D;
+      ci.extent = vk::Extent3D{m_swapchain.extent(), 1};
+      ci.format = m_swapchain.format().format;
+      ci.samples = samples();
+      ci.tiling = vk::ImageTiling::eOptimal;
+      ci.usage = vk::ImageUsageFlagBits::eTransientAttachment |
+                 vk::ImageUsageFlagBits::eColorAttachment;
+      ci.memoryFlags = vk::MemoryPropertyFlagBits::eDeviceLocal;
+      ci.viewType = vk::ImageViewType::e2D;
+      ci.aspectFlags = vk::ImageAspectFlagBits::eColor;
+      ci.mipped = false;
+      ci.createView = true;
+      m_framebufferResources.emplace_back(m_device, ci);
+      vk::ImageView colorView = m_framebufferResources.back().imageView();
+
+      m_swapFramebuffers.emplace_back(
+          m_device, m_renderPass, m_swapchain.extent(),
+          std::vector{depthView, colorView, swapImage.imageView()});
+    }
+  }
 }
 
 float Renderer::anisotropyLevel() const
@@ -445,7 +509,7 @@ void Renderer::beginMainRenderPass(const FrameHandle &handle) const
   if (handle.invalid(m_frames.size())) throw runtime_error("Invalid handle passed");
 
   auto &frame = m_frames[handle.m_index];
-  auto &fb = m_targets[frame.m_index].m_framebuffer;
+  auto &fb = m_swapFramebuffers[frame.m_index];
   auto &cmd = frame.m_commandBuffer;
 
   m_renderPass.begin(cmd, fb, m_swapchain.extent(), {0, 0});
@@ -567,10 +631,8 @@ void Renderer::recreateSwapchain()
   // Sync framebuffer generation
   m_lastFbGeneration = m_fbGeneration;
 
-  // Recreate render targets
-  m_targets.clear();
-  for (auto &img : m_swapchain.images())
-    m_targets.emplace_back(m_device, img, m_swapchain.extent(), m_renderPass);
+  // Recreate swapchain framebuffers
+  allocateSwapchainFramebuffers();
 
   // Finish the recreation process
   m_recreatingSwap = false;

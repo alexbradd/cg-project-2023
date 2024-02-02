@@ -103,6 +103,10 @@ class Renderer {
   /// True if mipmaps should be created
   bool useMipMaps() const { return m_useMips; }
 
+  /// Return the number of samples requested clamped by the maximum supported
+  /// sample count
+  vk::SampleCountFlagBits samples() const { return m_samples; }
+
   /**
    * Signal that the window has been resized and the swapchain/frambuffers need
    * to be regenerated.
@@ -248,23 +252,6 @@ class Renderer {
 
  private:
   /**
-   * A render target is basically something that can be drawn to. In our specific
-   * case the targets coincide with the swapchain images.
-   */
-  struct RenderTarget {
-    const Image *m_swapchainImage;
-    Image m_depthBuffer;
-    Framebuffer m_framebuffer;
-
-    RenderTarget(const Device &device,
-                 const Image &swapchainImage,
-                 vk::Extent2D extent,
-                 const RenderPass &pass);
-
-    static Image createDepthBuffer(const Device &device, vk::Extent2D extent);
-  };
-
-  /**
    * A frame is where the resources for drawing an image reside. Usually the
    * renderer will keep many frames, so that it can minimize waiting time.
    */
@@ -290,13 +277,15 @@ class Renderer {
   vk::raii::SurfaceKHR m_surface;
   Device m_device;
   Swapchain m_swapchain;
-  std::vector<Attachment> m_attachments;
-  RenderPass m_renderPass;
+
   vk::raii::CommandPool m_commandPool;
   vk::raii::DescriptorPool m_descriptorPool;
 
-  // Targets and frames
-  std::vector<RenderTarget> m_targets;
+  RenderPass m_renderPass;
+
+  // Framebuffers and frames
+  std::vector<Image> m_framebufferResources;
+  std::vector<Framebuffer> m_swapFramebuffers;
   std::vector<Frame> m_frames;
 
   // Descriptor layout cache
@@ -323,10 +312,15 @@ class Renderer {
   // Rendering options
   bool m_useAnisotropy = false;
   bool m_useMips = false;
+  vk::SampleCountFlagBits m_samples = vk::SampleCountFlagBits::e1;
 
-  /**
-   * Recreate the current swapchain and framebuffers
-   */
+  /// Create the main renderpass
+  void createRenderPass();
+
+  /// Allocate all the framebuffers needed by the renderpass
+  void allocateSwapchainFramebuffers();
+
+  /// Recreate the current swapchain and framebuffers
   void recreateSwapchain();
 };
 
