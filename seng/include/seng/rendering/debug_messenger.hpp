@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <vulkan/vulkan_raii.hpp>
 
 namespace seng::rendering {
@@ -12,18 +11,18 @@ namespace seng::rendering {
  */
 class DebugMessenger {
  public:
-  DebugMessenger(vk::raii::Instance &instance, bool allocate = true);
+  DebugMessenger(vk::raii::Instance &instance);
 
-  static vk::DebugUtilsMessengerCreateInfoEXT createInfo();
-
- private:
-  std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> m_debugMessenger;
+  static const vk::DebugUtilsMessengerCreateInfoEXT info;
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                 VkDebugUtilsMessageTypeFlagsEXT messageType,
                 const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                 void *pUserData);
+
+ private:
+  vk::raii::DebugUtilsMessengerEXT m_debugMessenger;
 };
 
 }  // namespace seng::rendering

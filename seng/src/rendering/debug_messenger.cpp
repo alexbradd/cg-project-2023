@@ -1,52 +1,43 @@
 #include <seng/log.hpp>
 #include <seng/rendering/debug_messenger.hpp>
 
-#include <memory>
 #include <string>
 
 using namespace std;
 using namespace seng::rendering;
 using namespace vk::raii;
 
-DebugMessenger::DebugMessenger(Instance &instance, bool allocate) : m_debugMessenger()
-{
-  if (allocate)
-    m_debugMessenger = make_unique<DebugUtilsMessengerEXT>(instance, createInfo());
-}
+using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
+using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
+using CType = VkDebugUtilsMessageTypeFlagBitsEXT;
 
-vk::DebugUtilsMessengerCreateInfoEXT DebugMessenger::createInfo()
-{
-  using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
-  using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
+const vk::DebugUtilsMessengerCreateInfoEXT DebugMessenger::info{
+    {},
+    Severity::eVerbose | Severity::eWarning | Severity::eError,
+    Type::eGeneral | Type::ePerformance | Type::eValidation,
+    DebugMessenger::debugCallback};
 
-  vk::DebugUtilsMessengerCreateInfoEXT ci{};
-  vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
-      Severity::eVerbose | Severity::eWarning | Severity::eError);
-  vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(Type::eGeneral | Type::ePerformance |
-                                                     Type::eValidation);
-  ci.messageSeverity = severityFlags;
-  ci.messageType = messageTypeFlags;
-  ci.pfnUserCallback = debugCallback;
-  return ci;
-}
+DebugMessenger::DebugMessenger(Instance &instance) : m_debugMessenger(instance, info) {}
 
-VkBool32 DebugMessenger::debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    void *)
+VkBool32 DebugMessenger::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+                                       VkDebugUtilsMessageTypeFlagsEXT types,
+                                       const VkDebugUtilsMessengerCallbackDataEXT *cbData,
+                                       [[maybe_unused]] void *userData)
 {
-  switch (messageSeverity) {
+  switch (severity) {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      if (types & (CType::VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                   CType::VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT))
+        seng::log::dbg("Validation later: {}", cbData->pMessage);
       break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-      log::info("Validation layer: {}", pCallbackData->pMessage);
+      log::info("Validation layer: {}", cbData->pMessage);
       break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-      log::warning("Validation layer: {}", pCallbackData->pMessage);
+      log::warning("Validation layer: {}", cbData->pMessage);
       break;
     default:
-      log::error("Validation layer: {}", pCallbackData->pMessage);
+      log::error("Validation layer: {}", cbData->pMessage);
   }
   return VK_FALSE;
 }

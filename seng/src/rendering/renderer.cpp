@@ -37,10 +37,6 @@ using namespace seng;
 using namespace seng::rendering;
 using namespace std;
 
-// Intializer functions
-static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
-static bool supportsAllLayers(const vector<const char *> &);
-
 // Definitions for Frame
 Renderer::Frame::Frame(const Device &device, const vk::raii::CommandPool &pool) :
     m_commandBuffer(device, pool, true),
@@ -72,14 +68,13 @@ size_t FrameHandle::asIndex() const
 }
 
 // Defintions for renderer
+static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
+
 static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
     vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
 static constexpr vk::DescriptorPoolCreateFlags descriptorPoolFlags =
     vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-
-const std::vector<const char *> Renderer::VALIDATION_LAYERS{
-    "VK_LAYER_KHRONOS_validation"};
 
 // TODO: add other sizes
 const std::array<vk::DescriptorPoolSize, 2> Renderer::POOL_SIZES = {{
@@ -90,13 +85,16 @@ const std::array<vk::DescriptorPoolSize, 2> Renderer::POOL_SIZES = {{
 Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_app(std::addressof(app)),
     m_window(std::addressof(window)),
-    m_context(),
-    // Instance creation
-    m_instance(createInstance(m_context, window)),
-    m_dbgMessenger(m_instance, USE_VALIDATION),
-    m_surface(window.createVulkanSurface(m_instance)),
 
-    // Device and swapchain
+    // Instance
+    m_context(),
+    m_instance(createInstance(m_context, window)),
+#ifndef NDEBUG
+    m_dbgMessenger(m_instance),
+#endif
+
+    // Basic resources
+    m_surface(window.createVulkanSurface(m_instance)),
     m_device(app.config(), m_instance, m_surface),
     m_swapchain(m_device, m_surface, window),
 
@@ -151,9 +149,6 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
 vk::raii::Instance createInstance(const vk::raii::Context &context,
                                   const GlfwWindow &window)
 {
-  auto &LAYERS = Renderer::VALIDATION_LAYERS;
-  auto &VALIDATE = Renderer::USE_VALIDATION;
-
   vk::ApplicationInfo ai{};
   ai.pApplicationName = window.appName().c_str();
   ai.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -161,8 +156,14 @@ vk::raii::Instance createInstance(const vk::raii::Context &context,
   ai.engineVersion = VK_MAKE_VERSION(1, 0, 0);
   ai.apiVersion = VK_API_VERSION_1_0;
 
-  if (VALIDATE && !supportsAllLayers(LAYERS))
-    throw runtime_error("Validation layers requested, but not available");
+#ifndef NDEBUG
+  vector<const char *> validation = {"VK_LAYER_KHRONOS_validation"};
+  vector<vk::LayerProperties> props = vk::enumerateInstanceLayerProperties();
+  bool supports = any_of(props.begin(), props.end(), [&](const auto &p) {
+    return strcmp(p.layerName, validation[0]) == 0;
+  });
+  if (!supports) throw runtime_error("Validation layers requested, but not available");
+#endif
 
   vector<const char *> extensions{};
   vector<const char *> windowExtensions{window.extensions()};
@@ -170,35 +171,26 @@ vk::raii::Instance createInstance(const vk::raii::Context &context,
   extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
   extensions.insert(extensions.end(), make_move_iterator(windowExtensions.begin()),
                     make_move_iterator(windowExtensions.end()));
-  if (VALIDATE)
-    // extension always present if validation layers are present
-    extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#ifndef NDEBUG
+  // extension always present if validation layers are present
+  extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 
   vk::InstanceCreateInfo ci;
   ci.pApplicationInfo = &ai;
   ci.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
   ci.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   ci.ppEnabledExtensionNames = extensions.data();
-  if (VALIDATE) {
-    ci.setPEnabledLayerNames(LAYERS);
-    vk::DebugUtilsMessengerCreateInfoEXT dbg{DebugMessenger::createInfo()};
-    ci.pNext = &dbg;
-  } else {
-    ci.enabledLayerCount = 0;
-    ci.pNext = nullptr;
-  }
+
+#ifndef NDEBUG
+  ci.setPEnabledLayerNames(validation);
+  ci.pNext = &DebugMessenger::info;
+#else
+  ci.enabledLayerCount = 0;
+  ci.pNext = nullptr;
+#endif
 
   return vk::raii::Instance(context, ci);
-}
-
-bool supportsAllLayers(const vector<const char *> &l)
-{
-  const vector<vk::LayerProperties> a = vk::enumerateInstanceLayerProperties();
-  return all_of(l.begin(), l.end(), [&](const char *name) {
-    return any_of(a.begin(), a.end(), [&](const vk::LayerProperties &property) {
-      return strcmp(property.layerName, name) == 0;
-    });
-  });
 }
 
 void Renderer::createRenderPass()

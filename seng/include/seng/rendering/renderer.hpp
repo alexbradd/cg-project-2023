@@ -73,14 +73,6 @@ class Renderer {
   Renderer &operator=(const Renderer &) = delete;
   Renderer &operator=(Renderer &&) = default;
 
-  static const std::vector<const char *> VALIDATION_LAYERS;
-
-#ifndef NDEBUG
-  static constexpr bool USE_VALIDATION{true};
-#else
-  static constexpr bool USE_VALIDATION{false};
-#endif  // !NDEBUG
-
   // Accessors
   const Device &device() const { return m_device; }
   const RenderPass &renderPass() const { return m_renderPass; }
@@ -266,19 +258,26 @@ class Renderer {
 
   static const std::array<vk::DescriptorPoolSize, 2> POOL_SIZES;
 
-  // Vulkan context
   const Application *m_app;
   const GlfwWindow *m_window;
+
+  // Instance
   vk::raii::Context m_context;
   vk::raii::Instance m_instance;
+#ifndef NDEBUG
   DebugMessenger m_dbgMessenger;
+#endif
+
+  // Basic resources
   vk::raii::SurfaceKHR m_surface;
   Device m_device;
   Swapchain m_swapchain;
 
+  // Pools
   vk::raii::CommandPool m_commandPool;
   vk::raii::DescriptorPool m_descriptorPool;
 
+  // Renderpasses
   RenderPass m_renderPass;
 
   // Framebuffers and frames
