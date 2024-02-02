@@ -39,6 +39,7 @@ vk::raii::RenderPass createRenderPass(const Device &device,
   descriptions.reserve(attachments.size());
 
   vector<vk::AttachmentReference> colorAttachments;
+  vector<vk::AttachmentReference> resolveAttachments;
   optional<vk::AttachmentReference> depthAttachment;
   // TODO: other types of attachments
 
@@ -49,7 +50,10 @@ vk::raii::RenderPass createRenderPass(const Device &device,
                               a.initialLayout, a.finalLayout);
     switch (a.usage) {
       case vk::ImageLayout::eColorAttachmentOptimal:
-        colorAttachments.emplace_back(i, vk::ImageLayout::eColorAttachmentOptimal);
+        if (a.resolve)
+          resolveAttachments.emplace_back(i, vk::ImageLayout::eColorAttachmentOptimal);
+        else
+          colorAttachments.emplace_back(i, vk::ImageLayout::eColorAttachmentOptimal);
         break;
       case vk::ImageLayout::eDepthStencilAttachmentOptimal:
         depthAttachment =
@@ -62,6 +66,7 @@ vk::raii::RenderPass createRenderPass(const Device &device,
 
   // Color attachment
   subpass.setColorAttachments(colorAttachments);
+  subpass.setResolveAttachments(resolveAttachments);
   if (depthAttachment.has_value())
     subpass.setPDepthStencilAttachment(&(*depthAttachment));
   // TODO: other attachment types

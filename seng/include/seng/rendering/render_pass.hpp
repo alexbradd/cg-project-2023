@@ -15,15 +15,16 @@ class Framebuffer;
  */
 struct Attachment {
   vk::Format format;
-  vk::SampleCountFlagBits samples = vk::SampleCountFlagBits::e1;
+  vk::SampleCountFlagBits samples;
   vk::AttachmentLoadOp loadOp;
   vk::AttachmentStoreOp storeOp;
   vk::AttachmentLoadOp stencilLoadOp;
   vk::AttachmentStoreOp stencilStoreOp;
-  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined;
+  vk::ImageLayout initialLayout;
   vk::ImageLayout finalLayout;
   vk::ImageLayout usage;
   vk::ClearValue clearValue;
+  bool resolve = false;
 };
 
 /**
