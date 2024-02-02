@@ -35,9 +35,9 @@ Instances:
   - name: brick
     instanceOf: ggx
     textures: [brick/albedo.png, brick/metallic.png, brick/roughness.png]
-  - name: iron
+  - name: rusted
     instanceOf: ggx
-    textures: [iron/albedo.png, iron/metallic.png, iron/roughness.png]
+    textures: [rusted/albedo.png, rusted/metallic.png, rusted/roughness.png]
 
   - name: marble_toon
     instanceOf: toon
