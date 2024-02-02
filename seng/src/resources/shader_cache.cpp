@@ -49,8 +49,7 @@ std::string ShaderCache::parseStage(rendering::Renderer &renderer,
 {
   if (stage && stage.IsScalar()) {
     std::string name = stage.as<std::string>();
-    auto ret = m_stages.try_emplace(name, renderer.device(), shaderPath, name, type);
-    if (!ret.second) seng::log::warning("Duplicated stage name");
+    m_stages.try_emplace(name, renderer.device(), shaderPath, name, type);
     return name;
   } else {
     throw std::runtime_error("Shader definition must include all stages");
