@@ -51,6 +51,7 @@ void MeshRenderer::render(const rendering::CommandBuffer& cmd) const
   // Get the corresponding mesh
   auto& meshName = m_meshName;
   auto& mesh = entity->application().renderer()->requestMesh(meshName);
+  if (mesh.vertices().empty()) return;
   if (!mesh.synced()) mesh.sync();
 
   // Update the models transform
