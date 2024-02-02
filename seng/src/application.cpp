@@ -38,22 +38,29 @@ void Application::run(unsigned int width, unsigned int height)
   Timestamp lastFrame = Clock::now();
   while (!m_glfwWindow->shouldClose()) {
     try {
-      if (m_newSceneName.has_value()) {
-        m_scene = nullptr;  // destroys the current scene
-        auto newScene = Scene::loadFromDisk(*this, *m_newSceneName);
-        if (newScene != nullptr) m_scene = std::move(newScene);
-        m_newSceneName.reset();
-      }
-
       m_inputManager->updateEvents();
-      if (m_scene != nullptr) {
-        bool executed = m_vulkan->scopedFrame(
-            [&](auto& handle) { m_scene->update(lastFrame, handle); });
-        if (!executed)
-          continue;
-        else
-          lastFrame = Clock::now();
-      }
+      bool executed = m_vulkan->scopedFrame([&](auto& handle) {
+        if (m_newSceneName.has_value()) {
+          // Dummy frame
+          m_vulkan->beginMainRenderPass(handle);
+          m_vulkan->endMainRenderPass(handle);
+
+          // Load scene
+          m_scene = nullptr;  // destroys the current scene
+          auto newScene = Scene::loadFromDisk(*this, *m_newSceneName);
+          if (newScene != nullptr) m_scene = std::move(newScene);
+          m_newSceneName.reset();
+        } else {
+          if (m_scene != nullptr)
+            m_scene->update(lastFrame, handle);
+          else
+            seng::log::error("No scene loaded");
+        }
+      });
+      if (!executed)
+        continue;
+      else
+        lastFrame = Clock::now();
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
