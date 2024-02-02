@@ -9,7 +9,12 @@ namespace seng::log {
 /**
  * Log levels
  */
-enum struct LogLevels { INFO, WARN, ERRO, DBUG };
+enum struct LogLevels : uint32_t {
+  DBUG = 0x00000001,
+  INFO = 0x00000002,
+  WARN = 0x00000004,
+  ERRO = 0x00000008
+};
 
 /**
  * Writes the string out to stderr formatting it with the proper previx given
@@ -55,5 +60,11 @@ void error(const std::string &fmt, Args &&...args)
 {
   logOutput(LogLevels::ERRO, fmt::format(fmt, args...));
 }
+
+/// Get the current minimum logging level
+extern LogLevels minimumLoggingLevel();
+
+/// Set the minimum logging level
+extern void minimumLoggingLevel(LogLevels lvl);
 
 }  // namespace seng::log
