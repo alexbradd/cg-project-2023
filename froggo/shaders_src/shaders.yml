@@ -16,8 +16,33 @@ Shaders:
     vert: simple_vert
     frag: toon
     textureTypes: [2d, 2d, 1d, 1d]
+  ###
+  # GGX shader (without reflections it will look quite bad but oh well). Takes
+  # 4 textures:
+  # 1. Base color
+  # 2. Metallic map
+  # 3. Roughness map
+  # 4. TODO: normal map
+  - name: ggx
+    vert: simple_vert
+    frag: ggx
+    textureTypes: [2d, 2d, 2d]
 
 Instances:
+  - name: marble
+    instanceOf: ggx
+    textures: [marble/albedo.png, marble/metallic.png, marble/roughness.png]
+  - name: brick
+    instanceOf: ggx
+    textures: [brick/albedo.png, brick/metallic.png, brick/roughness.png]
+  - name: iron
+    instanceOf: ggx
+    textures: [iron/albedo.png, iron/metallic.png, iron/roughness.png]
+
+  - name: marble_toon
+    instanceOf: toon
+    textures:
+      [marble/albedo.png, white_1x1.png, diffuse_map.png, specular_map.png]
   - name: tree
     instanceOf: toon
     textures: [tree/diffuse.png, black_1x1.png, diffuse_map.png, black_1x1.png]

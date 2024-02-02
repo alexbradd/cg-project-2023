@@ -14,3 +14,32 @@ Entities:
   - name: scene_switcher
     components:
       - id: SceneSwitcher
+
+  - name: marble_toon
+    transform:
+      position: [-4.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: marble_toon
+  - name: marble
+    transform:
+      position: [0.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: marble
+  - name: iron
+    transform:
+      position: [4.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: iron
+  - name: bricks
+    transform:
+      position: [8.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: brick
