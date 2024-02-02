@@ -18,10 +18,26 @@ layout(set = 0, binding = 1) uniform GlobalUniformObject {
 
 layout(set = 1, binding = 0) uniform sampler2D diffuseTex;
 layout(set = 1, binding = 1) uniform sampler2D MRAOTex;
+layout(set = 1, binding = 2) uniform sampler2D normalTex;
 
 const float PI = 3.14159265358979323846f;
 const float F0 = 0.3f;
 
+/*
+ * Normal mapping
+ */
+vec3 perturb_normal(vec3 N, vec2 texcoord) {
+  vec3 T =  normalize(inTangent - dot(inTangent, N) * N);
+  vec3 B = cross(T, N);
+  mat3 TBN = mat3(T, B, N);
+  vec3 bump = texture(normalTex, texcoord).rgb;
+  bump = 2.0 * bump - 1.0;
+  return normalize(TBN * bump);
+}
+
+/*
+ * GGX term calculaltion
+ */
 float ggx_D(float rho2, vec3 N, vec3 H) {
   float dotClamp = clamp(dot(N, H), 0.01, 1.0f);
   float dotClamp2 = dotClamp * dotClamp;
@@ -49,8 +65,11 @@ float ggx_g(float rho2, vec3 N, vec3 A) {
 
 void main() {
   vec3 L = normalize(gubo.lightDir);
-  vec3 N = normalize(inNormal);
   vec3 V = normalize(gubo.cameraPosition - inPosition);
+
+  // Normal mapping
+  vec3 N = normalize(inNormal);
+  N = perturb_normal(N, inTexCoord) ;
 
   vec3 MRAO = texture(MRAOTex, inTexCoord).rgb;
 
