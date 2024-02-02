@@ -97,6 +97,10 @@ class Device {
   const QueueFamilyIndices &queueFamilyIndices() const { return m_queueIndices; }
   const SwapchainSupportDetails &swapchainSupportDetails() const { return m_swapDetails; }
 
+  // Limits
+  float maxSamplerAnisotropy() const { return m_maxAnisotropy; }
+  vk::SampleCountFlags supportedSampleCounts() const { return m_supportedSampleCounts; }
+
   /**
    * Requery the swapchain support details.
    */
@@ -122,6 +126,9 @@ class Device {
   vk::raii::Queue m_presentQueue;
   vk::raii::Queue m_graphicsQueue;
   vk::SurfaceFormatKHR m_depthFormat;
+
+  float m_maxAnisotropy;
+  vk::SampleCountFlags m_supportedSampleCounts;
 
   /**
    * Choose the optimal swapchain format.

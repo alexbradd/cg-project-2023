@@ -89,6 +89,7 @@ static vk::raii::Device createLogicalDevice(const seng::ApplicationConfig &,
                                             const vk::raii::PhysicalDevice &,
                                             const QueueFamilyIndices &);
 static vk::SurfaceFormatKHR detectDepthFormat(const vk::raii::PhysicalDevice &);
+static vk::SampleCountFlags getSupportedSampleCounts(const vk::raii::PhysicalDevice &);
 
 Device::Device(const ApplicationConfig &config,
                const vk::raii::Instance &instance,
@@ -100,7 +101,9 @@ Device::Device(const ApplicationConfig &config,
     m_logical(createLogicalDevice(config, m_physical, m_queueIndices)),
     m_presentQueue(m_logical, *m_queueIndices.presentFamily, 0),
     m_graphicsQueue(m_logical, *m_queueIndices.graphicsFamily, 0),
-    m_depthFormat(detectDepthFormat(m_physical))
+    m_depthFormat(detectDepthFormat(m_physical)),
+    m_maxAnisotropy(m_physical.getProperties().limits.maxSamplerAnisotropy),
+    m_supportedSampleCounts(getSupportedSampleCounts(m_physical))
 {
   log::dbg("Device has beeen created successfully");
 }
@@ -188,6 +191,13 @@ vk::SurfaceFormatKHR detectDepthFormat(const vk::raii::PhysicalDevice &phy)
     }
   }
   throw runtime_error("Unable to find appropriate depth format!");
+}
+
+vk::SampleCountFlags getSupportedSampleCounts(const vk::raii::PhysicalDevice &phy)
+{
+  vk::PhysicalDeviceProperties physicalDeviceProperties = phy.getProperties();
+  return physicalDeviceProperties.limits.framebufferColorSampleCounts &
+         physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 }
 
 uint32_t Device::findMemoryIndex(uint32_t filter, vk::MemoryPropertyFlags flags) const
