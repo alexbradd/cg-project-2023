@@ -63,7 +63,6 @@ class RenderPass {
   void end(const CommandBuffer& buf) const;
 
  private:
-  const Device* m_device;
   std::vector<Attachment> m_attachments;
   vk::raii::RenderPass m_renderPass;
 };

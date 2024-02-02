@@ -18,7 +18,6 @@ static vk::raii::RenderPass createRenderPass(const Device &device,
                                              const vector<Attachment> &attachments);
 
 RenderPass::RenderPass(const Device &device, std::vector<Attachment> attachments) :
-    m_device(std::addressof(device)),
     m_attachments(std::move(attachments)),
     m_renderPass(createRenderPass(device, this->m_attachments))
 {
