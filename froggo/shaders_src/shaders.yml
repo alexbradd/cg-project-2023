@@ -28,6 +28,13 @@ Shaders:
     vert: simple_vert
     frag: ggx
     textureTypes: [2d, 2d, 2d]
+  ###
+  # Variation of the GGX with the same parameters but with one interesting thing:
+  # we do normal mapping without using the pre-computed tangent vector
+  - name: ggx_var
+    vert: simple_vert
+    frag: ggx_shader_norm
+    textureTypes: [2d, 2d, 2d]
 
 Instances:
   - name: marble
@@ -41,6 +48,10 @@ Instances:
     textures: [rusted/albedo.png, rusted/mrao.png, rusted/normal-ogl.png]
   - name: alu
     instanceOf: ggx
+    textures: [alu/albedo.png, alu/mrao.png, alu/normal-ogl.png]
+
+  - name: alu_var
+    instanceOf: ggx_var
     textures: [alu/albedo.png, alu/mrao.png, alu/normal-ogl.png]
 
   - name: marble_toon

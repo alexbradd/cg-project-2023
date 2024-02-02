@@ -17,7 +17,7 @@ Entities:
 
   - name: marble_toon
     transform:
-      position: [-4.0, 0.0, 0.0]
+      position: [0.0, -4.0, 0.0]
     components:
       - id: MeshRenderer
         model: shader_test_sphere.obj
@@ -43,10 +43,17 @@ Entities:
       - id: MeshRenderer
         model: shader_test_sphere.obj
         instance: brick
-  - name: bricks
+  - name: alu
     transform:
       position: [12.0, 0.0, 0.0]
     components:
       - id: MeshRenderer
         model: shader_test_sphere.obj
         instance: alu
+  - name: alu
+    transform:
+      position: [12.0, 4.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: alu_var
