@@ -74,8 +74,15 @@ void ObjectShaderInstance::allocateResources() const
     std::vector<vk::WriteDescriptorSet> writes;
     writes.reserve(m_imgInfos.size());
     for (size_t frame = 0; frame < m_renderer->framesInFlight(); frame++) {
-      vk::DescriptorSet set = m_renderer->requestDescriptorSet(
+      vk::DescriptorSet set = m_renderer->getDescriptorSet(
           frame, m_shader->textureSetLayout(), {}, m_imgInfos);
+      if (set != nullptr) {
+        seng::log::dbg("Descriptor set already present... skipping");
+        continue;
+      }
+
+      set = m_renderer->requestDescriptorSet(frame, m_shader->textureSetLayout(), {},
+                                             m_imgInfos);
       for (size_t tex = 0; tex < m_imgInfos.size(); tex++) {
         vk::WriteDescriptorSet write{};
         write.dstSet = set;

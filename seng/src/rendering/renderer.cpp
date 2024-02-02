@@ -362,7 +362,6 @@ const vk::DescriptorSet Renderer::getDescriptorSet(
   auto iter = f.m_descriptorCache.find(hash);
 
   if (iter != f.m_descriptorCache.end()) return *iter->second;
-  seng::log::warning("Query for unknown descriptor set, returning null handle");
   return vk::DescriptorSet(nullptr);
 }
 
