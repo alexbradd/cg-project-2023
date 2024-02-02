@@ -19,7 +19,6 @@
 #include <vulkan/vulkan_hash.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <array>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -255,8 +254,6 @@ class Renderer {
 
     Frame(const Device &device, const vk::raii::CommandPool &commandPool);
   };
-
-  static const std::array<vk::DescriptorPoolSize, 2> POOL_SIZES;
 
   const Application *m_app;
   const GlfwWindow *m_window;

@@ -70,17 +70,14 @@ size_t FrameHandle::asIndex() const
 // Defintions for renderer
 static vk::raii::Instance createInstance(const vk::raii::Context &, const GlfwWindow &);
 
-static constexpr vk::CommandPoolCreateFlags cmdPoolFlags =
-    vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-
-static constexpr vk::DescriptorPoolCreateFlags descriptorPoolFlags =
-    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-
 // TODO: add other sizes
-const std::array<vk::DescriptorPoolSize, 2> Renderer::POOL_SIZES = {{
-    {vk::DescriptorType::eUniformBuffer, 1024},
-    {vk::DescriptorType::eCombinedImageSampler, 1024},
+static constexpr std::array<vk::DescriptorPoolSize, 2> POOL_SIZES = {{
+    {vk::DescriptorType::eUniformBuffer, 512},
+    {vk::DescriptorType::eCombinedImageSampler, 512},
 }};
+// TODO: Do we want max 1024 descriptors?
+static const vk::DescriptorPoolCreateInfo POOL_INFO{
+    vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, 1024, POOL_SIZES};
 
 Renderer::Renderer(Application &app, const GlfwWindow &window) :
     m_app(std::addressof(app)),
@@ -100,14 +97,9 @@ Renderer::Renderer(Application &app, const GlfwWindow &window) :
 
     // Pools
     m_commandPool(m_device.logical(),
-                  {cmdPoolFlags, *m_device.queueFamilyIndices().graphicsFamily}),
-    m_descriptorPool(std::invoke([&]() {
-      vk::DescriptorPoolCreateInfo info{};
-      info.flags = descriptorPoolFlags;
-      info.maxSets = 1024;  // FIXME: not really sure about this
-      info.setPoolSizes(Renderer::POOL_SIZES);
-      return vk::raii::DescriptorPool(m_device.logical(), info);
-    })),
+                  {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                   *m_device.queueFamilyIndices().graphicsFamily}),
+    m_descriptorPool(m_device.logical(), POOL_INFO),
 
     // Renderpass is intialized later
     m_renderPass(nullptr),
