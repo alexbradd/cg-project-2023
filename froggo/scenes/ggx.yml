@@ -1,5 +1,5 @@
 Light:
-  ambient: [0.792, 0.859, 1.0, 0.2] # hex: cadbff
+  ambient: [0.792, 0.859, 1.0, 0.5] # hex: cadbff
   color: [1.0, 0.941, 0.91, 1.0] # hex: fff0e8 (5500K light)
   direction: [-0.70, 0.70, 0.0] # 45 deg
 
@@ -43,3 +43,10 @@ Entities:
       - id: MeshRenderer
         model: shader_test_sphere.obj
         instance: brick
+  - name: bricks
+    transform:
+      position: [12.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: alu

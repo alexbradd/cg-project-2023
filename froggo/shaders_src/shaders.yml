@@ -17,27 +17,30 @@ Shaders:
     frag: toon
     textureTypes: [2d, 2d, 1d, 1d]
   ###
-  # GGX shader (without reflections it will look quite bad but oh well). Takes
-  # 4 textures:
+  # GGX shader. Takes 2 textures:
   # 1. Base color
-  # 2. Metallic map
-  # 3. Roughness map
-  # 4. TODO: normal map
+  # 2. A texture with:
+  #    - RED channel as metallic
+  #    - GREEN channel as roughness
+  #    - BLUE channel as ambient occlusion
   - name: ggx
     vert: simple_vert
     frag: ggx
-    textureTypes: [2d, 2d, 2d]
+    textureTypes: [2d, 2d]
 
 Instances:
   - name: marble
     instanceOf: ggx
-    textures: [marble/albedo.png, marble/metallic.png, marble/roughness.png]
+    textures: [marble/albedo.png, marble/mrao.png]
   - name: brick
     instanceOf: ggx
-    textures: [brick/albedo.png, brick/metallic.png, brick/roughness.png]
+    textures: [brick/albedo.png, brick/mrao.png]
   - name: rusted
     instanceOf: ggx
-    textures: [rusted/albedo.png, rusted/metallic.png, rusted/roughness.png]
+    textures: [rusted/albedo.png, rusted/mrao.png]
+  - name: alu
+    instanceOf: ggx
+    textures: [alu/albedo.png, alu/mrao.png]
 
   - name: marble_toon
     instanceOf: toon

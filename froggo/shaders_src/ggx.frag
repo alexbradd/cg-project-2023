@@ -16,8 +16,7 @@ layout(set = 0, binding = 1) uniform GlobalUniformObject {
 } gubo;
 
 layout(set = 1, binding = 0) uniform sampler2D diffuseTex;
-layout(set = 1, binding = 1) uniform sampler2D metallicTex;
-layout(set = 1, binding = 2) uniform sampler2D roughnessTex;
+layout(set = 1, binding = 1) uniform sampler2D MRAOTex;
 
 const float PI = 3.14159265358979323846f;
 const float F0 = 0.3f;
@@ -52,22 +51,20 @@ void main() {
   vec3 N = normalize(inNormal);
   vec3 V = normalize(gubo.cameraPosition - inPosition);
 
+  vec3 MRAO = texture(MRAOTex, inTexCoord).rgb;
+
   // Lambert diffuse
   vec3 diffuseColor = texture(diffuseTex, inTexCoord).rgb;
   vec3 lambert = gubo.lightColor.rgb * diffuseColor * clamp(dot(L, N), 0.0f, 1.0f);
 
-  // Ambient lighting
-  float ambientStrength = gubo.ambientColor.a;
-  vec3 ambient = ambientStrength * (gubo.ambientColor.rgb * diffuseColor);
-
   // Cook-torrance reflection
-  vec3  Ms = vec3(1.0f);
-  vec3  H = normalize(L + V);
+  vec3 Ms = vec3(1.0f);
+  vec3 H = normalize(L + V);
 
-  float metallic = texture(metallicTex, inTexCoord).r;
+  float metallic = MRAO.r;
   float k = 1.0f - metallic;
 
-  float roughness = texture(roughnessTex, inTexCoord).r;
+  float roughness = MRAO.g;
   float roughness2 = roughness * roughness;
 
   float D = ggx_D(roughness2, N, H);
@@ -75,6 +72,10 @@ void main() {
   float G = ggx_g(roughness2, N, V) * ggx_g(roughness2, N, L);
 
   vec3 specular = Ms * ((D * F * G) / (4 * clamp(dot(V, N), 0.01f, 1.0f)));
+
+  // Ambient lighting
+  float ambientStrength = MRAO.b * gubo.ambientColor.a;
+  vec3 ambient = ambientStrength * (gubo.ambientColor.rgb * diffuseColor);
 
   outColor = vec4(clamp(k * lambert + (1.0f - k) * specular + ambient, 0.0f, 1.0f), 1.0f);
 }
