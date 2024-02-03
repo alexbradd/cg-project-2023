@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 
 using namespace std;
@@ -47,6 +48,7 @@ void Application::run(unsigned int width, unsigned int height)
         // Sample time & frame limit
         completedTime = Clock::now();
         deltaTime = completedTime - lastTime;
+        deltaTime = frameLimit(lastTime, deltaTime);
 
         // Handle scene update
         if (m_newSceneName.has_value()) {
@@ -65,6 +67,16 @@ void Application::run(unsigned int width, unsigned int height)
   m_inputManager = nullptr;
   m_vulkan = nullptr;
   m_glfwWindow = nullptr;
+}
+
+Duration Application::frameLimit(Timestamp lastTime, Duration delta) const
+{
+  auto targetFrameTime = Duration(Clock::period::den / conf.maxFPS);
+  if (delta < targetFrameTime) {
+    std::this_thread::sleep_for(targetFrameTime - delta);
+    return Clock::now() - lastTime;
+  }
+  return delta;
 }
 
 void Application::stop()

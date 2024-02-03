@@ -51,6 +51,9 @@ struct ApplicationConfig {
   float clearColorBlue = 0.0f;
   /// Green component of the color used to clear frames
   float clearColorGreen = 0.0f;
+
+  /// Set the maximum FPS the application can run at
+  int maxFPS = 200;
 };
 
 }  // namespace seng

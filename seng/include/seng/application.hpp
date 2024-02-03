@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <seng/application_config.hpp>
+#include <seng/time.hpp>
 
 #include <memory>
 
@@ -72,6 +73,8 @@ class Application {
   std::optional<std::string> m_newSceneName;
 
   void handleSceneSwitch(rendering::FrameHandle handle);
+
+  Duration frameLimit(Timestamp lastTime, Duration delta) const;
 };
 
 }  // namespace seng
