@@ -48,8 +48,8 @@ void FreeController::handleMovement(float delta)
 
   if (input->keyHold(seng::KeyCode::eKeyA)) moveDirection += -transform->right();
   if (input->keyHold(seng::KeyCode::eKeyD)) moveDirection += transform->right();
-  if (input->keyHold(seng::KeyCode::eKeyW)) moveDirection += -transform->forward();
-  if (input->keyHold(seng::KeyCode::eKeyS)) moveDirection += transform->forward();
+  if (input->keyHold(seng::KeyCode::eKeyW)) moveDirection += transform->forward();
+  if (input->keyHold(seng::KeyCode::eKeyS)) moveDirection += -transform->forward();
   if (input->keyHold(seng::KeyCode::eSpace)) {
     if (input->keyHold(seng::KeyCode::eModLeftShift))
       moveDirection += -transform->up();
@@ -68,12 +68,12 @@ void FreeController::handleRotation(float delta)
   auto &input = entity->application().input();
   auto transform = entity->transform();
 
-  if (input->keyHold(seng::KeyCode::eUp))
-    transform->rotate(rot_amount, transform->right());
   if (input->keyHold(seng::KeyCode::eDown))
+    transform->rotate(rot_amount, transform->right());
+  if (input->keyHold(seng::KeyCode::eUp))
     transform->rotate(-rot_amount, transform->right());
-  if (input->keyHold(seng::KeyCode::eLeft))
-    transform->rotate(rot_amount, Transform::worldUp());
   if (input->keyHold(seng::KeyCode::eRight))
+    transform->rotate(rot_amount, Transform::worldUp());
+  if (input->keyHold(seng::KeyCode::eLeft))
     transform->rotate(-rot_amount, Transform::worldUp());
 }

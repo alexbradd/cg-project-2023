@@ -27,15 +27,14 @@ enum struct CoordinateSystem { eLocal, eWorld };
  * (which are basically the world coordinates). This class encodes said
  * transformation and allows to modify it.
  *
- * Small visualization of the coordinate system
+ * The coordinate system used is a left-handed Y-up system. Small visualization:
  *
  *    y
  *    ^
- *    |
- *    |
+ *    | z      Positive rotation:
+ *    |/         clockwise around the axis or rotation
  *    +----> x
- *   /
- *  z
+ *
  *
  * TODO: allow to build a hierarchy of transforms
  */

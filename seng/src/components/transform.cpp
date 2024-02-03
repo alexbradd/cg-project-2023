@@ -86,12 +86,12 @@ void Transform::lookAt(const Transform& other, glm::vec3 upDirection)
   m_dirty = true;
   m_hasChanged = true;
   glm::vec3 fwd = glm::normalize(other.m_pos - this->m_pos);
-  m_rotation = glm::quatLookAt(fwd, upDirection);
+  m_rotation = glm::quatLookAtLH(fwd, upDirection);
 }
 
 glm::vec3 Transform::forward() const
 {
-  return this->toMat4()[2];
+  return -this->toMat4()[2];
 }
 
 glm::vec3 Transform::up() const
@@ -110,6 +110,7 @@ glm::mat4 Transform::toMat4() const
     m_localToWorld = glm::translate(glm::mat4(1.0f), m_pos) *
                      glm::toMat4(glm::normalize(m_rotation)) *
                      glm::scale(glm::mat4(1.0f), m_scale);
+    m_localToWorld[2] *= -1;
     m_dirty = false;
   }
   return m_localToWorld;
