@@ -100,7 +100,7 @@ glm::vec3 Transform::right() const
   return rotationMatrix()[0];
 }
 
-glm::mat4 Transform::toMat4() const
+const glm::mat4& Transform::toMat4() const
 {
   if (m_changes & ~CHANGE_TRACKER) {
     m_localToWorld = glm::translate(glm::mat4(1.0f), m_pos) * rotationMatrix() *

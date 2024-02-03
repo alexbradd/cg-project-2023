@@ -66,7 +66,7 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
    * Converts this transform to a matrix that transforms the local
    * coordinates to global coordinates.
    */
-  glm::mat4 toMat4() const;
+  const glm::mat4& toMat4() const;
 
   /**
    * Set the position in the scene for this transform.
