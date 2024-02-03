@@ -35,23 +35,27 @@ void Application::run(unsigned int width, unsigned int height)
 
   switchScene("default");
 
-  Timestamp lastFrame = Clock::now();
+  Timestamp completedTime = Clock::now();
+  Timestamp lastTime;
+  Duration deltaTime;
   while (!m_glfwWindow->shouldClose()) {
     try {
       m_inputManager->updateEvents();
-      bool executed = m_vulkan->scopedFrame([&](auto& handle) {
+      m_vulkan->scopedFrame([&](auto& handle) {
+        lastTime = completedTime;
+
+        // Sample time & frame limit
+        completedTime = Clock::now();
+        deltaTime = completedTime - lastTime;
+
+        // Handle scene update
         if (m_newSceneName.has_value()) {
           handleSceneSwitch(handle);
           if (m_scene == nullptr) seng::log::error("No scene loaded");
         } else if (m_scene != nullptr) {
-          auto deltaTime = Clock::now() - lastFrame;
           m_scene->update(deltaTime, handle);
         }
       });
-      if (!executed)
-        continue;
-      else
-        lastFrame = Clock::now();
     } catch (const exception& e) {
       log::warning("Unhandled exception reached main loop: {}", e.what());
     }
