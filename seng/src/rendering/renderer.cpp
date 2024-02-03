@@ -593,7 +593,7 @@ void Renderer::endFrame(FrameHandle &handle)
   handle.invalidate();
 
   // Advance cyclical iterator
-  m_currentFrame = (m_currentFrame + 1) % m_swapchain.MAX_FRAMES_IN_FLIGHT;
+  m_currentFrame = (m_currentFrame + 1) % m_frames.size();
 }
 
 bool Renderer::scopedFrame(std::function<void(const FrameHandle &)> func)
