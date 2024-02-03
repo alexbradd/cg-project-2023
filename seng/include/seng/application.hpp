@@ -10,6 +10,7 @@ namespace seng {
 namespace rendering {
 class GlfwWindow;
 class Renderer;
+class FrameHandle;
 }  // namespace rendering
 
 class Scene;
@@ -69,6 +70,8 @@ class Application {
   std::unique_ptr<Scene> m_scene;
 
   std::optional<std::string> m_newSceneName;
+
+  void handleSceneSwitch(rendering::FrameHandle handle);
 };
 
 }  // namespace seng

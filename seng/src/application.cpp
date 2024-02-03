@@ -41,20 +41,10 @@ void Application::run(unsigned int width, unsigned int height)
       m_inputManager->updateEvents();
       bool executed = m_vulkan->scopedFrame([&](auto& handle) {
         if (m_newSceneName.has_value()) {
-          // Dummy frame
-          m_vulkan->beginMainRenderPass(handle);
-          m_vulkan->endMainRenderPass(handle);
-
-          // Load scene
-          m_scene = nullptr;  // destroys the current scene
-          auto newScene = Scene::loadFromDisk(*this, *m_newSceneName);
-          if (newScene != nullptr) m_scene = std::move(newScene);
-          m_newSceneName.reset();
-        } else {
-          if (m_scene != nullptr)
-            m_scene->update(lastFrame, handle);
-          else
-            seng::log::error("No scene loaded");
+          handleSceneSwitch(handle);
+          if (m_scene == nullptr) seng::log::error("No scene loaded");
+        } else if (m_scene != nullptr) {
+          m_scene->update(deltaTime, handle);
         }
       });
       if (!executed)
@@ -80,6 +70,19 @@ void Application::stop()
 void Application::switchScene(const std::string& name)
 {
   m_newSceneName = name;
+}
+
+void Application::handleSceneSwitch(FrameHandle handle)
+{
+  // Dummy frame
+  m_vulkan->beginMainRenderPass(handle);
+  m_vulkan->endMainRenderPass(handle);
+
+  // Load scene
+  m_scene = nullptr;  // destroys the current scene
+  auto newScene = Scene::loadFromDisk(*this, *m_newSceneName);
+  m_scene = std::move(newScene);
+  m_newSceneName.reset();
 }
 
 Application::~Application() = default;
