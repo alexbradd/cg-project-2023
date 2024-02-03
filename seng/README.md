@@ -200,7 +200,8 @@ Some useful data is passed as push constants for performance reasons. In order,
 these are:
 
 - `mat4`: the model matrix
-- `mat4`: reserved space for later use
+- `vec2`: the scaling for the UVs
+- the rest until 128 bytes is reserved for future use
 
 These buffers will be bound for all shaders.
 

@@ -133,3 +133,9 @@ void ObjectShaderInstance::updateModelState(const rendering::CommandBuffer& buf,
 {
   m_shader->updateModelState(buf, model);
 }
+
+void ObjectShaderInstance::updateUVScale(const rendering::CommandBuffer& buf,
+                                         glm::vec2 scale) const
+{
+  m_shader->updateUVScale(buf, scale);
+}

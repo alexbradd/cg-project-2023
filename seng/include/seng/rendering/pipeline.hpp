@@ -17,7 +17,11 @@ class RenderPass;
 /// range
 struct PushConstants {
   glm::mat4 modelMatrix;
-  glm::mat4 _reserved;
+  alignas(16) glm::vec2 uvScale;
+
+  glm::vec4 _reserved1;
+  glm::vec4 _reserved2;
+  glm::vec4 _reserved3;
 };
 
 /**

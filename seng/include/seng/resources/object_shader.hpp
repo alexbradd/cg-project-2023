@@ -76,6 +76,11 @@ class ObjectShader {
   void updateModelState(const rendering::CommandBuffer& buf,
                         const glm::mat4& model) const;
 
+  /**
+   * Push the given UV scale to the shader
+   */
+  void updateUVScale(const rendering::CommandBuffer& buf, glm::vec2 scale) const;
+
  private:
   const rendering::Renderer* m_renderer;
   std::string m_name;

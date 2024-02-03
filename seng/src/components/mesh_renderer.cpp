@@ -7,8 +7,10 @@
 #include <seng/rendering/renderer.hpp>
 #include <seng/scene/entity.hpp>
 #include <seng/scene/scene.hpp>
+#include <seng/yaml_utils.hpp>
 
 #include <yaml-cpp/yaml.h>
+#include <glm/vec2.hpp>
 
 #include <memory>
 #include <string>
@@ -17,14 +19,13 @@
 using namespace seng;
 using namespace std::placeholders;
 
-MeshRenderer::MeshRenderer(Entity& e,
-                           std::string mesh,
-                           std::string material,
-                           bool enabled) :
+MeshRenderer::MeshRenderer(
+    Entity& e, std::string mesh, std::string material, glm::vec2 scale, bool enabled) :
     ToggleComponent(e, enabled)
 {
   m_meshName = std::move(mesh);
   m_matName = std::move(material);
+  m_scale = scale;
 
   m_tok = e.scene().onShaderInstanceDraw(m_matName).insert(
       std::bind(&MeshRenderer::render, this, _1));
@@ -58,6 +59,7 @@ void MeshRenderer::render(const rendering::CommandBuffer& cmd) const
   auto& instance =
       entity->application().renderer()->shaders().objectShaderInstances().at(m_matName);
   instance.updateModelState(cmd, entity->transform()->toMat4());
+  instance.updateUVScale(cmd, m_scale);
 
   // Bind the vertex/index buffers
   cmd.buffer().bindVertexBuffers(0, *(*mesh.vertexBuffer()).buffer(), {0});
@@ -72,11 +74,13 @@ DEFINE_CREATE_FROM_CONFIG(MeshRenderer, entity, node)
 {
   std::string mesh;
   std::string mat;
+  glm::vec2 scale = glm::vec2(1.0f);
   bool enabled = true;
 
   if (node["model"] && node["model"].IsScalar()) mesh = node["model"].as<std::string>();
   if (node["instance"] && node["instance"].IsScalar())
     mat = node["instance"].as<std::string>();
+  if (node["uv_scale"]) scale = node["uv_scale"].as<glm::vec2>(glm::vec2(1.0f));
   if (node["enabled"] && node["enabled"].IsScalar()) enabled = node["enabled"].as<bool>();
-  return std::make_unique<MeshRenderer>(entity, mesh, mat, enabled);
+  return std::make_unique<MeshRenderer>(entity, mesh, mat, scale, enabled);
 }

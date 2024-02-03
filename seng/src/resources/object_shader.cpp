@@ -88,6 +88,13 @@ void ObjectShader::updateModelState(const CommandBuffer& buf,
                                         offsetof(PushConstants, modelMatrix), model);
 }
 
+void ObjectShader::updateUVScale(const CommandBuffer& buf, glm::vec2 scale) const
+{
+  buf.buffer().pushConstants<glm::vec2>(*m_pipeline.layout(),
+                                        vk::ShaderStageFlagBits::eVertex,
+                                        offsetof(PushConstants, uvScale), scale);
+}
+
 ObjectShader::~ObjectShader()
 {
   // Since all handles are either all valid or all invalid, we simply check one

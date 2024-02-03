@@ -5,6 +5,8 @@
 #include <seng/components/toggle.hpp>
 #include <seng/hook.hpp>
 
+#include <glm/vec2.hpp>
+
 #include <string>
 #include <utility>
 
@@ -30,6 +32,7 @@ class MeshRenderer : public ToggleComponent,
   MeshRenderer(Entity& entity,
                std::string mesh,
                std::string material,
+               glm::vec2 uvScaling = glm::vec2{1.0f, 1.0f},
                bool enabled = true);
   MeshRenderer(const MeshRenderer&) = delete;
   MeshRenderer(MeshRenderer&&) = delete;
@@ -55,6 +58,7 @@ class MeshRenderer : public ToggleComponent,
  private:
   std::string m_meshName;
   std::string m_matName;
+  glm::vec2 m_scale;
   HookToken<const rendering::CommandBuffer&> m_tok;
 };
 

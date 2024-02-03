@@ -22,7 +22,7 @@ layout(set = 0, binding = 0) uniform GlobalUniformObject {
 // in total (guaranteed by the vulkan spec)
 layout(push_constant) uniform push_constant {
     mat4 model; // 64 bytes
-    mat4 _unused; // 64 bytes
+    vec2 uv_scale;
 } pushConstants;
 
 void main() {
@@ -34,6 +34,6 @@ void main() {
   outPosition = (pushConstants.model * vec4(inPosition, 1.0)).xyz;
   outNormal = (nMat * vec4(inNormal, 0.0)).xyz;
   outColor = inColor;
-  outTexCoord = inTexCoord;
+  outTexCoord = inTexCoord * pushConstants.uv_scale;
   outTangent = (pushConstants.model * vec4(inTangent, 0.0)).xyz;
 }
