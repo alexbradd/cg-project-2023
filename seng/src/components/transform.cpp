@@ -15,103 +15,97 @@ using namespace seng;
 
 Transform::Transform(Entity& e, glm::vec3 p, glm::vec3 s, glm::vec3 r) : BaseComponent(e)
 {
-  m_dirty = true;
-  m_hasChanged = false;
   position(p);
   scale(s);
   rotation(r);
+  m_changes = POSITION | ROTATION | SCALE;
 }
 
 void Transform::position(glm::vec3 p)
 {
-  m_dirty = true;
-  m_hasChanged = true;
   m_pos = p;
+  m_changes |= POSITION | CHANGE_TRACKER;
 }
 
 void Transform::translate(glm::vec3 pos)
 {
-  m_dirty = true;
-  m_hasChanged = true;
-  m_pos += pos;
+  position(m_pos + pos);
 }
 
 void Transform::scale(glm::vec3 scale)
 {
-  m_dirty = true;
-  m_hasChanged = true;
   scale.x = scale.x == 0.0f ? 1.0 : scale.x;
   scale.y = scale.y == 0.0f ? 1.0 : scale.y;
   scale.z = scale.z == 0.0f ? 1.0 : scale.z;
   m_scale = scale;
+  m_changes |= SCALE | CHANGE_TRACKER;
 }
 
 void Transform::rotation(glm::quat r)
 {
-  m_dirty = true;
-  m_hasChanged = true;
   m_rotation = r;
+  m_changes |= ROTATION | CHANGE_TRACKER;
 }
 
 void Transform::rotation(glm::vec3 euler)
 {
-  m_dirty = true;
-  m_hasChanged = true;
-  m_rotation = glm::quat(euler);
+  rotation(glm::quat(euler));
 }
 
 void Transform::rotate(glm::vec3 euler, CoordinateSystem ref)
 {
-  m_dirty = true;
-  m_hasChanged = true;
   switch (ref) {
     case CoordinateSystem::eWorld:
-      m_rotation = glm::quat(euler) * m_rotation;
+      rotation(glm::quat(euler) * m_rotation);
       break;
     case CoordinateSystem::eLocal:
-      m_rotation = m_rotation * glm::quat(euler);
+      rotation(m_rotation * glm::quat(euler));
       break;
   }
 }
 
 void Transform::rotate(float angle, glm::vec3 axis)
 {
-  m_dirty = true;
-  m_hasChanged = true;
-  m_rotation = glm::rotate(glm::quat(glm::vec3(0.0, 0.0, 0.0)), angle, axis) * m_rotation;
+  rotation(glm::rotate(glm::quat(glm::vec3(0.0, 0.0, 0.0)), angle, axis) * m_rotation);
 }
 
 void Transform::lookAt(const Transform& other, glm::vec3 upDirection)
 {
-  m_dirty = true;
-  m_hasChanged = true;
   glm::vec3 fwd = glm::normalize(other.m_pos - this->m_pos);
-  m_rotation = glm::quatLookAtLH(fwd, upDirection);
+  rotation(glm::quatLookAtLH(fwd, upDirection));
+}
+
+const glm::mat4& Transform::rotationMatrix() const
+{
+  if (m_changes & ROTATION) {
+    m_rotMat = glm::toMat4(glm::normalize(m_rotation));
+    m_rotMat[2] *= -1;
+    m_changes &= ~ROTATION;
+  }
+  return m_rotMat;
 }
 
 glm::vec3 Transform::forward() const
 {
-  return -this->toMat4()[2];
+  return -rotationMatrix()[2];
 }
 
 glm::vec3 Transform::up() const
 {
-  return this->toMat4()[1];
+  return rotationMatrix()[1];
 }
 
 glm::vec3 Transform::right() const
 {
-  return this->toMat4()[0];
+  return rotationMatrix()[0];
 }
 
 glm::mat4 Transform::toMat4() const
 {
-  if (m_dirty) {
-    m_localToWorld = glm::translate(glm::mat4(1.0f), m_pos) *
-                     glm::toMat4(glm::normalize(m_rotation)) *
+  if (m_changes & ~CHANGE_TRACKER) {
+    m_localToWorld = glm::translate(glm::mat4(1.0f), m_pos) * rotationMatrix() *
                      glm::scale(glm::mat4(1.0f), m_scale);
-    m_localToWorld[2] *= -1;
-    m_dirty = false;
+    m_changes &= CHANGE_TRACKER;
   }
   return m_localToWorld;
 }

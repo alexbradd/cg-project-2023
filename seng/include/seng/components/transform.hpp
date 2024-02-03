@@ -8,6 +8,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
+#include <cstdint>
+
 namespace YAML {
 class Node;
 };
@@ -155,12 +157,12 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
    * This flag becomes true if the transform has been changed
    * at any time before this call and noone has explicitly cleared it.
    */
-  bool changed() const { return m_hasChanged; }
+  bool changed() const { return m_changes & CHANGE_TRACKER; }
 
   /**
    * Clears the `changed` flag.
    */
-  void clearChanged() { m_hasChanged = false; }
+  void clearChanged() { m_changes = m_changes | CHANGE_TRACKER; }
 
   /**
    * Return the unitary vector representing the forward direction of this transform
@@ -199,13 +201,19 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   static constexpr glm::vec3 worldRight() { return glm::vec3(1.0f, 0.0f, 0.0f); }
 
  private:
+  static constexpr uint32_t POSITION = 0x00000001;
+  static constexpr uint32_t ROTATION = 0x00000002;
+  static constexpr uint32_t SCALE = 0x00000004;
+  static constexpr uint32_t CHANGE_TRACKER = 0x80000000;
+
   glm::vec3 m_pos;
   glm::vec3 m_scale;
   glm::quat m_rotation;
 
-  bool m_hasChanged;
+  const glm::mat4& rotationMatrix() const;
 
-  mutable bool m_dirty;
+  mutable uint32_t m_changes;
+  mutable glm::mat4 m_rotMat;
   mutable glm::mat4 m_localToWorld;
 };
 
