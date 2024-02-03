@@ -7,7 +7,7 @@ namespace seng {
 /**
  * Type alias for the clock.
  */
-using Clock = std::chrono::steady_clock;
+using Clock = std::chrono::high_resolution_clock;
 
 /**
  * Type alias for a Clock timestamp (e.g. as returned by Clock::now()).
