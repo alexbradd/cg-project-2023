@@ -44,6 +44,7 @@ void Application::run(unsigned int width, unsigned int height)
           handleSceneSwitch(handle);
           if (m_scene == nullptr) seng::log::error("No scene loaded");
         } else if (m_scene != nullptr) {
+          auto deltaTime = Clock::now() - lastFrame;
           m_scene->update(deltaTime, handle);
         }
       });

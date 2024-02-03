@@ -233,9 +233,9 @@ void Scene::draw(const FrameHandle &handle)
   m_renderer->endMainRenderPass(handle);
 }
 
-void Scene::update(Timestamp lastFrame, const FrameHandle &handle)
+void Scene::update(Duration frameTime, const FrameHandle &handle)
 {
-  float deltaTime = inSeconds(Clock::now() - lastFrame);
+  float deltaTime = inSeconds(frameTime);
   m_earlyUpdate(deltaTime);
 
   // Update

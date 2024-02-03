@@ -211,7 +211,7 @@ class Scene {
   /**
    * Update the current scene
    */
-  void update(Timestamp lastFrame, const rendering::FrameHandle &handle);
+  void update(Duration frameTime, const rendering::FrameHandle &handle);
 
  private:
   Application *m_app;
