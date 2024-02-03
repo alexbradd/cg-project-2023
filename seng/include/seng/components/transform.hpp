@@ -150,8 +150,17 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
    */
   void lookAt(const Transform& other, glm::vec3 upDirection = Transform::worldUp());
 
+  /**
+   * Queries if the `changed` flag is set.
+   *
+   * This flag becomes true if the transform has been changed
+   * at any time before this call and noone has explicitly cleared it.
+   */
   bool changed() const { return m_hasChanged; }
 
+  /**
+   * Clears the `changed` flag.
+   */
   void clearChanged() { m_hasChanged = false; }
 
   /**
