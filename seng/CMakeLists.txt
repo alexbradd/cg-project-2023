@@ -48,6 +48,7 @@ target_sources(${PROJECT_NAME}
     ./src/components/transform.cpp
     ./src/input_manager.cpp
     ./src/log.cpp
+    ./src/math.cpp
     ./src/rendering/buffer.cpp
     ./src/rendering/command_buffer.cpp
     ./src/rendering/debug_messenger.cpp
