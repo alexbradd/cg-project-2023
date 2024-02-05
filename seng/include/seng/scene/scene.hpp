@@ -73,6 +73,9 @@ class Scene {
    */
   static std::unique_ptr<Scene> loadFromDisk(Application &app, std::string sceneName);
 
+  /// Return a const reference to the list of entities
+  const EntityList &entities() const { return m_entities; }
+
   /**
    * Find the first Entity in the scene graph with the given name. If no such
    * entity can be found, a past-the-end iterator is returned.
