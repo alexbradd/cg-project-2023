@@ -58,6 +58,11 @@ Instances:
     instanceOf: toon
     textures:
       [marble/albedo.png, white_1x1.png, diffuse_map.png, specular_map.png]
+
+  - name: road_tile
+    instanceOf: toon
+    textures:
+      [road/albedo.png, road/specular.png, diffuse_map.png, specular_map.png]
   - name: tree
     instanceOf: toon
     textures: [tree/diffuse.png, black_1x1.png, diffuse_map.png, black_1x1.png]
@@ -67,4 +72,8 @@ Instances:
       [car/diffuse.jpeg, car/specular.jpeg, diffuse_map.png, specular_map.png]
   - name: grass
     instanceOf: toon
-    textures: [grass.jpg, black_1x1.png, diffuse_map.png, black_1x1.png]
+    textures: [grass2.png, black_1x1.png, diffuse_map.png, black_1x1.png]
+
+  - name: gizmo
+    instanceOf: simple_diffuse
+    textures: [magenta_1x1.png]

@@ -6,7 +6,7 @@ Light:
 Entities:
   - name: cam
     transform:
-      position: [0.0, 2.0, 10.0]
+      position: [0.0, 2.0, -10.0]
     components:
       - id: Camera
         main: true

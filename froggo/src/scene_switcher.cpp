@@ -48,6 +48,9 @@ void SceneSwitcher::onUpdate([[maybe_unused]] float deltaTime)
 {
   auto &input = entity->application().input();
 
+  if (input->keyDown(seng::KeyCode::eF5)) {
+    entity->application().switchScene(SCENE_NAMES[SCENE_INDEX]);
+  }
   if (input->keyDown(seng::KeyCode::eRightBracket)) {
     SCENE_INDEX = (SCENE_INDEX + 1) % SCENE_NAMES.size();
     entity->application().switchScene(SCENE_NAMES[SCENE_INDEX]);

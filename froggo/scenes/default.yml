@@ -1,39 +1,102 @@
 Light:
   ambient: [0.792, 0.859, 1.0, 0.2] # hex: cadbff
   color: [1.0, 0.941, 0.91, 1.0] # hex: fff0e8 (5500K light)
-  #direction: [0.70, 0.70, 0.0] # 45 deg
   direction: [-0.70, 0.70, 0.0] # 45 deg
 
+Offsets:
+  - &tile1 0
+  - &tile2 40
+  - &tile3 80
+  - &tile4 120
+  - &tile5 160
+  - &tile6 200
+
 Entities:
+  - name: plane1
+    transform:
+      position: [0, 0, 300]
+      scale: &plane_scale [100.0, 100.0, 200.0]
+    components: &plane_components
+      - id: MeshRenderer
+        model: plane.obj
+        instance: grass
+        uv_scale: [100, 300]
+  - name: plane3
+    transform:
+      position: [0, 0, 1100]
+      scale: *plane_scale
+    components: *plane_components
+  - name: plane2
+    transform:
+      position: [0, 0, 1900]
+      scale: &plane_scale
+    components: *plane_components
+
+  ### Road tiles
+  - name: road_tile1
+    transform:
+      position: [0, 0.25, 0]
+      scale: &road_scale [0.40, 0.4, 1.0]
+    components: &road_components
+      - id: MeshRenderer
+        model: road/road.obj
+        instance: road_tile
+  - name: road_tile2
+    transform:
+      position: [0, 0.25, *tile2]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile3
+    transform:
+      position: [0, 0.25, *tile3]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile4
+    transform:
+      position: [0, 0.25, *tile4]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile5
+    transform:
+      position: [0, 0.25, *tile5]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile5
+    transform:
+      position: [0, 0.25, *tile6]
+      scale: *road_scale
+    components: *road_components
+
   - name: tree
     transform:
-      position: [0, 0, 0]
+      position: [-5, 0, 0]
     components:
       - id: MeshRenderer
         model: tree/model.obj
         instance: tree
+
   - name: car
     transform:
-      position: [6, 0, 0]
+      position: [1, 0, 0]
     components:
       - id: MeshRenderer
         model: car/model.obj
         instance: car
-  - name: plane
-    transform:
-      position: [0, 0, 0]
-      scale: [10.0, 10.0, 10.0]
-    components:
-      - id: MeshRenderer
-        model: plane.obj
-        instance: grass
+      - id: CarController
+        acceleration: 10
+        deceleration: 3
+        turn_rate: 2
+        max_speed: 50
   - name: cam
     transform:
-      position: [0.0, 2.0, 10.0]
+      position: [0.0, 2.0, -10.0]
     components:
       - id: Camera
         main: true
-      - id: FreeController
+      - id: CarCamera
+        moveSpeed: 100
+        v_distance: 3.0
+        h_distance: 7.5
   - name: scene_switcher
     components:
       - id: SceneSwitcher
