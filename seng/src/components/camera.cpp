@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
+#include <glm/gtc/reciprocal.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 // clang-format on
 #include <yaml-cpp/yaml.h>
 
@@ -51,7 +53,7 @@ Camera::~Camera()
 glm::mat4 Camera::projectionMatrix() const
 {
   if (m_projectionDirty) {
-    m_projection = glm::perspective(m_fov, m_aspectRatio, m_near, m_far);
+    m_projection = glm::perspectiveLH_ZO(m_fov, m_aspectRatio, m_near, m_far);
     m_projection[1][1] *= -1;
     m_projectionDirty = false;
   }

@@ -24,9 +24,6 @@ class Entity;
  * ones. If there are multiple cameras, only the one set as main will render.
  * If multiple main cameras are set as main, it is undefined which will be
  * registered as main in the end.
- *
- * One particular thing to note: the camera is oriented along the -z axis,
- * meaning that translating along `forward()` moves the camera backwards.
  */
 class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
  public:

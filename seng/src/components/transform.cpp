@@ -79,7 +79,6 @@ const glm::mat4& Transform::rotationMatrix() const
 {
   if (m_changes & ROTATION) {
     m_rotMat = glm::toMat4(glm::normalize(m_rotation));
-    m_rotMat[2] *= -1;
     m_changes &= ~ROTATION;
   }
   return m_rotMat;
@@ -87,7 +86,7 @@ const glm::mat4& Transform::rotationMatrix() const
 
 glm::vec3 Transform::forward() const
 {
-  return -rotationMatrix()[2];
+  return rotationMatrix()[2];
 }
 
 glm::vec3 Transform::up() const

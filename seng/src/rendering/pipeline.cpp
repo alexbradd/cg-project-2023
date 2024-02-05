@@ -63,7 +63,7 @@ static vk::raii::Pipeline createPipeline(const Renderer& renderer,
       info.wireframe ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
   rasterizer.lineWidth = 1.0f;
   rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-  rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+  rasterizer.frontFace = vk::FrontFace::eClockwise;
   rasterizer.depthBiasEnable = false;
 
   vk::PipelineMultisampleStateCreateInfo multisampling{};
