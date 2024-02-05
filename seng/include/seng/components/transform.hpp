@@ -9,6 +9,8 @@
 #include <glm/vec3.hpp>
 
 #include <cstdint>
+#include <optional>
+#include <unordered_set>
 
 namespace YAML {
 class Node;
@@ -25,9 +27,12 @@ enum struct CoordinateSystem { eLocal, eWorld };
 /**
  * Encodes the position, rotation and scale of an object.
  *
- * Every object has a position/rotation/scale in the coordinates of the scene
- * (which are basically the world coordinates). This class encodes said
- * transformation and allows to modify it.
+ * Every Entity in a scene has a Transform component attached. Every Transform
+ * can have a parent, which allows one to apply position, rotation and scale
+ * hierarchically.
+ *
+ * The position/rotation/scale retrieved by use of the accessor methods are all
+ * relative to the local space.
  *
  * The coordinate system used is a left-handed Y-up system. Small visualization:
  *
@@ -37,8 +42,6 @@ enum struct CoordinateSystem { eLocal, eWorld };
  *    |/         clockwise around the axis or rotation
  *    +----> x
  *
- *
- * TODO: allow to build a hierarchy of transforms
  */
 class Transform : public BaseComponent, public ConfigParsableComponent<Transform> {
  public:
@@ -47,14 +50,17 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   static constexpr glm::vec3 DEFAULT_ROT = glm::vec3(0.0f);
 
   /**
-   * Create a new transform with the given position, scale and rotation
+   * Create a new transform with the given position, scale and rotation parented
+   * to the transform attached to the entity with the given name.
    */
   Transform(Entity& entity,
+            std::optional<std::string> parentName = std::nullopt,
             glm::vec3 pos = DEFAULT_POS,
             glm::vec3 scale = DEFAULT_SCALE,
             glm::vec3 rotation = DEFAULT_ROT);
   Transform(const Transform&) = delete;
   Transform(Transform&&) = delete;
+  ~Transform();
 
   Transform& operator=(const Transform&) = delete;
   Transform& operator=(Transform&&) = delete;
@@ -63,10 +69,19 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   DECLARE_CREATE_FROM_CONFIG();
 
   /**
-   * Converts this transform to a matrix that transforms the local
-   * coordinates to global coordinates.
+   * Returns the local-space matrix of this transform
    */
-  const glm::mat4& toMat4() const;
+  const glm::mat4& localMatrix() const;
+
+  /**
+   * Returns the world-space matrix of this transform
+   */
+  glm::mat4 worldMartix() const;
+
+  /**
+   * Transform the given vector from local coordinates to global coordinates
+   */
+  glm::vec3 transformToWorld(const glm::vec3& v) const;
 
   /**
    * Set the position in the scene for this transform.
@@ -206,15 +221,18 @@ class Transform : public BaseComponent, public ConfigParsableComponent<Transform
   static constexpr uint32_t SCALE = 0x00000004;
   static constexpr uint32_t CHANGE_TRACKER = 0x80000000;
 
+  Transform* m_parent;
+  std::unordered_set<Transform*> m_children;
+
   glm::vec3 m_pos;
   glm::vec3 m_scale;
   glm::quat m_rotation;
 
-  const glm::mat4& rotationMatrix() const;
-
   mutable uint32_t m_changes;
   mutable glm::mat4 m_rotMat;
-  mutable glm::mat4 m_localToWorld;
+  mutable glm::mat4 m_local;
+
+  const glm::mat4& rotationMatrix() const;
 };
 
 REGISTER_TO_CONFIG_FACTORY(Transform);

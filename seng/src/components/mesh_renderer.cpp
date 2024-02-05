@@ -58,7 +58,7 @@ void MeshRenderer::render(const rendering::CommandBuffer& cmd) const
   // Update the models transform
   auto& instance =
       entity->application().renderer()->shaders().objectShaderInstances().at(m_matName);
-  instance.updateModelState(cmd, entity->transform()->toMat4());
+  instance.updateModelState(cmd, entity->transform()->worldMartix());
   instance.updateUVScale(cmd, m_scale);
 
   // Bind the vertex/index buffers

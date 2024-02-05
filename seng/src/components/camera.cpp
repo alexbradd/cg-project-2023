@@ -63,7 +63,7 @@ glm::mat4 Camera::projectionMatrix() const
 glm::mat4 Camera::viewMatrix() const
 {
   if (entity->transform()->changed()) {
-    m_view = glm::inverse(entity->transform()->toMat4());
+    m_view = glm::inverse(entity->transform()->worldMartix());
     entity->transform()->clearChanged();
   }
   return m_view;
