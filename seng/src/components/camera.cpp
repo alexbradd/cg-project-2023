@@ -12,6 +12,7 @@
 #include <glm/trigonometric.hpp>
 #include <glm/gtc/reciprocal.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 // clang-format on
 #include <yaml-cpp/yaml.h>
 
@@ -26,8 +27,12 @@ using namespace std::placeholders;
 
 std::vector<Camera*> Camera::cameras;
 
-Camera::Camera(Entity& e, float near, float far, float fov, bool main) : BaseComponent(e)
+Camera::Camera(
+    Entity& e, bool main, float near, float far, float fov, bool ortho, float halfWidth) :
+    BaseComponent(e)
 {
+  m_ortho = ortho;
+  m_half = halfWidth;
   m_near = near;
   m_far = far;
   m_fov = fov;
@@ -53,8 +58,17 @@ Camera::~Camera()
 glm::mat4 Camera::projectionMatrix() const
 {
   if (m_projectionDirty) {
-    m_projection = glm::perspectiveLH_ZO(m_fov, m_aspectRatio, m_near, m_far);
-    m_projection[1][1] *= -1;
+    if (m_ortho) {
+      float top = m_half / m_aspectRatio;
+      float bottom = -top;
+      float left = -m_half;
+      float right = -left;
+      m_projection = glm::scale(glm::orthoLH_ZO(left, right, bottom, top, m_near, m_far),
+                                glm::vec3(1.0f, -1.0f, 1.0f));
+    } else {
+      m_projection = glm::perspectiveLH_ZO(m_fov, m_aspectRatio, m_near, m_far);
+      m_projection[1][1] *= -1;
+    }
     m_projectionDirty = false;
   }
   return m_projection;
@@ -76,6 +90,18 @@ void Camera::resize(int width, int height)
     m_projectionDirty = true;
     m_aspectRatio = newAr;
   }
+}
+
+void Camera::orthographic(bool orthographic)
+{
+  m_projectionDirty = true;
+  m_ortho = orthographic;
+}
+
+void Camera::halfWidth(float halfWidth)
+{
+  m_projectionDirty = true;
+  m_half = halfWidth;
 }
 
 void Camera::nearPlane(float near)
@@ -102,8 +128,14 @@ DEFINE_CREATE_FROM_CONFIG(Camera, entity, node)
   float far = DEFAULT_FAR;
   float fov = DEFAULT_FOV;
   bool main = DEFAULT_MAIN;
+  bool ortho = DEFAULT_ORTHO;
+  float halfWidth = DEFAULT_HALFWIDTH;
 
   if (node["main"] && node["main"].IsScalar()) main = node["main"].as<bool>();
+  if (node["orthographic"] && node["orthographic"].IsScalar())
+    ortho = node["orthographic"].as<bool>();
+  if (node["half_width"] && node["half_width"].IsScalar())
+    halfWidth = node["half_width"].as<float>(DEFAULT_HALFWIDTH);
   if (node["near"] && node["near"].IsScalar())
     near = node["near"].as<float>(DEFAULT_NEAR);
   if (node["far"] && node["far"].IsScalar()) far = node["far"].as<float>(DEFAULT_FAR);
@@ -114,5 +146,5 @@ DEFINE_CREATE_FROM_CONFIG(Camera, entity, node)
   if (node["fov_radians"] && node["fov_radians"].IsScalar())
     fov = node["fov_radians"].as<float>(DEFAULT_FOV);
 
-  return std::make_unique<Camera>(entity, near, far, fov, main);
+  return std::make_unique<Camera>(entity, main, near, far, fov, ortho, halfWidth);
 }

@@ -31,12 +31,16 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   static constexpr float DEFAULT_FAR = 1000.0f;
   static constexpr float DEFAULT_FOV = glm::radians(45.0f);
   static constexpr bool DEFAULT_MAIN = false;
+  static constexpr bool DEFAULT_ORTHO = false;
+  static constexpr float DEFAULT_HALFWIDTH = 5.0f;
 
   Camera(Entity& entity,
+         bool main = DEFAULT_MAIN,
          float near = DEFAULT_NEAR,
          float far = DEFAULT_FAR,
          float fov = DEFAULT_FOV,
-         bool main = DEFAULT_MAIN);
+         bool orthographic = DEFAULT_ORTHO,
+         float halfWidth = DEFAULT_HALFWIDTH);
   Camera(const Camera&) = delete;
   Camera(Camera&&) = delete;
   ~Camera();
@@ -48,6 +52,8 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   DECLARE_CREATE_FROM_CONFIG();
 
   // Getters
+  bool orthographic() const { return m_ortho; }
+  float halfWidth() const { return m_half; }
   float aspectRatio() const { return m_aspectRatio; }
   float nearPlane() const { return m_near; }
   float farPlane() const { return m_far; }
@@ -56,6 +62,8 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   static const std::vector<Camera*>& allCameras() { return cameras; }
 
   // Setters
+  void orthographic(bool ortho);
+  void halfWidth(float half);
   void nearPlane(float near);
   void farPlane(float far);
   void fov(float fov);
@@ -74,6 +82,8 @@ class Camera : public BaseComponent, public ConfigParsableComponent<Camera> {
   glm::mat4 viewMatrix() const;
 
  private:
+  bool m_ortho;
+  float m_half;
   float m_aspectRatio;
   float m_near;
   float m_far;
