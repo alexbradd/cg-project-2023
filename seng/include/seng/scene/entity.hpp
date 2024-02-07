@@ -71,6 +71,9 @@ class Entity {
   const std::string& name() const { return m_name; }
   Transform* transform() const;
 
+  /// Return a reference to the component map of the entity
+  const ComponentMap& components() const { return m_components; }
+
   /**
    * Return a reference to a vector of owned pointers to
    * Components of type T attached to the Entity. If no component of the given

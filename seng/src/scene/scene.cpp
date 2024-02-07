@@ -61,6 +61,13 @@ std::unique_ptr<Scene> Scene::loadFromDisk(Application &app, std::string sceneNa
     for (YAML::const_iterator i = e.begin(); i != e.end(); ++i) s->parseEntity(*i);
   }
 
+  for (auto &e : s->m_entities) {
+    e.transform()->lateInit();
+    for (auto &cmpType : e.components()) {
+      for (auto &c : cmpType.second) c->lateInit();
+    }
+  }
+
   return s;
 }
 

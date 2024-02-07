@@ -28,7 +28,8 @@ Transform::Transform(Entity& e,
   if (parentName.has_value()) {
     auto parent = e.scene().findByName(*parentName);
     if (parent == e.scene().entities().end()) {
-      seng::log::warning("Parent does not exists, defaulting to null");
+      seng::log::warning(
+          "Parent does not exists or has not been defined, defaulting to null");
       m_parent = nullptr;
     } else {
       seng::log::dbg("Parenting to {}", *parentName);

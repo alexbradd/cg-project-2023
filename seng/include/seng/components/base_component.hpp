@@ -42,6 +42,11 @@ class BaseComponent {
 
   const Entity &attachedTo() const { return *entity; }
 
+  /// Initialization method that is guaranteed to be executed right after the
+  /// scene has finished parsing and all Entities and their components have
+  /// been constructed
+  virtual void lateInit() {}
+
  protected:
   Entity *const entity;
 };

@@ -101,8 +101,10 @@ Yea, I am on a deadline and stuff has a bit of jank.
 2. Components are read and attached to entities sequentially in the same order
    as they are defined
 
-   Keep an eye on which component searches for which during initialization. If
-   you have circular dependencies, tough luck, find a way to remove them.
+   Keep an eye on which component searches for which during initialization.
+
+If you stumble upon complex ordering dependencies between entities/components,
+have a look at using the `lateInit` method (explained in the following).
 
 ### Component system
 
@@ -125,6 +127,10 @@ details on creation the component will not yet be attached to the entity (i.e. i
 will not appear in the entities component list). This shouldn't be a problem
 unless for some reason one queries itself on creation. In that case, don't.
 
+After every Entity and its Components has been constructed, the `lateInit` method
+is called for each one. The Component destructor runs on component removal, be
+it for entity destruction or scene destruction.
+
 Scripts that inherit from `ScriptComponent` will have the following hooks
 available:
 
@@ -137,8 +143,6 @@ available:
   graphics are drawn if the component is enabled. Should be the main event to use.
 - `onLateUpdate`: called after the frame has been drawn if the component is
   enabled. Use if your code needs to run after every script's `onUpdate`.
-- Component destructor: runs on component removal, be it for entity destruction
-  or scene destruction.
 
 No hook-execution order is guaranteed.
 
