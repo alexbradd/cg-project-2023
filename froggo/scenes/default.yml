@@ -79,24 +79,35 @@ Entities:
     transform:
       position: [1, 0, 0]
     components:
-      - id: MeshRenderer
-        model: car/model.obj
-        instance: car
       - id: CarController
         acceleration: 10
         deceleration: 3
         turn_rate: 2
         max_speed: 50
+        model_entity: car_model
+  - name: cam_focus
+    transform:
+      parent: car
+      position: [0, 1.0, 0]
+  - name: car_model
+    transform:
+      parent: car
+    components:
+      - id: MeshRenderer
+        model: car/model.obj
+        instance: car
   - name: cam
     transform:
-      position: [0.0, 2.0, -10.0]
+      parent: car
+      position: [0.0, 3.0, -7.5]
     components:
       - id: Camera
         main: true
+        near: 1.0
       - id: CarCamera
-        moveSpeed: 100
-        v_distance: 3.0
-        h_distance: 7.5
+        lookat_entity: cam_focus
+        controller_entity: car
+
   - name: scene_switcher
     components:
       - id: SceneSwitcher

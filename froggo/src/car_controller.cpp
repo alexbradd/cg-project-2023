@@ -1,3 +1,5 @@
+#include "./car_controller.hpp"
+
 #include <seng/application.hpp>
 #include <seng/components/scene_config_component_factory.hpp>
 #include <seng/components/script.hpp>
@@ -17,73 +19,28 @@
 using seng::smoothDamp;
 
 // ===== CarController
-class CarController : public seng::ScriptComponent,
-                      public seng::ConfigParsableComponent<CarController> {
- public:
-  static constexpr float DEFAULT_ACCEL = 7.0f;
-  static constexpr float DEFAULT_DECEL = 0.0f;
-  static constexpr float DEFAULT_TURN_RATE = 0.2f;
-  static constexpr float DEFAULT_MAX_SPEED = 50.0f;
-
-  CarController(seng::Entity &entity,
-                float acceleration = DEFAULT_ACCEL,
-                float deceleration = DEFAULT_DECEL,
-                float turnRate = DEFAULT_TURN_RATE,
-                float maxSpeed = DEFAULT_MAX_SPEED,
-                bool enabled = true);
-  CarController(const CarController &) = delete;
-  CarController(CarController &&) = delete;
-
-  CarController &operator=(const CarController &) = delete;
-  CarController &operator=(CarController &&) = delete;
-
-  DECLARE_COMPONENT_ID("CarController");
-  DECLARE_CREATE_FROM_CONFIG();
-
-  void onUpdate(float deltaTime) override;
-
- private:
-  float m_accel;
-  float m_decel;
-  float m_turnRate;
-  float m_maxSpeed;
-  float m_maxSpeed2;
-
-  glm::vec3 m_velocity = glm::vec3(0.0f);
-  glm::vec3 m_dampVelocities = glm::vec3{0.0f};
-
-  float m_currentAccel = 0;
-  float m_dampAccel = 0;
-
-  float m_angularVelocity = 0.0f;
-  float m_dampAngular = 0.0f;
-
-  void accelerate(float delta);
-  void steer(float delta);
-
-  friend class Gizmo;
-};
-
-REGISTER_TO_CONFIG_FACTORY(CarController);
-
 DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
 {
+  std::string model;
   bool enabled = true;
   float accel = DEFAULT_ACCEL;
   float decel = DEFAULT_DECEL;
   float turn = DEFAULT_TURN_RATE;
   float maxSpeed = DEFAULT_MAX_SPEED;
 
+  model = node["model_entity"].as<std::string>();
   if (node["enabled"]) enabled = node["enabled"].as<bool>();
   if (node["acceleration"]) accel = node["acceleration"].as<float>();
   if (node["deceleration"]) decel = node["deceleration"].as<float>();
   if (node["turn_rate"]) turn = node["turn_rate"].as<float>();
   if (node["max_speed"]) maxSpeed = node["max_speed"].as<float>();
 
-  return std::make_unique<CarController>(entity, accel, decel, turn, maxSpeed, enabled);
+  return std::make_unique<CarController>(entity, model, accel, decel, turn, maxSpeed,
+                                         enabled);
 }
 
 CarController::CarController(seng::Entity &entity,
+                             const std::string &model,
                              float acceleration,
                              float deceleration,
                              float turnRate,
@@ -91,11 +48,25 @@ CarController::CarController(seng::Entity &entity,
                              bool enabled) :
     ScriptComponent(entity, enabled)
 {
+  m_modelName = model;
   m_accel = acceleration;
   m_decel = deceleration;
   m_turnRate = turnRate;
   m_maxSpeed = maxSpeed;
   m_maxSpeed2 = m_maxSpeed * m_maxSpeed;
+}
+
+void CarController::lateInit()
+{
+  auto it = entity->scene().findByName(m_modelName);
+  if (it == entity->scene().entities().end())
+    throw std::runtime_error("No entity named " + m_modelName + " can be found");
+  m_model = it->transform();
+}
+
+float CarController::speed() const
+{
+  return glm::length(m_velocity);
 }
 
 void CarController::onUpdate(float delta)
@@ -141,7 +112,7 @@ void CarController::accelerate(float delta)
   m_currentAccel = smoothDamp(m_currentAccel, target, m_dampAccel, dampTime, delta);
 
   if (key) {
-    m_velocity += entity->transform()->forward() * target * delta;
+    m_velocity += m_model->forward() * target * delta;
   } else {
     float len2 = glm::length2(m_velocity);
     if (len2 > 0) {
@@ -184,7 +155,7 @@ void CarController::steer(float delta)
     bool reverse = false;
 
     // Check if we are going in reverse
-    float unsignedAngle = seng::unsignedAngle(m_velocity, entity->transform()->forward());
+    float unsignedAngle = seng::unsignedAngle(m_velocity, m_model->forward());
     if (unsignedAngle > glm::pi<float>() / 2) reverse = true;
 
     // Depending on the outcome, pick the axis for angle calulation
@@ -193,7 +164,7 @@ void CarController::steer(float delta)
 
     // Then rotate accordingly
     float signedAngle = seng::signedAngle(m_velocity, axis, -seng::Transform::worldUp());
-    entity->transform()->rotation(glm::vec3(0, signedAngle, 0));
+    m_model->rotation(glm::vec3(0, signedAngle, 0));
   }
 }
 
