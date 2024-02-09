@@ -11,13 +11,18 @@ class CarController : public seng::ScriptComponent,
   static constexpr float DEFAULT_DECEL = 0.0f;
   static constexpr float DEFAULT_TURN_RATE = 0.2f;
   static constexpr float DEFAULT_MAX_SPEED = 50.0f;
+  static constexpr float DEFAULT_BODY_PITCH = glm::radians(2.0f);
+  static constexpr float DEFAULT_BODY_ROLL = glm::radians(2.0f);
 
   CarController(seng::Entity &entity,
                 const std::string &model,
+                const std::string &body,
                 float acceleration = DEFAULT_ACCEL,
                 float deceleration = DEFAULT_DECEL,
                 float turnRate = DEFAULT_TURN_RATE,
                 float maxSpeed = DEFAULT_MAX_SPEED,
+                float maxPitch = DEFAULT_BODY_PITCH,
+                float maxRoll = DEFAULT_BODY_ROLL,
                 bool enabled = true);
   CarController(const CarController &) = delete;
   CarController(CarController &&) = delete;
@@ -38,6 +43,9 @@ class CarController : public seng::ScriptComponent,
   std::string m_modelName;
   seng::Transform *m_model;
 
+  std::string m_bodyName;
+  seng::Transform *m_body;
+
   float m_accel;
   float m_decel;
   float m_turnRate;
@@ -52,6 +60,14 @@ class CarController : public seng::ScriptComponent,
 
   float m_angularVelocity = 0.0f;
   float m_dampAngular = 0.0f;
+
+  float m_maxBodyPitch;
+  float m_bodyPitch = 0.0f;
+  float m_pitchVelocity = 0.0f;
+
+  float m_maxBodyRoll;
+  float m_bodyRoll = 0.0f;
+  float m_rollVelocity = 0.0f;
 
   void accelerate(float delta);
   void steer(float delta);

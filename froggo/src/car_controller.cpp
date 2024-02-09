@@ -21,39 +21,50 @@ using seng::smoothDamp;
 // ===== CarController
 DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
 {
-  std::string model;
+  std::string model, body;
   bool enabled = true;
   float accel = DEFAULT_ACCEL;
   float decel = DEFAULT_DECEL;
   float turn = DEFAULT_TURN_RATE;
   float maxSpeed = DEFAULT_MAX_SPEED;
+  float maxPitch = DEFAULT_BODY_PITCH;
+  float maxRoll = DEFAULT_BODY_ROLL;
 
   model = node["model_entity"].as<std::string>();
+  body = node["body_entity"].as<std::string>();
   if (node["enabled"]) enabled = node["enabled"].as<bool>();
   if (node["acceleration"]) accel = node["acceleration"].as<float>();
   if (node["deceleration"]) decel = node["deceleration"].as<float>();
   if (node["turn_rate"]) turn = node["turn_rate"].as<float>();
   if (node["max_speed"]) maxSpeed = node["max_speed"].as<float>();
+  if (node["max_pitch_deg"]) maxPitch = glm::radians(node["max_pitch_deg"].as<float>());
+  if (node["max_roll_deg"]) maxRoll = glm::radians(node["max_roll_deg"].as<float>());
 
-  return std::make_unique<CarController>(entity, model, accel, decel, turn, maxSpeed,
-                                         enabled);
+  return std::make_unique<CarController>(entity, model, body, accel, decel, turn,
+                                         maxSpeed, maxPitch, maxRoll, enabled);
 }
 
 CarController::CarController(seng::Entity &entity,
                              const std::string &model,
+                             const std::string &body,
                              float acceleration,
                              float deceleration,
                              float turnRate,
                              float maxSpeed,
+                             float maxPitch,
+                             float maxRoll,
                              bool enabled) :
     ScriptComponent(entity, enabled)
 {
   m_modelName = model;
+  m_bodyName = body;
   m_accel = acceleration;
   m_decel = deceleration;
   m_turnRate = turnRate;
   m_maxSpeed = maxSpeed;
   m_maxSpeed2 = m_maxSpeed * m_maxSpeed;
+  m_maxBodyPitch = maxPitch;
+  m_maxBodyRoll = maxRoll;
 }
 
 void CarController::lateInit()
@@ -62,6 +73,11 @@ void CarController::lateInit()
   if (it == entity->scene().entities().end())
     throw std::runtime_error("No entity named " + m_modelName + " can be found");
   m_model = it->transform();
+
+  it = entity->scene().findByName(m_bodyName);
+  if (it == entity->scene().entities().end())
+    throw std::runtime_error("No entity named " + m_bodyName + " can be found");
+  m_body = it->transform();
 }
 
 float CarController::speed() const
@@ -92,27 +108,28 @@ void CarController::accelerate(float delta)
 {
   auto &input = entity->application().input();
 
-  float target;
-  float dampTime;
+  float targetAccel;
+  float targetPitch;
 
-  bool key = false;
-
+  // Depending on input, calculate the target acceleration and model pitch
   if (input->keyHold(seng::KeyCode::eKeyW)) {
-    key = true;
-    target = m_accel;
-    dampTime = 0.1f;
+    targetAccel = m_accel;
+    targetPitch = -m_maxBodyPitch;
   } else if (input->keyHold(seng::KeyCode::eKeyS)) {
-    key = true;
-    target = -m_accel;
-    dampTime = 0.1f;
+    targetAccel = -m_accel;
+    targetPitch = m_maxBodyPitch;
   } else {
-    target = 0;
-    dampTime = 0.1f;
+    targetAccel = 0;
+    targetPitch = 0.0f;
   }
-  m_currentAccel = smoothDamp(m_currentAccel, target, m_dampAccel, dampTime, delta);
 
-  if (key) {
-    m_velocity += m_model->forward() * target * delta;
+  // Update the current acceleration moving it towards the target
+  m_currentAccel = smoothDamp(m_currentAccel, targetAccel, m_dampAccel, 0.1f, delta);
+
+  // If a non-zero acceleration is wanted, change the velocity based on that,
+  // otherwise apply an "intertial" deceleration
+  if (targetAccel != 0.0f) {
+    m_velocity += m_model->forward() * targetAccel * delta;
   } else {
     float len2 = glm::length2(m_velocity);
     if (len2 > 0) {
@@ -121,40 +138,58 @@ void CarController::accelerate(float delta)
       m_velocity -= glm::normalize(m_velocity) * scale * m_decel * delta;
     }
   }
+
+  m_bodyPitch = smoothDamp(m_bodyPitch, targetPitch, m_pitchVelocity, 0.1f, delta);
+  m_body->rotation(glm::vec3(m_bodyPitch, m_body->yaw(), m_body->roll()));
 }
 
 void CarController::steer(float delta)
 {
   auto &input = entity->application().input();
 
-  bool key = false;
+  float targetAngular;
+  float targetRoll;
 
+  // First calculate the murrent angular velocity and set the target roll
   if (input->keyHold(seng::KeyCode::eKeyA)) {
-    key = true;
-    m_angularVelocity =
-        smoothDamp(m_angularVelocity, -m_turnRate, m_dampAngular, 0.01, delta);
+    targetAngular = -m_turnRate;
+    targetRoll = m_maxBodyRoll;
   } else if (input->keyHold(seng::KeyCode::eKeyD)) {
-    key = true;
-    m_angularVelocity =
-        smoothDamp(m_angularVelocity, m_turnRate, m_dampAngular, 0.01, delta);
+    targetAngular = m_turnRate;
+    targetRoll = -m_maxBodyRoll;
   } else {
-    m_angularVelocity = smoothDamp(m_angularVelocity, 0.0f, m_dampAngular, 0.01, delta);
+    targetAngular = 0.0f;
+    targetRoll = 0.0f;
   }
 
+  // Scaling w.r.t. speed for regulating turning intensity
+  // (higher speed -> higher turning)
   float speed2 = glm::length2(m_velocity);
-  if (glm::abs(m_angularVelocity) < .1f) return;
-  if (speed2 < 5.0f) return;
+  float turnScaling = 1.0f - glm::exp(-0.01 * speed2);
 
-  float turnRateScale = 1.0f - glm::exp(-0.01 * speed2);
-  glm::vec3 accel =
-      glm::cross(glm::vec3(0.0f, turnRateScale * m_angularVelocity, 0.0f), m_velocity);
+  // Update the current angular velocity
+  m_angularVelocity = smoothDamp(m_angularVelocity, turnScaling * targetAngular,
+                                 m_dampAngular, 0.01, delta);
+
+  // Update the model roll
+  m_bodyRoll =
+      smoothDamp(m_bodyRoll, turnScaling * targetRoll, m_rollVelocity, 0.1f, delta);
+  m_body->rotation(glm::vec3(m_body->pitch(), m_body->yaw(), m_bodyRoll));
+
+  // If going too slow, simply abort acceleration calcualtions to avoid dealing
+  // with infinitesimal values
+  if (speed2 < 5.0f) return;
+  if (glm::abs(m_angularVelocity) < .1f) return;
+
+  // Calculate the lateral acceleration
+  glm::vec3 accel = glm::cross(glm::vec3(0.0f, m_angularVelocity, 0.0f), m_velocity);
   m_velocity += accel * delta;
 
-  if (key) {
-    // Rotate the model in new direction of motion
-    bool reverse = false;
-
+  // If a non-zero angular speed was requested, rotate the model in new direction
+  // of motion
+  if (targetAngular != 0.0f) {
     // Check if we are going in reverse
+    bool reverse = false;
     float unsignedAngle = seng::unsignedAngle(m_velocity, m_model->forward());
     if (unsignedAngle > glm::pi<float>() / 2) reverse = true;
 

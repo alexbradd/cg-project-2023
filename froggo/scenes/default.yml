@@ -84,7 +84,10 @@ Entities:
         deceleration: 3
         turn_rate: 2
         max_speed: 50
+        max_pitch_deg: 2.0
+        max_roll_deg: 2.0
         model_entity: car_model
+        body_entity: car_body
   - name: cam_focus
     transform:
       parent: car
@@ -92,10 +95,21 @@ Entities:
   - name: car_model
     transform:
       parent: car
+  - name: car_body
+    transform:
+      parent: car_model
     components:
       - id: MeshRenderer
-        model: car/model.obj
+        model: car/body.obj
         instance: car
+  - name: car_wheels
+    transform:
+      parent: car_model
+    components:
+      - id: MeshRenderer
+        model: car/wheels.obj
+        instance: car
+
   - name: cam
     transform:
       parent: car
