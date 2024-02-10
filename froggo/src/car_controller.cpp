@@ -21,7 +21,7 @@ using seng::smoothDamp;
 // ===== CarController
 DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
 {
-  std::string model, body;
+  std::string model, body, wheelL, wheelR;
   bool enabled = true;
   float accel = DEFAULT_ACCEL;
   float breaking = DEFAULT_BREAK;
@@ -30,25 +30,36 @@ DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
   float maxSpeed = DEFAULT_MAX_SPEED;
   float maxPitch = DEFAULT_BODY_PITCH;
   float maxRoll = DEFAULT_BODY_ROLL;
+  float maxYaw = DEFAULT_WHEEL_YAW;
 
   model = node["model_entity"].as<std::string>();
   body = node["body_entity"].as<std::string>();
+  wheelL = node["wheel_left_entity"].as<std::string>();
+  wheelR = node["wheel_right_entity"].as<std::string>();
   if (node["enabled"]) enabled = node["enabled"].as<bool>();
   if (node["acceleration"]) accel = node["acceleration"].as<float>();
   if (node["breaking"]) breaking = node["breaking"].as<float>();
   if (node["deceleration"]) decel = node["deceleration"].as<float>();
   if (node["turn_rate"]) turn = node["turn_rate"].as<float>();
   if (node["max_speed"]) maxSpeed = node["max_speed"].as<float>();
-  if (node["max_pitch_deg"]) maxPitch = glm::radians(node["max_pitch_deg"].as<float>());
-  if (node["max_roll_deg"]) maxRoll = glm::radians(node["max_roll_deg"].as<float>());
 
-  return std::make_unique<CarController>(entity, model, body, accel, breaking, decel,
-                                         turn, maxSpeed, maxPitch, maxRoll, enabled);
+  if (node["max_body_pitch_deg"])
+    maxPitch = glm::radians(node["max_body_pitch_deg"].as<float>());
+  if (node["max_body_roll_deg"])
+    maxRoll = glm::radians(node["max_body_roll_deg"].as<float>());
+  if (node["max_wheel_yaw_deg"])
+    maxYaw = glm::radians(node["max_wheel_yaw_deg"].as<float>());
+
+  return std::make_unique<CarController>(entity, model, body, wheelL, wheelR, accel,
+                                         breaking, decel, turn, maxSpeed, maxPitch,
+                                         maxRoll, maxYaw, enabled);
 }
 
 CarController::CarController(seng::Entity &entity,
                              const std::string &model,
                              const std::string &body,
+                             const std::string &wheelLeft,
+                             const std::string &wheelRight,
                              float acceleration,
                              float breaking,
                              float deceleration,
@@ -56,11 +67,15 @@ CarController::CarController(seng::Entity &entity,
                              float maxSpeed,
                              float maxPitch,
                              float maxRoll,
+                             float maxYaw,
                              bool enabled) :
     ScriptComponent(entity, enabled)
 {
   m_modelName = model;
   m_bodyName = body;
+  m_wheelLeftName = wheelLeft;
+  m_wheelRightName = wheelRight;
+
   m_accel = acceleration;
   m_breaking = breaking;
   m_decel = deceleration;
@@ -69,6 +84,7 @@ CarController::CarController(seng::Entity &entity,
   m_maxSpeed2 = m_maxSpeed * m_maxSpeed;
   m_maxBodyPitch = maxPitch;
   m_maxBodyRoll = maxRoll;
+  m_maxWheelYaw = maxYaw;
 }
 
 void CarController::lateInit()
@@ -82,6 +98,16 @@ void CarController::lateInit()
   if (it == entity->scene().entities().end())
     throw std::runtime_error("No entity named " + m_bodyName + " can be found");
   m_body = it->transform();
+
+  it = entity->scene().findByName(m_wheelLeftName);
+  if (it == entity->scene().entities().end())
+    throw std::runtime_error("No entity named " + m_wheelLeftName + " can be found");
+  m_wheelLeft = it->transform();
+
+  it = entity->scene().findByName(m_wheelRightName);
+  if (it == entity->scene().entities().end())
+    throw std::runtime_error("No entity named " + m_wheelRightName + " can be found");
+  m_wheelRight = it->transform();
 }
 
 float CarController::speed() const
@@ -166,18 +192,27 @@ void CarController::steer(float delta)
 
   float targetAngular;
   float targetRoll;
+  float targetYaw;
 
   // First calculate the murrent angular velocity and set the target roll
   if (input->keyHold(seng::KeyCode::eKeyA)) {
     targetAngular = -m_turnRate;
     targetRoll = m_maxBodyRoll;
+    targetYaw = -m_maxWheelYaw;
   } else if (input->keyHold(seng::KeyCode::eKeyD)) {
     targetAngular = m_turnRate;
     targetRoll = -m_maxBodyRoll;
+    targetYaw = m_maxWheelYaw;
   } else {
     targetAngular = 0.0f;
     targetRoll = 0.0f;
+    targetYaw = 0.0f;
   }
+
+  m_wheelYaw = smoothDamp(m_wheelYaw, targetYaw, m_yawVelocity, 0.1f, delta);
+  m_wheelLeft->rotation(glm::vec3(m_wheelLeft->pitch(), m_wheelYaw, m_wheelLeft->roll()));
+  m_wheelRight->rotation(
+      glm::vec3(m_wheelRight->pitch(), m_wheelYaw, m_wheelRight->roll()));
 
   // Scaling w.r.t. speed for regulating turning intensity
   // (higher speed -> higher turning)
@@ -198,19 +233,20 @@ void CarController::steer(float delta)
   if (speed2 < 5.0f) return;
   if (glm::abs(m_angularVelocity) < .1f) return;
 
+  // Check if we are going in reverse
+  bool reverse = false;
+  float unsignedAngle = seng::unsignedAngle(m_velocity, m_model->forward());
+  if (unsignedAngle > glm::pi<float>() / 2) reverse = true;
+
   // Calculate the lateral acceleration
-  glm::vec3 accel = glm::cross(glm::vec3(0.0f, m_angularVelocity, 0.0f), m_velocity);
+  float angVel = reverse ? -m_angularVelocity : m_angularVelocity;
+  glm::vec3 accel = glm::cross(glm::vec3(0.0f, angVel, 0.0f), m_velocity);
   m_velocity += accel * delta;
 
   // If a non-zero angular speed was requested, rotate the model in new direction
   // of motion
   if (targetAngular != 0.0f) {
-    // Check if we are going in reverse
-    bool reverse = false;
-    float unsignedAngle = seng::unsignedAngle(m_velocity, m_model->forward());
-    if (unsignedAngle > glm::pi<float>() / 2) reverse = true;
-
-    // Depending on the outcome, pick the axis for angle calulation
+    // Depending on the direction of motion, pick the axis for angle calulation
     glm::vec3 axis =
         reverse ? -seng::Transform::worldForward() : seng::Transform::worldForward();
 

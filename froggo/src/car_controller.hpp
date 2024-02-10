@@ -14,10 +14,13 @@ class CarController : public seng::ScriptComponent,
   static constexpr float DEFAULT_MAX_SPEED = 50.0f;
   static constexpr float DEFAULT_BODY_PITCH = glm::radians(2.0f);
   static constexpr float DEFAULT_BODY_ROLL = glm::radians(2.0f);
+  static constexpr float DEFAULT_WHEEL_YAW = glm::radians(30.0f);
 
   CarController(seng::Entity &entity,
                 const std::string &model,
                 const std::string &body,
+                const std::string &wheelLeft,
+                const std::string &wheelRight,
                 float acceleration = DEFAULT_ACCEL,
                 float breaking = DEFAULT_BREAK,
                 float deceleration = DEFAULT_DECEL,
@@ -25,6 +28,7 @@ class CarController : public seng::ScriptComponent,
                 float maxSpeed = DEFAULT_MAX_SPEED,
                 float maxPitch = DEFAULT_BODY_PITCH,
                 float maxRoll = DEFAULT_BODY_ROLL,
+                float maxYaw = DEFAULT_WHEEL_YAW,
                 bool enabled = true);
   CarController(const CarController &) = delete;
   CarController(CarController &&) = delete;
@@ -47,6 +51,11 @@ class CarController : public seng::ScriptComponent,
 
   std::string m_bodyName;
   seng::Transform *m_body;
+
+  std::string m_wheelLeftName;
+  seng::Transform *m_wheelLeft;
+  std::string m_wheelRightName;
+  seng::Transform *m_wheelRight;
 
   float m_accel;
   float m_breaking;
@@ -71,6 +80,10 @@ class CarController : public seng::ScriptComponent,
   float m_maxBodyRoll;
   float m_bodyRoll = 0.0f;
   float m_rollVelocity = 0.0f;
+
+  float m_maxWheelYaw;
+  float m_wheelYaw = 0.0f;
+  float m_yawVelocity = 0.0f;
 
   void accelerate(float delta);
   void steer(float delta);
