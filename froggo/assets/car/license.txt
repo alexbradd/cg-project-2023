@@ -11,7 +11,7 @@ If you use this 3D model in your project be sure to copy paste this credit where
 This work is based on "FREE Retro France Car Cartoon (Low Poly)" (https://sketchfab.com/3d-models/free-retro-france-car-cartoon-low-poly-f50b3b700fdb41479c7253df10db0b24) by Moonlight (https://sketchfab.com/moonlight2023) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 
 Changes:
-1. Re-exported as OBJ
+1. Re-aligned wheels and car body
 2. Shaded smooth
 3. UV unwrapped
 4. Add specular color texture

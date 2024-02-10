@@ -49,6 +49,9 @@ Instances:
   - name: alu
     instanceOf: ggx
     textures: [alu/albedo.png, alu/mrao.png, alu/normal-ogl.png]
+  - name: pbr_grass
+    instanceOf: ggx
+    textures: [grass/albedo.png, grass/mrao.png, grass/normal.png]
 
   - name: alu_var
     instanceOf: ggx_var
@@ -62,17 +65,39 @@ Instances:
   - name: road_tile
     instanceOf: toon
     textures:
-      [road/albedo.png, road/specular.png, diffuse_map.png, specular_map.png]
+      [city/road/albedo.png, black_1x1.png, diffuse_map.png, specular_map.png]
   - name: tree
     instanceOf: toon
     textures: [tree/diffuse.png, black_1x1.png, diffuse_map.png, black_1x1.png]
+  - name: apartment
+    instanceOf: toon
+    textures:
+      [
+        city/ap/apartment_albedo.png,
+        city/ap/apartment_specular.png,
+        diffuse_map.png,
+        specular_map.png,
+      ]
+  - name: street_light
+    instanceOf: toon
+    textures:
+      [
+        city/street_light/albedo.png,
+        white_1x1.png,
+        diffuse_map.png,
+        specular_map.png,
+      ]
   - name: car
     instanceOf: toon
     textures:
       [car/diffuse.jpeg, car/specular.jpeg, diffuse_map.png, specular_map.png]
   - name: grass
     instanceOf: toon
-    textures: [grass2.png, black_1x1.png, diffuse_map.png, black_1x1.png]
+    textures: [grass/albedo.png, black_1x1.png, diffuse_map.png, black_1x1.png]
+  - name: pavement
+    instanceOf: toon
+    textures:
+      [city/pav/pavement.jpg, black_1x1.png, diffuse_map.png, black_1x1.png]
 
   - name: gizmo
     instanceOf: simple_diffuse

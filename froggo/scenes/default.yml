@@ -10,6 +10,10 @@ Offsets:
   - &tile4 120
   - &tile5 160
   - &tile6 200
+  - &tile7 240
+  - &tile8 280
+  - &tile9 320
+  - &tile10 360
 
 Entities:
   - name: plane1
@@ -21,25 +25,24 @@ Entities:
         model: plane.obj
         instance: grass
         uv_scale: [100, 300]
-  - name: plane3
+  - name: plane2
     transform:
       position: [0, 0, 1100]
       scale: *plane_scale
     components: *plane_components
-  - name: plane2
+  - name: plane3
     transform:
       position: [0, 0, 1900]
       scale: &plane_scale
     components: *plane_components
 
-  ### Road tiles
   - name: road_tile1
     transform:
       position: [0, 0.25, 0]
       scale: &road_scale [0.40, 0.4, 1.0]
     components: &road_components
       - id: MeshRenderer
-        model: road/road.obj
+        model: city/road/road.obj
         instance: road_tile
   - name: road_tile2
     transform:
@@ -61,25 +64,142 @@ Entities:
       position: [0, 0.25, *tile5]
       scale: *road_scale
     components: *road_components
-  - name: road_tile5
+  - name: road_tile6
     transform:
       position: [0, 0.25, *tile6]
       scale: *road_scale
     components: *road_components
-
-  - name: tree
+  - name: road_tile7
     transform:
-      position: [-5, 0, 0]
-    components:
+      position: [0, 0.25, *tile7]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile8
+    transform:
+      position: [0, 0.25, *tile8]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile9
+    transform:
+      position: [0, 0.25, *tile9]
+      scale: *road_scale
+    components: *road_components
+  - name: road_tile10
+    transform:
+      position: [0, 0.25, *tile10]
+      scale: *road_scale
+    components: *road_components
+
+  - name: forest
+    transform:
+      position: [5, 0, 0]
+      scale: &forest_scale [2, 2, 2]
+    components: &forest_components
       - id: MeshRenderer
-        model: tree/model.obj
+        model: tree/forest.obj
         instance: tree
+  - name: forest
+    transform:
+      position: [5, 0, 38]
+      scale: *forest_scale
+    components: *forest_components
+  - name: forest
+    transform:
+      position: [5, 0, 76]
+      scale: *forest_scale
+    components: *forest_components
+  - name: forest
+    transform:
+      position: [5, 0, 114]
+      scale: *forest_scale
+    components: *forest_components
+  - name: forest
+    transform:
+      position: [5, 0, -38]
+      scale: *forest_scale
+    components: *forest_components
+
+  - name: pavement
+    transform:
+      position: [-43, 0.1, 20]
+      scale: &pav_scale [20.0, 20.0, 20.0]
+    components: &pav_components
+      - id: MeshRenderer
+        model: plane.obj
+        instance: pavement
+        uv_scale: [50, 50]
+  - name: pavement
+    transform:
+      position: [-43, 0.1, 100]
+      scale: *pav_scale
+    components: *pav_components
+
+  - name: apartment
+    transform:
+      position: [-25, 0.1, 0]
+    components: &app_components
+      - id: MeshRenderer
+        model: city/ap/apartment.obj
+        instance: apartment
+  - name: apartment
+    transform:
+      position: [-25, 0.1, 45]
+    components: *app_components
+  - name: apartment
+    transform:
+      position: [-25, 0.1, 90]
+    components: *app_components
+
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 0]
+    components: &lamp_components
+      - id: MeshRenderer
+        model: city/street_light/street_light.obj
+        instance: street_light
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 15]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 30]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 45]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 60]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 75]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 90]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 105]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, 120]
+    components: *lamp_components
+  - name: lampione
+    transform:
+      position: [-5.25, 0.1, -15]
+    components: *lamp_components
 
   - name: car
     transform:
       position: [1, 0, 0]
     components:
       - id: CarController
+        enabled: true
         acceleration: 10
         breaking: 20
         deceleration: 3
@@ -139,7 +259,17 @@ Entities:
         main: true
         near: 1.0
       - id: CarCamera
+        enabled: true
         lookat_entity: cam_focus
+        controller_entity: car
+      - id: FreeController
+        enabled: false
+        moveSpeed: 20
+
+  - name: control_switcher
+    components:
+      - id: ControlSwitcher
+        camera_entity: cam
         controller_entity: car
 
   - name: scene_switcher

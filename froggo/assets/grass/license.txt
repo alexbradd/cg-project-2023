@@ -1,0 +1,6 @@
+"Stylized grass texture" (https://skfb.ly/oyyGU) by Zorak-Art is licensed under
+CC Attribution-NonCommercial-NoDerivs (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+"mrao.png" contains the following images but channel-packed:
+1. metallic.png
+2. roughness.png

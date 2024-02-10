@@ -1,3 +1,4 @@
+#include "./car_camera.hpp"
 #include "./car_controller.hpp"
 
 #include <seng/components/camera.hpp>
@@ -15,39 +16,6 @@
 #include <string>
 
 using seng::smoothDamp;
-
-class CarCamera : public seng::ScriptComponent,
-                  public seng::ConfigParsableComponent<CarCamera> {
- public:
-  CarCamera(seng::Entity &entity,
-            const std::string &lookat,
-            const std::string &controller,
-            bool enabled = true);
-  CarCamera(const CarCamera &) = delete;
-  CarCamera(CarCamera &&) = delete;
-
-  CarCamera &operator=(const CarCamera &) = delete;
-  CarCamera &operator=(CarCamera &&) = delete;
-
-  DECLARE_COMPONENT_ID("CarCamera");
-  DECLARE_CREATE_FROM_CONFIG();
-
-  void onUpdate(float deltaTime) override;
-
- private:
-  seng::Transform *m_lookat;
-  CarController *m_controller;
-  seng::Camera *m_cam;
-
-  float m_speedThresh;
-
-  float m_cacheFov;
-  float m_slowFov = glm::radians(45.0f);
-  float m_fastFov = glm::radians(50.0f);
-  float m_fovVelocity = 0.0f;
-};
-
-REGISTER_TO_CONFIG_FACTORY(CarCamera);
 
 DEFINE_CREATE_FROM_CONFIG(CarCamera, entity, node)
 {

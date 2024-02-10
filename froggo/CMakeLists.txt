@@ -7,6 +7,7 @@ target_sources(${PROJECT_NAME}
     ./src/scene_switcher.cpp
     ./src/car_camera.cpp
     ./src/car_controller.cpp
+    ./src/control_switcher.cpp
 )
 target_compile_features(${PROJECT_NAME}
   PRIVATE

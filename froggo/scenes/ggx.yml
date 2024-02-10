@@ -15,6 +15,20 @@ Entities:
     components:
       - id: SceneSwitcher
 
+  - name: grass_toon
+    transform:
+      position: [-4.0, -4.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: grass
+  - name: grass
+    transform:
+      position: [-4.0, 0.0, 0.0]
+    components:
+      - id: MeshRenderer
+        model: shader_test_sphere.obj
+        instance: pbr_grass
   - name: marble_toon
     transform:
       position: [0.0, -4.0, 0.0]
