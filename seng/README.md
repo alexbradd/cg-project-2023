@@ -30,8 +30,6 @@ Things that I want to do if I have time left before the deadline:
   - [x] Make it configurable
 - [x] Multisampling
   - [x] Make it configurable
-- [ ] Proper object IDs, not just some static `unsigned long` that gets
-      incremented every time
 - [ ] Some multithreading
 
 ## Some documentation
