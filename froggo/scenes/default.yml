@@ -81,6 +81,7 @@ Entities:
     components:
       - id: CarController
         acceleration: 10
+        breaking: 20
         deceleration: 3
         turn_rate: 2
         max_speed: 50

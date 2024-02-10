@@ -8,6 +8,7 @@ class CarController : public seng::ScriptComponent,
                       public seng::ConfigParsableComponent<CarController> {
  public:
   static constexpr float DEFAULT_ACCEL = 7.0f;
+  static constexpr float DEFAULT_BREAK = 15.0f;
   static constexpr float DEFAULT_DECEL = 0.0f;
   static constexpr float DEFAULT_TURN_RATE = 0.2f;
   static constexpr float DEFAULT_MAX_SPEED = 50.0f;
@@ -18,6 +19,7 @@ class CarController : public seng::ScriptComponent,
                 const std::string &model,
                 const std::string &body,
                 float acceleration = DEFAULT_ACCEL,
+                float breaking = DEFAULT_BREAK,
                 float deceleration = DEFAULT_DECEL,
                 float turnRate = DEFAULT_TURN_RATE,
                 float maxSpeed = DEFAULT_MAX_SPEED,
@@ -47,6 +49,7 @@ class CarController : public seng::ScriptComponent,
   seng::Transform *m_body;
 
   float m_accel;
+  float m_breaking;
   float m_decel;
   float m_turnRate;
   float m_maxSpeed;

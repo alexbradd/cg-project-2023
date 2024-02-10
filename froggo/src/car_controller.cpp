@@ -24,6 +24,7 @@ DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
   std::string model, body;
   bool enabled = true;
   float accel = DEFAULT_ACCEL;
+  float breaking = DEFAULT_BREAK;
   float decel = DEFAULT_DECEL;
   float turn = DEFAULT_TURN_RATE;
   float maxSpeed = DEFAULT_MAX_SPEED;
@@ -34,20 +35,22 @@ DEFINE_CREATE_FROM_CONFIG(CarController, entity, node)
   body = node["body_entity"].as<std::string>();
   if (node["enabled"]) enabled = node["enabled"].as<bool>();
   if (node["acceleration"]) accel = node["acceleration"].as<float>();
+  if (node["breaking"]) breaking = node["breaking"].as<float>();
   if (node["deceleration"]) decel = node["deceleration"].as<float>();
   if (node["turn_rate"]) turn = node["turn_rate"].as<float>();
   if (node["max_speed"]) maxSpeed = node["max_speed"].as<float>();
   if (node["max_pitch_deg"]) maxPitch = glm::radians(node["max_pitch_deg"].as<float>());
   if (node["max_roll_deg"]) maxRoll = glm::radians(node["max_roll_deg"].as<float>());
 
-  return std::make_unique<CarController>(entity, model, body, accel, decel, turn,
-                                         maxSpeed, maxPitch, maxRoll, enabled);
+  return std::make_unique<CarController>(entity, model, body, accel, breaking, decel,
+                                         turn, maxSpeed, maxPitch, maxRoll, enabled);
 }
 
 CarController::CarController(seng::Entity &entity,
                              const std::string &model,
                              const std::string &body,
                              float acceleration,
+                             float breaking,
                              float deceleration,
                              float turnRate,
                              float maxSpeed,
@@ -59,6 +62,7 @@ CarController::CarController(seng::Entity &entity,
   m_modelName = model;
   m_bodyName = body;
   m_accel = acceleration;
+  m_breaking = breaking;
   m_decel = deceleration;
   m_turnRate = turnRate;
   m_maxSpeed = maxSpeed;
@@ -112,11 +116,24 @@ void CarController::accelerate(float delta)
   float targetPitch;
 
   // Depending on input, calculate the target acceleration and model pitch
+  float dot = glm::dot(m_velocity, m_body->forward());
   if (input->keyHold(seng::KeyCode::eKeyW)) {
-    targetAccel = m_accel;
+    if (dot < 0.0f) {
+      // We are breaking while going in reverse
+      targetAccel = m_breaking;
+    } else {
+      // We are accelerating forwards
+      targetAccel = m_accel;
+    }
     targetPitch = -m_maxBodyPitch;
   } else if (input->keyHold(seng::KeyCode::eKeyS)) {
-    targetAccel = -m_accel;
+    if (dot > 0.0f) {
+      // We are braking while going forwaards
+      targetAccel = -m_breaking;
+    } else {
+      // We are accelerating in reverse
+      targetAccel = -m_accel;
+    }
     targetPitch = m_maxBodyPitch;
   } else {
     targetAccel = 0;
