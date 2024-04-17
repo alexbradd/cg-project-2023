@@ -5,7 +5,7 @@ For more more in-depth documentation on the engine, see the `README` inside the
 `seng` directory.
 
 This project has been developed as the final evaluation for the Computer Graphics
-course at Politecnico di Milano, a.y. 2022/2023.
+course at Politecnico di Milano, a.y. 2022/2023 (mark: 30).
 
 ## Building
 
